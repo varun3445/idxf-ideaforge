@@ -1,193 +1,192 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../integrations/supabase/client';
-import { User } from '../types/auth.types';
-import { fetchUserProfile, createUserSkill } from '../utils/auth.utils';
 
-export function useAuthProvider() {
+import { useState, useEffect } from 'react';
+import { AuthContextType, User } from '../types/auth.types';
+import { supabase } from '../integrations/supabase/client';
+
+export const useAuthProvider = (): AuthContextType => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  
-  // Use useCallback to memoize these functions and prevent unnecessary recreations
-  const login = useCallback(async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      console.log('Trying to login with:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        console.error('Login error:', error);
-        return { error };
-      }
-      
-      console.log('Login successful, user data:', data);
-      
-      if (data.user) {
-        const userProfile = await fetchUserProfile(data.user.id);
-        if (userProfile) {
-          setUser(userProfile);
-          // Force navigate to explore page
-          navigate('/explore', { replace: true });
-        }
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Login error:', error);
-      return { error: error as Error };
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
-  
-  const signup = useCallback(async (name: string, email: string, password: string, location: string, skills: string[]) => {
-    try {
-      console.log("Starting signup process", { name, email, location });
-      
-      // Sign up the user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (authError) {
-        console.error('Auth signup error:', authError);
-        return { error: authError };
-      }
-      
-      if (authData.user) {
-        console.log("User created successfully with ID:", authData.user.id);
-        
-        // After successful signup, we need to insert the profile using the authenticated user
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            name,
-            email,
-            location,
-            sex: 'male'
-          } as any);
-          
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Attempt to delete the auth user if profile creation fails
-          await supabase.auth.admin.deleteUser(authData.user.id);
-          return { error: profileError };
-        }
-        
-        console.log("Profile created successfully");
-        
-        // Insert user skills
-        for (const skillName of skills) {
-          await createUserSkill(authData.user.id, skillName);
-        }
-        
-        // Navigate to explore page after successful signup
-        navigate('/explore');
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Signup error:', error);
-      return { error: error as Error };
-    }
-  }, [navigate]);
-  
-  const logout = useCallback(async () => {
-    setLoading(true);
-    await supabase.auth.signOut();
-    setUser(null);
-    setLoading(false);
-    navigate('/');
-  }, [navigate]);
-  
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Check the current session when the component mounts
-    const checkSession = async () => {
+    const fetchSession = async () => {
       setLoading(true);
+      
       try {
-        console.log('Checking current session...');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session && session.user) {
-          console.log('Found existing session for user:', session.user.id);
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (userProfile) {
-            console.log('Setting user profile from session check:', userProfile);
-            setUser(userProfile);
-            
-            // If on login page but authenticated, redirect to explore
-            if (window.location.pathname === '/login') {
-              console.log('Redirecting from login to explore page because user is already authenticated');
-              navigate('/explore', { replace: true });
-            }
-          }
-        } else {
-          console.log('No active session found');
-          setUser(null);
-          
-          // If on a protected route but not authenticated, redirect to login
-          const currentPath = window.location.pathname;
-          if (currentPath !== '/login' && currentPath !== '/signup' && currentPath !== '/') {
-            console.log('No active session, redirecting to login');
-            navigate('/login', { replace: true });
-          }
+        if (error) {
+          throw error;
         }
-      } catch (error) {
-        console.error('Error checking session:', error);
+        
+        if (session?.user) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          }
+          
+          // Get user skills
+          const { data: skillsData, error: skillsError } = await supabase
+            .from('user_skills')
+            .select('skills(name)')
+            .eq('user_id', session.user.id);
+            
+          if (skillsError) {
+            console.error('Error fetching skills:', skillsError);
+          }
+          
+          const skills = skillsData?.map(item => item.skills.name) || [];
+          
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile?.name || '',
+            location: profile?.location || '',
+            sex: profile?.sex || 'male',
+            skills,
+            avatar: profile?.avatar || null,
+          });
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Session error:', err);
+        setError((err as Error).message);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
     
-    checkSession();
+    fetchSession();
     
-    // Set up listener for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event);
-        
-        if (event === 'SIGNED_IN' && session) {
-          setLoading(true);
-          try {
-            console.log('User signed in:', session.user.id);
-            const userProfile = await fetchUserProfile(session.user.id);
-            if (userProfile) {
-              setUser(userProfile);
-              console.log('User profile set, navigating to explore');
-              navigate('/explore', { replace: true });
-            }
-          } catch (error) {
-            console.error('Error fetching user profile:', error);
-          } finally {
-            setLoading(false);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          setUser(null);
-          setLoading(false);
-          navigate('/', { replace: true });
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event);
+      
+      if (session?.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
         }
+        
+        // Get user skills
+        const { data: skillsData, error: skillsError } = await supabase
+          .from('user_skills')
+          .select('skills(name)')
+          .eq('user_id', session.user.id);
+          
+        if (skillsError) {
+          console.error('Error fetching skills:', skillsError);
+        }
+        
+        const skills = skillsData?.map(item => item.skills.name) || [];
+        
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: profile?.name || '',
+          location: profile?.location || '',
+          sex: profile?.sex || 'male',
+          skills,
+          avatar: profile?.avatar || null,
+        });
+      } else {
+        setUser(null);
       }
-    );
+    });
     
     return () => {
-      subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
   
-  return {
-    user,
-    isAuthenticated: !!user,
-    login,
-    signup,
-    logout,
-    loading
+  const signUp = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email,
+            name,
+            location: '',
+            sex: 'male',
+          });
+          
+        if (profileError) {
+          throw profileError;
+        }
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
-}
+  
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const logout = async () => {
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return { user, signUp, signIn, logout, loading, error };
+};

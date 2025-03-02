@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
@@ -10,7 +10,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Loader2, Save, X, Plus } from 'lucide-react';
+import { Loader2, Save, X, Plus, Upload, Image as ImageIcon, Camera } from 'lucide-react';
 
 interface Skill {
   id: string;
@@ -22,15 +22,18 @@ const Profile = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
   const [sex, setSex] = useState(user?.sex || 'male');
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [customAvatar, setCustomAvatar] = useState<string | null>(user?.avatar || null);
   const [userSkills, setUserSkills] = useState<string[]>(user?.skills || []);
   const [loading, setLoading] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // Update avatar when name or sex changes
   useEffect(() => {
@@ -53,7 +56,16 @@ const Profile = () => {
     };
     
     fetchSkills();
-  }, []);
+    
+    // Fetch user's custom avatar if available
+    const fetchUserAvatar = async () => {
+      if (user?.id && user?.avatar) {
+        setCustomAvatar(user.avatar);
+      }
+    };
+    
+    fetchUserAvatar();
+  }, [user]);
 
   // Sync user state changes
   useEffect(() => {
@@ -62,8 +74,126 @@ const Profile = () => {
       setLocation(user.location || '');
       setSex(user.sex || 'male');
       setUserSkills(user.skills || []);
+      setCustomAvatar(user.avatar || null);
     }
   }, [user]);
+  
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user?.id) {
+      return;
+    }
+    
+    const file = files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUploadingImage(true);
+    
+    try {
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      // Upload the image to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('user_avatars')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL
+      const { data } = supabase.storage
+        .from('user_avatars')
+        .getPublicUrl(filePath);
+        
+      if (data && data.publicUrl) {
+        // Update the user's profile with the avatar URL
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            avatar: data.publicUrl
+          })
+          .eq('id', user.id);
+          
+        if (updateError) throw updateError;
+        
+        // Update local state
+        setCustomAvatar(data.publicUrl);
+        
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully"
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your image",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingImage(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+  
+  const handleRemoveCustomAvatar = async () => {
+    if (!user?.id || !customAvatar) return;
+    
+    setUploadingImage(true);
+    
+    try {
+      // Update the user's profile to remove the avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          avatar: null
+        })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setCustomAvatar(null);
+      
+      toast({
+        title: "Profile picture removed",
+        description: "Your custom profile picture has been removed"
+      });
+    } catch (error) {
+      console.error('Error removing avatar:', error);
+      toast({
+        title: "Operation failed",
+        description: "There was an error removing your profile picture",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +322,12 @@ const Profile = () => {
       console.error('Logout error:', error);
     }
   };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
   
   return (
     <AnimatedTransition>
@@ -209,22 +345,90 @@ const Profile = () => {
                   <CardTitle>Profile Picture</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-background">
-                    <img 
-                      src={avatar} 
-                      alt={name} 
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-background relative">
+                    {customAvatar ? (
+                      <img 
+                        src={customAvatar} 
+                        alt={name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img 
+                        src={avatar || ''} 
+                        alt={name} 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+
+                    {/* Image upload overlay button */}
+                    <button 
+                      type="button"
+                      onClick={triggerFileInput}
+                      className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                      disabled={uploadingImage}
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <Camera className="h-6 w-6 mb-1" />
+                          <span className="text-xs">Change Photo</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <p className="text-sm text-muted-foreground text-center mb-4">
-                    Profile picture is automatically generated based on your name and gender
-                  </p>
+
+                  {/* Hidden file input */}
+                  <input 
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                  
+                  <div className="flex w-full space-x-2 mb-4">
+                    <Button 
+                      type="button" 
+                      onClick={triggerFileInput}
+                      variant="outline"
+                      className="flex-1"
+                      disabled={uploadingImage}
+                    >
+                      {uploadingImage ? (
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                      ) : (
+                        <Upload size={16} className="mr-2" />
+                      )}
+                      Upload
+                    </Button>
+                    
+                    {customAvatar && (
+                      <Button 
+                        type="button" 
+                        onClick={handleRemoveCustomAvatar}
+                        variant="outline"
+                        className="flex-1"
+                        disabled={uploadingImage}
+                      >
+                        <X size={16} className="mr-2" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {!customAvatar && (
+                    <p className="text-sm text-muted-foreground text-center mb-4">
+                      Default avatar is automatically generated based on your name and gender
+                    </p>
+                  )}
                   
                   <div className="w-full mb-6">
                     <Label htmlFor="sex" className="mb-2 block">Gender for Avatar</Label>
                     <Select 
                       value={sex} 
                       onValueChange={setSex}
+                      disabled={!!customAvatar}
                     >
                       <SelectTrigger id="sex">
                         <SelectValue placeholder="Select gender for avatar" />
@@ -234,6 +438,11 @@ const Profile = () => {
                         <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
+                    {customAvatar && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Gender selection is disabled when using a custom profile picture
+                      </p>
+                    )}
                   </div>
                   
                   <Button 

@@ -63,6 +63,16 @@ const Navbar = () => {
     }
   };
 
+  // Gets the avatar source based on user information
+  const getAvatarSrc = () => {
+    if (user?.avatar) {
+      return user.avatar;
+    } else if (user?.name) {
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}&gender=${user.sex || 'male'}`;
+    }
+    return '';
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 sm:px-6 ${
@@ -99,10 +109,10 @@ const Navbar = () => {
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors overflow-hidden"
             >
-              {user?.name ? (
+              {user ? (
                 <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-                  alt={user.name}
+                  src={getAvatarSrc()}
+                  alt={user.name || 'User'}
                   className="w-full h-full object-cover"
                 />
               ) : (
