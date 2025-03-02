@@ -852,39 +852,12 @@ const Matches = () => {
   return (
     <AnimatedTransition>
       <div className="minimal-container flex flex-col min-h-screen">
-        <div className="mb-12">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold">find and</h1>
           <h1 className="text-4xl font-bold mb-8">be found.</h1>
           <p className="text-muted-foreground max-w-lg">
             Search for skilled creatives to collaborate with on your next project
           </p>
-        </div>
-        
-        <div className="mb-12 max-w-lg">
-          <div className="relative">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-              className="pl-10 py-6 pr-12 minimal-search"
-            />
-            <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-            
-            {(searching || isTyping) && (
-              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={20} />
-            )}
-            
-            {!searching && !isTyping && searchQuery.trim() && (
-              <Sparkles className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
-            )}
-          </div>
-          
-          {searchExplanation && !isTyping && !searching && (
-            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
-              <Info size={14} className="flex-shrink-0" />
-              <span>{searchExplanation}</span>
-            </div>
-          )}
         </div>
         
         {loading ? (
@@ -894,44 +867,93 @@ const Matches = () => {
           </div>
         ) : (
           <>
-            {filteredUsers.length > 0 ? (
-              <div className="mb-16">
-                <div className="relative">
-                  <div className="profile-grid">
-                    {filteredUsers.map((profile) => (
-                      <div key={profile.id} className="profile-card">
-                        <div className="profile-image">
-                          {profile.name.charAt(0)}
-                        </div>
-                        <div className="profile-name">{profile.name}</div>
-                        <div className="profile-location">{profile.location}</div>
-                        
-                        <div className="profile-skills">
-                          {profile.skills.slice(0, 3).map((skill, index) => (
-                            <span 
-                              key={`${profile.id}-${index}`} 
-                              className={`chip ${profile.skillMatch ? 'text-primary border-primary' : ''}`}
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        <div className="profile-metadata">
-                          <span>
-                            {profile.matchScore ? `${profile.matchScore}% match` : ''}
-                            {profile.isNearby && ' · nearby'}
-                          </span>
-                          <span>
-                            {profile.locationMatch && profile.skillMatch && 'Perfect match!'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+            {filteredUsers.length > 0 && (
+              <div className="mb-8 overflow-hidden">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-xl font-semibold">Profiles</h2>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => scrollResults('left')}
+                    >
+                      <ArrowLeft size={18} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => scrollResults('right')}
+                    >
+                      <ArrowRight size={18} />
+                    </Button>
                   </div>
                 </div>
+                <div 
+                  ref={resultsContainerRef}
+                  className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide"
+                >
+                  {filteredUsers.map((profile) => (
+                    <div key={profile.id} className="profile-card flex-shrink-0 w-[220px]">
+                      <div className="profile-image">
+                        {profile.name.charAt(0)}
+                      </div>
+                      <div className="profile-name">{profile.name}</div>
+                      <div className="profile-location">{profile.location}</div>
+                      
+                      <div className="profile-skills">
+                        {profile.skills.slice(0, 3).map((skill, index) => (
+                          <span 
+                            key={`${profile.id}-${index}`} 
+                            className={`chip ${profile.skillMatch ? 'text-primary border-primary' : ''}`}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      <div className="profile-metadata">
+                        <span>
+                          {profile.matchScore ? `${profile.matchScore}% match` : ''}
+                          {profile.isNearby && ' · nearby'}
+                        </span>
+                        <span>
+                          {profile.locationMatch && profile.skillMatch && 'Perfect match!'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : (
+            )}
+            
+            <div className="mb-12 max-w-2xl">
+              <div className="relative">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
+                  className="pl-12 py-8 pr-12 minimal-search text-lg"
+                />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
+                
+                {(searching || isTyping) && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
+                )}
+                
+                {!searching && !isTyping && searchQuery.trim() && (
+                  <Sparkles className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
+                )}
+              </div>
+              
+              {searchExplanation && !isTyping && !searching && (
+                <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+                  <Info size={14} className="flex-shrink-0" />
+                  <span>{searchExplanation}</span>
+                </div>
+              )}
+            </div>
+            
+            {filteredUsers.length === 0 && !loading && (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground mb-4">No matches found for your search criteria.</p>
                 <Button 
