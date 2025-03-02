@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
@@ -9,6 +9,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 
 const Login = () => {
+  const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -27,9 +28,11 @@ const Login = () => {
     setError('');
     
     try {
+      console.log('Attempting login with:', email);
       const { error } = await login(email, password);
       
       if (error) {
+        console.error('Login error:', error);
         setError(error.message);
         toast({
           title: "Login failed",
@@ -37,10 +40,13 @@ const Login = () => {
           variant: "destructive"
         });
       } else {
+        console.log('Login successful, redirecting...');
         toast({
           title: "Login successful",
           description: "Welcome back to Idea Forge!",
         });
+        // Explicitly navigate to explore page after successful login
+        navigate('/explore');
       }
     } catch (error) {
       console.error('Error during login:', error);

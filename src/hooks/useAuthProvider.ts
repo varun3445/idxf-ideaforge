@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
@@ -7,30 +6,42 @@ import { fetchUserProfile, createUserSkill } from '../utils/auth.utils';
 
 export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
   // Use useCallback to memoize these functions and prevent unnecessary recreations
   const login = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Trying to login with:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
         console.error('Login error:', error);
+        return { error };
       }
       
-      return { error };
+      console.log('Login successful, user data:', data);
+      
+      if (data.user) {
+        const userProfile = await fetchUserProfile(data.user.id);
+        if (userProfile) {
+          setUser(userProfile);
+          navigate('/explore');
+        }
+      }
+      
+      return { error: null };
     } catch (error) {
       console.error('Login error:', error);
       return { error: error as Error };
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigate]);
   
   const signup = useCallback(async (name: string, email: string, password: string, location: string, skills: string[]) => {
     try {
@@ -95,7 +106,29 @@ export function useAuthProvider() {
   }, [navigate]);
   
   useEffect(() => {
-    // Only set up listener for auth changes, don't auto-check session
+    // Check the current session when the component mounts
+    const checkSession = async () => {
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session && session.user) {
+          console.log('Found existing session for user:', session.user.id);
+          const userProfile = await fetchUserProfile(session.user.id);
+          if (userProfile) {
+            setUser(userProfile);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkSession();
+    
+    // Set up listener for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event);
@@ -103,9 +136,11 @@ export function useAuthProvider() {
         if (event === 'SIGNED_IN' && session) {
           setLoading(true);
           try {
+            console.log('User signed in:', session.user.id);
             const userProfile = await fetchUserProfile(session.user.id);
             if (userProfile) {
               setUser(userProfile);
+              navigate('/explore');
             }
           } catch (error) {
             console.error('Error fetching user profile:', error);
@@ -113,8 +148,10 @@ export function useAuthProvider() {
             setLoading(false);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
           setUser(null);
           setLoading(false);
+          navigate('/');
         }
       }
     );
@@ -122,7 +159,7 @@ export function useAuthProvider() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
   
   return {
     user,
