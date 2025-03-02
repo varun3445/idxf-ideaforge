@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Plus, X, Check } from 'lucide-react';
-import { supabase } from '../integrations/supabase/client';
 
 interface Skill {
   name: string;
@@ -38,70 +37,13 @@ const categorizeSkill = (skillName: string): string => {
   }
 };
 
-const defaultSkills: Skill[] = [
-  { name: "UX Design", color: "#EC4899" },
-  { name: "UI Design", color: "#8B5CF6" },
-  { name: "Graphic Design", color: "#3B82F6" },
-  { name: "Illustration", color: "#F59E0B" },
-  { name: "Frontend Development", color: "#10B981" },
-  { name: "Backend Development", color: "#6366F1" },
-  { name: "Game Development", color: "#EF4444" },
-  { name: "Mobile Development", color: "#8B5CF6" },
-  { name: "Product Management", color: "#F59E0B" },
-  { name: "Marketing", color: "#EC4899" },
-  { name: "3D Modeling", color: "#3B82F6" },
-  { name: "Video Editing", color: "#10B981" },
-  { name: "Animation", color: "#6366F1" },
-  { name: "Sound Design", color: "#EF4444" },
-  { name: "React", color: "#61DAFB" },
-  { name: "Node.js", color: "#68A063" },
-  { name: "JavaScript", color: "#F7DF1E" },
-  { name: "TypeScript", color: "#3178C6" },
-  { name: "Python", color: "#306998" },
-  { name: "Machine Learning", color: "#FF6F61" }
-];
-
 const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: SkillsetSelectorProps) => {
   const [activeCategory, setActiveCategory] = useState(defaultCategories[0]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  
-  useEffect(() => {
-    // Load skills from database if availableSkills is empty
-    const loadSkills = async () => {
-      if (availableSkills.length > 0) {
-        setSkills(availableSkills);
-        return;
-      }
-      
-      try {
-        const { data, error } = await supabase
-          .from('skills')
-          .select('*');
-          
-        if (error) {
-          console.error('Error loading skills:', error);
-          setSkills(defaultSkills);
-          return;
-        }
-        
-        if (data && data.length > 0) {
-          setSkills(data);
-        } else {
-          setSkills(defaultSkills);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setSkills(defaultSkills);
-      }
-    };
-    
-    loadSkills();
-  }, [availableSkills]);
   
   // Group skills by category
   const skillsByCategory = defaultCategories.reduce((acc, category) => {
-    acc[category] = skills.filter(skill => 
+    acc[category] = availableSkills.filter(skill => 
       categorizeSkill(skill.name) === category
     );
     return acc;
@@ -120,22 +62,22 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   };
   
   return (
-    <div className="border border-border rounded-md p-4 space-y-4 bg-card">
-      <div className="mb-2">
-        <h3 className="text-sm font-medium mb-2">Selected Skills</h3>
+    <div className="glassmorphic-card">
+      <div className="mb-6">
+        <h3 className="text-lg font-medium mb-3">Selected Skills</h3>
         
         {selectedSkills.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Select skills to find creatives with matching abilities
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {selectedSkills.map(skill => {
-              const skillInfo = skills.find(s => s.name === skill);
+              const skillInfo = availableSkills.find(s => s.name === skill);
               return (
                 <div 
                   key={skill} 
-                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-full"
+                  className="chip flex items-center gap-1 pr-1"
                   style={{ backgroundColor: skillInfo?.color || '#6366F1', color: '#fff' }}
                 >
                   <span>{skill}</span>
@@ -155,21 +97,21 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
       <div className="relative">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center justify-center gap-2 px-4 py-2 w-full text-sm border border-input rounded-md hover:bg-accent hover:text-accent-foreground"
+          className="button-secondary flex items-center justify-center gap-2 w-full"
         >
-          <Plus size={16} />
+          <Plus size={18} />
           <span>{isExpanded ? 'Close Skill Selector' : 'Add Skills'}</span>
         </button>
         
         {isExpanded && (
-          <div className="absolute top-full left-0 right-0 mt-2 p-4 border border-border rounded-md bg-card shadow-lg z-10">
+          <div className="absolute top-full left-0 right-0 mt-2 glassmorphic-card z-10">
             <div className="flex gap-1 mb-4 overflow-x-auto pb-2 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`px-3 py-1 text-xs rounded-md whitespace-nowrap ${
-                    activeCategory === category ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+                  className={`chip whitespace-nowrap ${
+                    activeCategory === category ? 'chip-active' : ''
                   }`}
                 >
                   {category}
