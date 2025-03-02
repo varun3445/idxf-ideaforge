@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -864,4 +865,126 @@ const Matches = () => {
               placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
               className="pl-10 py-6 pr-12"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </div>
+            
+            {isTyping && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary animate-pulse">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+            )}
+            
+            {!isTyping && searchQuery && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary">
+                <Sparkles className="h-5 w-5" />
+              </div>
+            )}
+          </div>
+          
+          {searchExplanation && (
+            <div className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <p>{searchExplanation}</p>
+            </div>
+          )}
+        </div>
+        
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+            <p className="text-muted-foreground">Finding your perfect matches...</p>
+          </div>
+        ) : (
+          <>
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-12 max-w-md mx-auto">
+                <p className="text-lg mb-2">No matches found</p>
+                <p className="text-muted-foreground mb-6">
+                  Try adjusting your search or explore other creative talents
+                </p>
+                <Button onClick={() => setSearchQuery('')}>Reset Search</Button>
+              </div>
+            ) : (
+              <div className="matches-grid">
+                {filteredUsers.map((profile) => (
+                  <Card key={profile.id} className="match-card">
+                    <div 
+                      className="match-card-image-container"
+                      style={{ 
+                        position: 'relative',
+                        width: '100%',
+                        paddingBottom: '100%',
+                        backgroundColor: '#0A0A0A'
+                      }}
+                    >
+                      <div 
+                        className="match-card-image-placeholder"
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#39FF14',
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {profile.name.charAt(0)}
+                      </div>
+                    </div>
+                    
+                    <div className="match-card-title">{profile.name}</div>
+                    <div className="match-card-subtitle">{profile.location}</div>
+                    
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {profile.skills.slice(0, 3).map((skill, i) => (
+                        <span 
+                          key={`${profile.id}-skill-${i}`} 
+                          className="chip"
+                          style={{ 
+                            backgroundColor: profile.skillMatch ? 'rgba(57, 255, 20, 0.2)' : undefined,
+                            borderColor: profile.skillMatch ? 'rgba(57, 255, 20, 0.3)' : undefined,
+                          }}
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {profile.skills.length > 3 && (
+                        <span className="chip">+{profile.skills.length - 3}</span>
+                      )}
+                    </div>
+                    
+                    <div className="match-card-meta">
+                      {profile.matchScore ? (
+                        <div className="flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-primary" />
+                          <span>{profile.matchScore}% match</span>
+                          
+                          {profile.locationMatch && (
+                            <span className="ml-auto text-primary">nearby</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span>Creative Match</span>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        
+        <Footer />
+      </div>
+    </AnimatedTransition>
+  );
+};
+
+export default Matches;
