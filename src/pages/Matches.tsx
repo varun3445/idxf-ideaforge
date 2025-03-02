@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import AnimatedTransition from '../components/AnimatedTransition';
@@ -24,6 +23,7 @@ interface Person {
   avatar?: string;
   skills: string[];
   bio: string;
+  location?: string;
   match_percentage?: number;
   distance?: number;
 }
@@ -45,7 +45,6 @@ const Matches = () => {
   });
 
   useEffect(() => {
-    // Get user's current location if browser supports geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -73,9 +72,8 @@ const Matches = () => {
     }
   }, [toast]);
 
-  // Calculate distance between two points using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
@@ -83,7 +81,7 @@ const Matches = () => {
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
+    const distance = R * c;
     return distance;
   };
 
@@ -96,7 +94,6 @@ const Matches = () => {
     
     setIsLoading(true);
     try {
-      // We can't directly query skills from profiles, we need to get them from user_skills
       const { data: userSkillsData, error: userSkillsError } = await supabase
         .from('user_skills')
         .select('skills(name)')
@@ -106,7 +103,6 @@ const Matches = () => {
       
       const userSkills = userSkillsData.map(item => item.skills?.name).filter(Boolean) as string[];
       
-      // Search functionality with OpenAI integration
       if (searchQuery.trim() !== '') {
         const { data: searchResults, error: searchError } = await supabase
           .functions.invoke('search-with-ai', {
@@ -119,7 +115,6 @@ const Matches = () => {
 
         if (searchError) throw searchError;
         
-        // Format and set the matches
         setMatches({
           people: searchResults.people || [],
           projects: searchResults.projects || []
@@ -127,9 +122,6 @@ const Matches = () => {
         
         console.log("AI search results:", searchResults);
       } else {
-        // If no search query, fetch regular matches based on skills
-        
-        // Fetch other users with similar skills
         const { data: peopleData, error: peopleError } = await supabase
           .from('profiles')
           .select('id, name, avatar, location')
@@ -137,11 +129,10 @@ const Matches = () => {
           
         if (peopleError) throw peopleError;
         
-        // For each person, get their skills
         const peopleWithSkills = await Promise.all(
           (peopleData || []).map(async (person) => {
             if (!person || typeof person !== 'object' || !('id' in person)) {
-              return null; // Skip invalid entries
+              return null;
             }
             
             const { data: personSkillsData } = await supabase
@@ -153,8 +144,7 @@ const Matches = () => {
               .map(item => item.skills?.name)
               .filter(Boolean) as string[];
               
-            // Create a bio field if it doesn't exist in the profile
-            const bio = "Skilled professional"; // Default bio
+            const bio = "Skilled professional";
               
             return {
               ...person,
@@ -164,17 +154,14 @@ const Matches = () => {
           })
         );
         
-        // Filter out null values and cast to Person[]
         const validPeople = peopleWithSkills.filter(Boolean) as Person[];
         
-        // Calculate match percentage and sort by it
         const peopleWithMatches = validPeople.map((person) => {
           const personSkills = person.skills || [];
           const matchCount = personSkills.filter(skill => userSkills.includes(skill)).length;
           const maxSkills = Math.max(userSkills.length, personSkills.length);
           const matchPercentage = maxSkills > 0 ? Math.round((matchCount / maxSkills) * 100) : 0;
           
-          // Calculate distance if near me is selected and both locations are available
           let distance = Infinity;
           if (isNearMe && userLocation && person.location) {
             try {
@@ -199,26 +186,20 @@ const Matches = () => {
           };
         });
         
-        // Sort based on match and optionally distance
         const sortedPeople = [...peopleWithMatches].sort((a, b) => {
           if (isNearMe) {
-            // If nearMe, prioritize people within reasonable distance (50km) with good match
             const aIsNear = a.distance && a.distance < 50;
             const bIsNear = b.distance && b.distance < 50;
             
             if (aIsNear && !bIsNear) return -1;
             if (!aIsNear && bIsNear) return 1;
             if (aIsNear && bIsNear) {
-              // Both nearby, use match percentage as secondary sort
               return (b.match_percentage || 0) - (a.match_percentage || 0);
             }
           }
-          // Default to sorting by match percentage
           return (b.match_percentage || 0) - (a.match_percentage || 0);
         });
         
-        // Since Supabase doesn't have a projects table yet, we'll mock some project data
-        // This would normally be replaced with a real query to the projects table
         const mockProjects = [
           {
             id: "1",
@@ -240,7 +221,6 @@ const Matches = () => {
           }
         ];
         
-        // Calculate project match percentages
         const projectsWithMatches = mockProjects.map((project) => {
           const projectSkills = project.skills_required || [];
           const matchCount = projectSkills.filter(skill => userSkills.includes(skill)).length;
@@ -276,7 +256,6 @@ const Matches = () => {
 
   useEffect(() => {
     fetchMatches();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isNearMe]);
 
   const handleSearch = (e: React.FormEvent) => {
