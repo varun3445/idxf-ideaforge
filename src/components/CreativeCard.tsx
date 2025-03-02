@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
-import { BarChart2, MapPin, ArrowRight } from 'lucide-react';
+import { BarChart2, MapPin, ArrowRight, Search } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface Creative {
@@ -12,7 +12,7 @@ interface Creative {
   avatar: string;
   skills: string[];
   location: string;
-  sex?: string; // Add sex field
+  sex?: string;
   isNearby?: boolean;
   matchScore?: number;
   portfolio: Array<{
@@ -96,9 +96,9 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
         <div className="mt-auto pt-4 border-t border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <BarChart2 size={16} className="text-primary" />
+              <Search size={16} className="text-primary" />
               <div className="text-sm">
-                <span className="text-muted-foreground">Match: </span>
+                <span className="text-muted-foreground">Search match: </span>
                 <span className="font-medium">{displayMatchScore}%</span>
               </div>
             </div>

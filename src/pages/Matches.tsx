@@ -89,7 +89,7 @@ const Matches = () => {
 
     try {
       if (!query.trim()) {
-        setFilteredUsers(matchedUsers);
+        setFilteredUsers(matchedUsers.map(profile => ({...profile, matchScore: undefined})));
         return;
       }
 
@@ -129,19 +129,40 @@ const Matches = () => {
       
       const query = searchQuery.toLowerCase().trim();
       const filtered = matchedUsers.filter(profile => {
-        const hasMatchingSkill = profile.skills.some(skill => 
-          skill.toLowerCase().includes(query)
+        const queryWords = query.split(/\s+/).filter(word => word.length > 1);
+        
+        const skillMatches = profile.skills.filter(skill => 
+          queryWords.some(word => skill.toLowerCase().includes(word))
         );
         
-        const nameMatch = profile.name.toLowerCase().includes(query);
+        const nameWords = profile.name.toLowerCase().split(/\s+/);
+        const nameMatches = nameWords.filter(nameWord => 
+          queryWords.some(queryWord => nameWord.includes(queryWord))
+        );
         
-        const locationMatch = calculateLocationSimilarity(profile.location, query);
+        const locationWords = profile.location.toLowerCase().split(/[,\s]+/).filter(Boolean);
+        const locationMatches = locationWords.filter(locWord => 
+          queryWords.some(queryWord => locWord.includes(queryWord) || queryWord.includes(locWord))
+        );
         
-        return hasMatchingSkill || nameMatch || locationMatch;
-      }).map(profile => {
-        const score = Math.floor(Math.random() * 30) + 70;
-        return { ...profile, matchScore: score };
-      });
+        const hasAnyMatch = skillMatches.length > 0 || nameMatches.length > 0 || locationMatches.length > 0;
+        
+        if (hasAnyMatch) {
+          const skillScore = skillMatches.length > 0 ? 
+            Math.min(50, (skillMatches.length / profile.skills.length) * 50) : 0;
+          
+          const nameScore = nameMatches.length > 0 ? 20 : 0;
+          
+          const locationScore = locationMatches.length > 0 ? 
+            Math.min(30, (locationMatches.length / locationWords.length) * 30) : 0;
+          
+          profile.matchScore = Math.round(skillScore + nameScore + locationScore);
+          
+          return true;
+        }
+        
+        return false;
+      }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
       
       setFilteredUsers(filtered);
       
@@ -362,29 +383,8 @@ const Matches = () => {
           };
         });
         
-        const withDistanceAndScore = usersWithSkills.map(profile => {
-          const isNearby = calculateLocationSimilarity(user.location, profile.location);
-          
-          const userSkillSet = new Set(user.skills || []);
-          const profileSkillSet = new Set(profile.skills || []);
-          const commonSkills = [...userSkillSet].filter(skill => profileSkillSet.has(skill));
-          
-          const locationScore = isNearby ? 50 : 30;
-          const skillScore = userSkillSet.size > 0 
-            ? Math.min(50, Math.floor((commonSkills.length / userSkillSet.size) * 50))
-            : 25;
-          
-          return {
-            ...profile,
-            distance: isNearby ? 1 : 0,
-            matchScore: locationScore + skillScore
-          };
-        });
-        
-        withDistanceAndScore.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
-        
-        setMatchedUsers(withDistanceAndScore);
-        setFilteredUsers(withDistanceAndScore);
+        setMatchedUsers(usersWithSkills);
+        setFilteredUsers(usersWithSkills);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({
@@ -473,11 +473,11 @@ const Matches = () => {
                   avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
                   skills: profile.skills,
                   location: profile.location,
-                  isNearby: !!profile.distance,
+                  isNearby: profile.distance === 1,
                   matchScore: profile.matchScore,
                   portfolio: []
                 }}
-                showMatchScore={true}
+                showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined}
               />
             ))}
           </div>
