@@ -17,21 +17,19 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loginAttempted, setLoginAttempted] = useState(false);
 
+  // Debug log for auth state
   useEffect(() => {
-    // Redirect authenticated users
+    console.log('Auth state:', { isAuthenticated, authLoading });
+  }, [isAuthenticated, authLoading]);
+
+  // Redirect authenticated users
+  useEffect(() => {
     if (isAuthenticated && !authLoading) {
+      console.log('User is authenticated, redirecting to explore');
       navigate('/explore');
     }
   }, [isAuthenticated, authLoading, navigate]);
-
-  // Handle redirect after login attempt when auth state changes
-  useEffect(() => {
-    if (loginAttempted && !loading && !error && isAuthenticated) {
-      navigate('/explore');
-    }
-  }, [loginAttempted, loading, error, isAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -41,13 +39,13 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setLoginAttempted(false);
     
     try {
       console.log('Starting login process...');
       const { error } = await login(email, password);
       
       if (error) {
+        console.error('Login error:', error);
         setError(error.message);
         toast({
           title: "Login failed",
@@ -55,11 +53,20 @@ const Login = () => {
           variant: "destructive"
         });
       } else {
+        console.log('Login successful');
         toast({
           title: "Login successful",
           description: "Redirecting you to the app...",
         });
-        setLoginAttempted(true);
+        
+        // Immediately check if we can navigate
+        if (isAuthenticated) {
+          console.log('Already authenticated, redirecting now');
+          navigate('/explore');
+        } else {
+          console.log('Waiting for auth state to update');
+          // We'll let the useEffect handle the redirect once auth state updates
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -138,7 +145,7 @@ const Login = () => {
             {loading || authLoading ? (
               <>
                 <Loader2 size={16} className="mr-1 animate-spin" />
-                {loginAttempted ? 'Redirecting...' : 'Logging in...'}
+                {isAuthenticated ? 'Redirecting...' : 'Logging in...'}
               </>
             ) : (
               "Sign in"

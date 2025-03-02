@@ -17,7 +17,16 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: localStorage, // Explicitly set localStorage
+      storageKey: 'supabase.auth.token' // Explicitly name the storage key
     }
   }
 );
+
+// Debug function to check auth state
+export const checkAuthState = async () => {
+  const { data, error } = await supabase.auth.getSession();
+  console.log('Current auth state:', data, error);
+  return { data, error };
+};
