@@ -46,10 +46,11 @@ serve(async (req) => {
           { 
             role: 'system', 
             content: `You are an AI assistant helping to find matching profiles for collaboration.
-            You will receive a user query and a list of profiles with their skills.
-            Return ONLY profile IDs that match the query based on skills, location, or other relevant criteria.
-            VERY IMPORTANT: You must respond with a JSON array containing ONLY the matching profile IDs, nothing else.
-            If the search is ambiguous, interpret it as a search for skills.`
+            Analyze the user's search query and find relevant profiles based on skills, location, or other criteria.
+            For each profile, calculate a match percentage (0-100) based on how well it matches the query.
+            Return a JSON object with two properties:
+            1. "matchingProfiles": an array of objects with "id" and "matchScore" (percentage as a number)
+            2. "searchExplanation": a brief explanation of how you interpreted the search`
           },
           { 
             role: 'user', 
@@ -66,41 +67,43 @@ serve(async (req) => {
       throw new Error('Invalid response from OpenAI');
     }
 
-    // Extract the JSON array of IDs from the response
+    // Extract the JSON response from OpenAI
     const content = data.choices[0].message.content.trim();
-    let matchingIds;
+    let aiResponse;
     
     try {
-      // Try to parse the response as a JSON array
-      matchingIds = JSON.parse(content);
+      // Try to parse the response as JSON
+      aiResponse = JSON.parse(content);
       
-      // Ensure the response is an array
-      if (!Array.isArray(matchingIds)) {
-        throw new Error('Response is not an array');
+      // Ensure the expected properties exist
+      if (!aiResponse.matchingProfiles || !Array.isArray(aiResponse.matchingProfiles)) {
+        throw new Error('Response does not contain matchingProfiles array');
       }
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
+      console.log('Raw response:', content);
       
-      // Fallback: try to extract array from the text (in case AI included explanation)
-      const arrayMatch = content.match(/\[(.*)\]/s);
-      if (arrayMatch) {
-        try {
-          matchingIds = JSON.parse(arrayMatch[0]);
-        } catch {
-          // If all else fails, return an empty array
-          matchingIds = [];
-        }
-      } else {
-        matchingIds = [];
-      }
+      // Return a simple error response
+      return new Response(JSON.stringify({ 
+        error: 'Failed to parse AI response',
+        matchingProfiles: [],
+        searchExplanation: 'Error processing your search'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
     }
 
-    return new Response(JSON.stringify({ matchingIds }), {
+    return new Response(JSON.stringify(aiResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in search-with-ai function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      matchingProfiles: [],
+      searchExplanation: 'An error occurred while processing your search'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

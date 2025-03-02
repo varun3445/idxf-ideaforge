@@ -1,12 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
-import { Search, Loader2, Sparkles } from 'lucide-react';
+import { Search, Loader2, Sparkles, Info } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { Input } from '../components/ui/input';
+import { Card, CardContent } from '../components/ui/card';
 import crypto from 'crypto';
 
 interface Skill {
@@ -33,12 +33,14 @@ const Matches = () => {
   const [matchedUsers, setMatchedUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAiSearching, setIsAiSearching] = useState(false);
-  const [searchMode, setSearchMode] = useState<'regular' | 'ai'>('regular');
+  const [searching, setSearching] = useState(false);
+  const [searchExplanation, setSearchExplanation] = useState<string | null>(null);
   
   const calculateLocationSimilarity = (location1: string, location2: string) => {
-    const location1Parts = location1.toLowerCase().split(',').map(p => p.trim());
-    const location2Parts = location2.toLowerCase().split(',').map(p => p.trim());
+    if (!location1 || !location2) return false;
+    
+    const location1Parts = location1.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
+    const location2Parts = location2.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     
     for (const part1 of location1Parts) {
       for (const part2 of location2Parts) {
@@ -76,50 +78,26 @@ const Matches = () => {
     
     fetchSkills();
   }, []);
-  
-  // Filter users based on search query
-  useEffect(() => {
-    if (searchMode === 'ai') {
-      return; // Skip regular filtering when AI mode is active
-    }
-    
-    if (!searchQuery.trim()) {
-      setFilteredUsers(matchedUsers);
-      return;
-    }
-    
-    const query = searchQuery.toLowerCase().trim();
-    const filtered = matchedUsers.filter(profile => {
-      // Search in skills
-      const hasMatchingSkill = profile.skills.some(skill => 
-        skill.toLowerCase().includes(query)
-      );
-      
-      // Search in name
-      const nameMatch = profile.name.toLowerCase().includes(query);
-      
-      // Search in location
-      const locationMatch = profile.location.toLowerCase().includes(query);
-      
-      return hasMatchingSkill || nameMatch || locationMatch;
-    });
-    
-    setFilteredUsers(filtered);
-  }, [searchQuery, matchedUsers, searchMode]);
 
-  const performAiSearch = async () => {
-    if (!searchQuery.trim() || !matchedUsers.length) {
-      setFilteredUsers(matchedUsers);
+  const performSearch = async (query: string) => {
+    if (!matchedUsers.length) {
       return;
     }
 
-    setIsAiSearching(true);
-    setSearchMode('ai');
+    setSearching(true);
+    setSearchExplanation(null);
 
     try {
+      // If the query is empty, show all users
+      if (!query.trim()) {
+        setFilteredUsers(matchedUsers);
+        return;
+      }
+
+      // Use the AI search for all queries
       const { data, error } = await supabase.functions.invoke('search-with-ai', {
         body: {
-          query: searchQuery,
+          query,
           profiles: matchedUsers,
         },
       });
@@ -128,71 +106,69 @@ const Matches = () => {
         throw error;
       }
 
-      const { matchingIds } = data;
+      // Process the AI response
+      const { matchingProfiles, searchExplanation } = data;
       
-      if (Array.isArray(matchingIds) && matchingIds.length > 0) {
-        const aiFiltered = matchedUsers.filter(profile => 
-          matchingIds.includes(profile.id)
-        );
-        setFilteredUsers(aiFiltered);
+      if (Array.isArray(matchingProfiles) && matchingProfiles.length > 0) {
+        // Map the AI results to our user profiles with match scores
+        const profilesWithScores = matchedUsers
+          .map(profile => {
+            const match = matchingProfiles.find(m => m.id === profile.id);
+            return {
+              ...profile,
+              matchScore: match ? match.matchScore : 0
+            };
+          })
+          .filter(profile => profile.matchScore > 0)
+          .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+        
+        setFilteredUsers(profilesWithScores);
+        setSearchExplanation(searchExplanation || null);
       } else {
-        // If no matches or invalid response, show empty results
+        // If no matches, show empty results
         setFilteredUsers([]);
+        setSearchExplanation(searchExplanation || "No profiles match your search criteria");
       }
     } catch (error) {
       console.error('Error using AI search:', error);
-      toast({
-        title: "AI Search Failed",
-        description: "There was an error processing your search with AI. Falling back to regular search.",
-        variant: "destructive"
-      });
-      // Fall back to regular search
-      setSearchMode('regular');
       
-      // Trigger the regular search effect
+      // Fall back to simple text matching as a backup
       const query = searchQuery.toLowerCase().trim();
       const filtered = matchedUsers.filter(profile => {
+        // Search in skills
         const hasMatchingSkill = profile.skills.some(skill => 
           skill.toLowerCase().includes(query)
         );
+        
+        // Search in name
         const nameMatch = profile.name.toLowerCase().includes(query);
-        const locationMatch = profile.location.toLowerCase().includes(query);
+        
+        // Improved location matching using the similarity function
+        const locationMatch = calculateLocationSimilarity(profile.location, query);
+        
         return hasMatchingSkill || nameMatch || locationMatch;
       });
+      
       setFilteredUsers(filtered);
+      
+      toast({
+        title: "Simple search mode",
+        description: "AI search is unavailable. Using basic text matching instead.",
+        variant: "default"
+      });
     } finally {
-      setIsAiSearching(false);
+      setSearching(false);
     }
   };
 
-  // Handle search input changes
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value;
-    setSearchQuery(newQuery);
+  // Handle search input changes with debounce
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 500);
     
-    // Reset to regular search mode when query is empty
-    if (!newQuery.trim()) {
-      setFilteredUsers(matchedUsers);
-      setSearchMode('regular');
-    } else {
-      // Set a small delay for AI search to avoid too many requests
-      if (searchMode === 'ai') {
-        const delaySearch = setTimeout(() => {
-          performAiSearch();
-        }, 800);
-        
-        return () => clearTimeout(delaySearch);
-      }
-    }
-  };
-
-  // Handle search form submission
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      performAiSearch();
-    }
-  };
+    return () => clearTimeout(delaySearch);
+  }, [searchQuery, matchedUsers]);
   
   useEffect(() => {
     const addSampleUsers = async () => {
@@ -434,37 +410,39 @@ const Matches = () => {
         </div>
         
         <div className="mb-8 max-w-xl mx-auto">
-          <form onSubmit={handleSearchSubmit} className="relative">
+          <div className="relative">
             <Input
               value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search by skill, name, location or ask AI (e.g., 'Find designers in Europe')..."
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by skill, name, or location or ask naturally (e.g., 'designers in Bengaluru')..."
               className="pl-10 py-6 pr-12"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-              {isAiSearching ? (
+              {searching ? (
                 <Loader2 size={18} className="animate-spin text-primary" />
               ) : (
                 <Search size={18} />
               )}
             </div>
             
-            <button 
-              type="submit"
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full 
-                ${searchMode === 'ai' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'} 
-                transition-colors`}
-              title="Use AI for this search"
+            <div 
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full 
+                bg-primary text-primary-foreground"
+              title="AI-powered search"
             >
               <Sparkles size={18} />
-            </button>
-          </form>
-          
-          {searchMode === 'ai' && searchQuery.trim() && (
-            <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
-              <Sparkles size={12} className="text-primary" />
-              <span>AI-powered search is active</span>
             </div>
+          </div>
+          
+          {searchExplanation && searchQuery.trim() && (
+            <Card className="mt-3 bg-muted/40 border-muted">
+              <CardContent className="p-3 text-sm flex gap-2 items-start">
+                <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-muted-foreground">{searchExplanation}</p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
         
@@ -477,7 +455,7 @@ const Matches = () => {
           </div>
         </div>
         
-        {loading || isAiSearching ? (
+        {loading || searching ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 size={32} className="animate-spin text-primary" />
           </div>
@@ -495,9 +473,10 @@ const Matches = () => {
                   skills: profile.skills,
                   location: profile.location,
                   isNearby: !!profile.distance,
+                  matchScore: profile.matchScore,
                   portfolio: []
                 }}
-                showMatchScore={false}
+                showMatchScore={!!searchQuery.trim()}
               />
             ))}
           </div>
@@ -505,7 +484,7 @@ const Matches = () => {
           <div className="glassmorphic-card text-center py-12">
             <h3 className="text-lg font-medium mb-2">No matches found</h3>
             <p className="text-muted-foreground">
-              Try searching with different keywords or asking a more general question
+              Try searching with different keywords or phrasing your question differently
             </p>
           </div>
         )}
