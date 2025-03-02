@@ -22,10 +22,9 @@ export const supabase = createClient<Database>(
       storageKey: 'supabase.auth.token'
     },
     global: {
-      fetch: (...args) => {
+      fetch: (url, options) => {
         // Using a more efficient fetch with caching strategy
-        const customFetch = fetch(...args);
-        return customFetch;
+        return fetch(url, options);
       }
     },
     realtime: {
