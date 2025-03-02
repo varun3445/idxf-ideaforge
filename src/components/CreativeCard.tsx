@@ -12,6 +12,7 @@ interface Creative {
   avatar: string;
   skills: string[];
   location: string;
+  sex?: string; // Add sex field
   isNearby?: boolean;
   matchScore?: number;
   portfolio: Array<{
@@ -34,6 +35,9 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
     return bio.slice(0, limit) + '...';
   };
 
+  // Use sex for avatar if available, default to seed-based avatar
+  const avatarSrc =  `https://api.dicebear.com/7.x/avataaars/svg?seed=${creative.name}&gender=${creative.sex || 'male'}`;
+
   return (
     <GlassmorphicCard
       className="h-full flex flex-col relative overflow-hidden"
@@ -50,7 +54,7 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
       <div className="flex items-center gap-4 mb-4">
         <div className="relative flex-shrink-0">
           <img 
-            src={creative.avatar} 
+            src={avatarSrc} 
             alt={creative.name} 
             className="w-12 h-12 rounded-full object-cover"
           />

@@ -9,6 +9,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Loader2, Save, X, Plus } from 'lucide-react';
 
 interface Skill {
@@ -24,11 +25,17 @@ const Profile = () => {
   
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
-  const [avatar, setAvatar] = useState(`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name}`);
+  const [sex, setSex] = useState(user?.sex || 'male');
+  const [avatar, setAvatar] = useState('');
   const [userSkills, setUserSkills] = useState<string[]>(user?.skills || []);
   const [loading, setLoading] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+  
+  // Update avatar when name or sex changes
+  useEffect(() => {
+    setAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}&gender=${sex}`);
+  }, [name, sex]);
   
   useEffect(() => {
     const fetchSkills = async () => {
@@ -60,7 +67,8 @@ const Profile = () => {
         .from('profiles')
         .update({
           name,
-          location
+          location,
+          sex
         })
         .eq('id', user.id);
         
@@ -198,13 +206,29 @@ const Profile = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Profile picture is automatically generated based on your name
+                  <p className="text-sm text-muted-foreground text-center mb-4">
+                    Profile picture is automatically generated based on your name and gender
                   </p>
+                  
+                  <div className="w-full mb-6">
+                    <Label htmlFor="sex" className="mb-2 block">Gender for Avatar</Label>
+                    <Select 
+                      value={sex} 
+                      onValueChange={setSex}
+                    >
+                      <SelectTrigger id="sex">
+                        <SelectValue placeholder="Select gender for avatar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
                   <Button 
                     variant="destructive" 
-                    className="mt-8 w-full"
+                    className="mt-4 w-full"
                     onClick={handleLogout}
                   >
                     Log out
