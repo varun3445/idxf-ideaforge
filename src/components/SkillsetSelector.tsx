@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Plus, X, Check } from 'lucide-react';
+import { Plus, X, Check, Circle, CircleCheck } from 'lucide-react';
 
 interface Skill {
   name: string;
@@ -90,21 +90,21 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
             Select skills to find creatives with matching abilities
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {selectedSkills.map(skill => {
               const skillInfo = skillsToUse.find(s => s.name === skill);
               return (
                 <div 
                   key={skill} 
-                  className="chip flex items-center gap-1 pr-1"
+                  className="chip flex items-center gap-2 py-1.5 px-3 rounded-full"
                   style={{ backgroundColor: skillInfo?.color || '#6366F1', color: '#fff' }}
                 >
                   <span>{skill}</span>
                   <button
                     onClick={() => handleRemoveSkill(skill)}
-                    className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
                   >
-                    <X size={12} />
+                    <X size={14} />
                   </button>
                 </div>
               );
@@ -124,12 +124,12 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         
         {isExpanded && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-50">
-            <div className="flex gap-1 mb-4 overflow-x-auto pb-2 scrollbar-thin">
+            <div className="flex gap-2 mb-4 overflow-x-auto py-2 pb-3 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`chip whitespace-nowrap ${
+                  className={`chip whitespace-nowrap px-4 py-1.5 ${
                     activeCategory === category ? 'chip-active' : ''
                   }`}
                 >
@@ -138,7 +138,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
               ))}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-2">
               {skillsByCategory[activeCategory]?.map(skill => {
                 const isSelected = selectedSkills.includes(skill.name);
                 return (
@@ -146,17 +146,18 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                     key={skill.name}
                     onClick={() => handleToggleSkill(skill.name)}
                     className={`
-                      text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2
-                      ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-secondary/10'}
+                      text-left px-4 py-3 rounded-full transition-colors flex items-center gap-3
+                      ${isSelected ? 'bg-primary/10 text-primary border border-primary/30' : 'hover:bg-secondary/10 border border-border'}
                     `}
                   >
-                    <div className={`
-                      w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center
-                      ${isSelected ? 'border-primary bg-primary/10' : 'border-muted-foreground'}
-                    `}>
-                      {isSelected && <Check size={12} className="text-primary" />}
+                    <div className="flex-shrink-0">
+                      {isSelected ? (
+                        <CircleCheck size={20} className="text-primary" />
+                      ) : (
+                        <Circle size={20} className="text-muted-foreground" />
+                      )}
                     </div>
-                    <span>{skill.name}</span>
+                    <span className="font-medium">{skill.name}</span>
                   </button>
                 );
               })}
