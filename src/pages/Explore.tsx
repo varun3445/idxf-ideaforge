@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,9 +12,11 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PortfolioItem {
   id: string;
@@ -21,6 +24,9 @@ interface PortfolioItem {
   description: string;
   imageUrl: string;
   creator: string;
+  collaborators?: number;
+  category?: string;
+  techStack?: string[];
 }
 
 const Explore = () => {
@@ -29,47 +35,67 @@ const Explore = () => {
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
     {
       id: '1',
-      title: 'AI-Powered Art Generator',
-      description: 'A web app that generates unique art pieces based on user prompts using the latest AI models.',
-      imageUrl: '/placeholder-image.jpg',
+      title: 'AI-Powered Visual Design Assistant',
+      description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
+      imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
       creator: 'Alice Wonderland',
+      collaborators: 5,
+      category: 'AI & Design',
+      techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js']
     },
     {
       id: '2',
-      title: 'Decentralized Social Media Platform',
-      description: 'A social media platform built on blockchain technology, ensuring user data privacy and content ownership.',
-      imageUrl: '/placeholder-image.jpg',
-      creator: 'Bob The Builder',
+      title: 'Decentralized Creative Marketplace',
+      description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
+      imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
+      creator: 'Bob Builder',
+      collaborators: 3,
+      category: 'Web3',
+      techStack: ['Solidity', 'React', 'IPFS', 'Ethereum']
     },
     {
       id: '3',
-      title: 'Smart Home Automation System',
-      description: 'An integrated system that automates home functions like lighting, temperature, and security using IoT devices.',
-      imageUrl: '/placeholder-image.jpg',
-      creator: 'Charlie Chaplin',
+      title: 'Immersive Learning Environment',
+      description: 'A VR-based educational platform that creates interactive, spatial learning experiences for complex subjects.',
+      imageUrl: 'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?q=80&w=1170&auto=format&fit=crop',
+      creator: 'Charlie Chen',
+      collaborators: 8,
+      category: 'Education',
+      techStack: ['Unity', 'WebXR', 'Three.js', 'Node.js']
     },
     {
       id: '4',
-      title: 'AI-Powered Art Generator',
-      description: 'A web app that generates unique art pieces based on user prompts using the latest AI models.',
-      imageUrl: '/placeholder-image.jpg',
-      creator: 'Alice Wonderland',
+      title: 'Sustainable Design Calculator',
+      description: 'A tool that helps designers measure and optimize the environmental impact of their digital and physical products.',
+      imageUrl: 'https://images.unsplash.com/photo-1516535794938-6f3426ecacba?q=80&w=1206&auto=format&fit=crop',
+      creator: 'Dana Davis',
+      collaborators: 2,
+      category: 'Sustainability',
+      techStack: ['React', 'Python', 'D3.js', 'PostgreSQL']
     },
     {
       id: '5',
-      title: 'Decentralized Social Media Platform',
-      description: 'A social media platform built on blockchain technology, ensuring user data privacy and content ownership.',
-      imageUrl: '/placeholder-image.jpg',
-      creator: 'Bob The Builder',
+      title: 'Collaborative Audio Workspace',
+      description: 'A platform for remote music production and audio engineering teams to work together in real-time.',
+      imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1170&auto=format&fit=crop',
+      creator: 'Eddie Evans',
+      collaborators: 6,
+      category: 'Music & Audio',
+      techStack: ['WebRTC', 'Web Audio API', 'React', 'Node.js']
     },
     {
       id: '6',
-      title: 'Smart Home Automation System',
-      description: 'An integrated system that automates home functions like lighting, temperature, and security using IoT devices.',
-      imageUrl: '/placeholder-image.jpg',
-      creator: 'Charlie Chaplin',
+      title: 'Accessibility Design System',
+      description: 'An open-source design system focused on creating highly accessible digital experiences for users of all abilities.',
+      imageUrl: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=1336&auto=format&fit=crop',
+      creator: 'Fiona Frost',
+      collaborators: 4,
+      category: 'Accessibility',
+      techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
     },
   ]);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsVisible(true);
@@ -79,10 +105,38 @@ const Explore = () => {
     setSearchQuery(e.target.value);
   };
 
+  const handleCollaborate = async (projectId: string, projectTitle: string) => {
+    try {
+      // In a real implementation, this would call a Supabase function to add the user to project collaborators
+      // For now, we'll just show a toast
+      toast({
+        title: "Collaboration Request Sent",
+        description: `You've joined the collaboration on "${projectTitle}"`,
+      });
+      
+      // Update the local state to show one more collaborator
+      setPortfolioItems(items => 
+        items.map(item => 
+          item.id === projectId 
+            ? { ...item, collaborators: (item.collaborators || 0) + 1 } 
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Error joining collaboration:", error);
+      toast({
+        title: "Error",
+        description: "Failed to join collaboration. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredPortfolioItems = portfolioItems.filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.creator.toLowerCase().includes(searchQuery.toLowerCase())
+    item.creator.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -129,18 +183,52 @@ const Explore = () => {
                     alt={item.title}
                     className="aspect-video w-full object-cover rounded-md mb-4"
                   />
-                  <h3 className="text-xl font-medium mb-2">{item.title}</h3>
+                  
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-xl font-medium">{item.title}</h3>
+                    <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
+                      {item.category}
+                    </span>
+                  </div>
+                  
                   <p className="text-muted-foreground text-sm mb-4">{item.description}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {item.techStack?.map((tech, index) => (
+                      <span key={index} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                  
                   <p className="text-muted-foreground text-xs mb-4">
                     By {item.creator}
                   </p>
-                  <Link
-                    to={`/project/${item.id}`}
-                    className="mt-auto flex items-center font-medium text-primary hover:underline gap-1 group"
-                  >
-                    <span>Learn More</span>
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                  </Link>
+                  
+                  <div className="mt-auto flex justify-between items-center">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users size={14} />
+                      <span>{item.collaborators || 0} collaborators</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCollaborate(item.id, item.title)}
+                      >
+                        Collaborate
+                      </Button>
+                      
+                      <Link
+                        to={`/project/${item.id}`}
+                        className="flex items-center font-medium text-primary hover:underline gap-1 group"
+                      >
+                        <span>Details</span>
+                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    </div>
+                  </div>
                 </GlassmorphicCard>
               </div>
             ))}
