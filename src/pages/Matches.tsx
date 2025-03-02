@@ -36,6 +36,7 @@ const Matches = () => {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [searchExplanation, setSearchExplanation] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   
   const calculateLocationSimilarity = (location1: string, location2: string) => {
     if (!location1 || !location2) return false;
@@ -184,9 +185,12 @@ const Matches = () => {
   };
 
   useEffect(() => {
+    setIsTyping(true);
+    
     const delaySearch = setTimeout(() => {
+      setIsTyping(false);
       performSearch(searchQuery);
-    }, 500);
+    }, 1000);
     
     return () => clearTimeout(delaySearch);
   }, [searchQuery, matchedUsers]);
@@ -275,6 +279,96 @@ const Matches = () => {
             email: 'lucas.silva@example.com',
             location: 'São Paulo, Brazil',
             skills: ['Full Stack Development', 'Node.js', 'React']
+          },
+          {
+            name: 'Emma Watson',
+            email: 'emma.w@example.com',
+            location: 'London, UK',
+            skills: ['Content Creation', 'Photography', 'Social Media']
+          },
+          {
+            name: 'Ryan Park',
+            email: 'ryan.p@example.com',
+            location: 'Vancouver, Canada',
+            skills: ['Game Design', 'Unity', 'C#']
+          },
+          {
+            name: 'Sophia Martinez',
+            email: 'sophia.m@example.com',
+            location: 'Madrid, Spain',
+            skills: ['Frontend Development', 'Accessibility', 'CSS Animation']
+          },
+          {
+            name: 'Jamal Williams',
+            email: 'jamal.w@example.com',
+            location: 'Chicago, USA',
+            skills: ['Music Production', 'Audio Engineering', 'Sound Design']
+          },
+          {
+            name: 'Zoe Zhang',
+            email: 'zoe.z@example.com',
+            location: 'Shanghai, China',
+            skills: ['UX Research', 'User Testing', 'Wireframing']
+          },
+          {
+            name: 'Thomas Mueller',
+            email: 'thomas.m@example.com',
+            location: 'Munich, Germany',
+            skills: ['3D Animation', 'Blender', 'Cinema 4D']
+          },
+          {
+            name: 'Priya Sharma',
+            email: 'priya.s@example.com',
+            location: 'Mumbai, India',
+            skills: ['Digital Marketing', 'SEO', 'Content Strategy']
+          },
+          {
+            name: 'Andre Sousa',
+            email: 'andre.s@example.com',
+            location: 'Lisbon, Portugal',
+            skills: ['UI Design', 'Design Systems', 'Prototyping']
+          },
+          {
+            name: 'Leila Karim',
+            email: 'leila.k@example.com',
+            location: 'Dubai, UAE',
+            skills: ['Project Management', 'Product Strategy', 'UX Design']
+          },
+          {
+            name: 'Hiroshi Tanaka',
+            email: 'hiroshi.t@example.com',
+            location: 'Osaka, Japan',
+            skills: ['Mobile Development', 'iOS', 'Flutter']
+          },
+          {
+            name: 'Elena Petrova',
+            email: 'elena.p@example.com',
+            location: 'Moscow, Russia',
+            skills: ['Data Science', 'Machine Learning', 'Python']
+          },
+          {
+            name: 'Gabriel Fernandez',
+            email: 'gabriel.f@example.com',
+            location: 'Buenos Aires, Argentina',
+            skills: ['Graphic Design', 'Brand Identity', 'Packaging Design']
+          },
+          {
+            name: 'Fatima Al-Farsi',
+            email: 'fatima.a@example.com',
+            location: 'Muscat, Oman',
+            skills: ['Content Writing', 'Copywriting', 'Social Media Management']
+          },
+          {
+            name: 'Benjamin Cohen',
+            email: 'benjamin.c@example.com',
+            location: 'Tel Aviv, Israel',
+            skills: ['Full Stack Development', 'DevOps', 'Cloud Architecture']
+          },
+          {
+            name: 'Mei Lin',
+            email: 'mei.l@example.com',
+            location: 'Taipei, Taiwan',
+            skills: ['Motion Graphics', 'After Effects', 'Video Editing']
           }
         ];
         
@@ -463,9 +557,14 @@ const Matches = () => {
           </div>
         </div>
         
-        {loading || searching ? (
+        {loading ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 size={32} className="animate-spin text-primary" />
+          </div>
+        ) : isTyping ? (
+          <div className="flex flex-col justify-center items-center py-20">
+            <Loader2 size={32} className="animate-spin text-primary mb-4" />
+            <p className="text-lg text-muted-foreground animate-pulse">Searching...</p>
           </div>
         ) : filteredUsers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
