@@ -1,7 +1,5 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import CreativeCard from '../components/CreativeCard';
 import Footer from '../components/Footer';
 import { Search, Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
@@ -106,7 +104,7 @@ const Matches = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [dbConnectionChecked, setDbConnectionChecked] = useState(false);
   const [userCoordinates, setUserCoordinates] = useState<{lat: number, lon: number} | null>(null);
-  const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const [resultsContainerRef] = useState<any>(null);
   
   // Function to check if two locations are within 250km or have a direct match
   const isLocationNearby = (userLocation: string, searchLocation: string): boolean => {
@@ -866,125 +864,4 @@ const Matches = () => {
               placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
               className="pl-10 py-6 pr-12"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-              {searching ? (
-                <Loader2 size={18} className="animate-spin text-primary" />
-              ) : (
-                <Search size={18} />
-              )}
-            </div>
-            
-            <div 
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full 
-                bg-primary text-primary-foreground"
-              title="AI-powered search"
-            >
-              <Sparkles size={18} />
-            </div>
-          </div>
-          
-          {searchExplanation && searchQuery.trim() && (
-            <Card className="mt-3 bg-muted/40 border-muted">
-              <CardContent className="p-3 text-sm flex gap-2 items-start">
-                <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-muted-foreground">{searchExplanation}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-        
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-medium">Creative Profiles</h2>
-            <p className="text-sm text-muted-foreground">
-              {filteredUsers.length} creative{filteredUsers.length !== 1 ? 's' : ''} found
-              {filteredUsers.length > 0 && filteredUsers.length === 10 ? ' (showing top 10)' : ''}
-            </p>
-          </div>
-        </div>
-        
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 size={32} className="animate-spin text-primary" />
-          </div>
-        ) : isTyping ? (
-          <div className="flex flex-col justify-center items-center py-20">
-            <Loader2 size={32} className="animate-spin text-primary mb-4" />
-            <p className="text-lg text-muted-foreground animate-pulse">Searching...</p>
-          </div>
-        ) : filteredUsers.length > 0 ? (
-          <div className="relative">
-            {filteredUsers.length > 3 && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-8 h-8 p-0 shadow-md"
-                  onClick={() => scrollResults('left')}
-                >
-                  <ArrowLeft size={18} />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-8 h-8 p-0 shadow-md"
-                  onClick={() => scrollResults('right')}
-                >
-                  <ArrowRight size={18} />
-                </Button>
-              </>
-            )}
-            
-            <div 
-              ref={resultsContainerRef}
-              className="flex gap-6 overflow-x-auto pb-6 px-2 snap-x snap-mandatory scrollbar-hide"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {filteredUsers.map((profile) => (
-                <div key={profile.id} className="snap-start">
-                  <CreativeCard 
-                    creative={{
-                      id: profile.id,
-                      name: profile.name,
-                      role: profile.skills[0] || "Creative Professional",
-                      bio: `Based in ${profile.location}`,
-                      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
-                      skills: profile.skills,
-                      location: profile.location,
-                      isNearby: profile.isNearby,
-                      matchScore: profile.matchScore,
-                      locationMatch: profile.locationMatch,
-                      skillMatch: profile.skillMatch,
-                      portfolio: []
-                    }}
-                    showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined && profile.matchScore > 0}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="glassmorphic-card text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No matches found</h3>
-            <p className="text-muted-foreground">
-              Try searching with different keywords or check for skills that might be listed differently
-            </p>
-          </div>
-        )}
-        
-        {/* Fix: Remove the jsx attribute from the style tag */}
-        <style>
-          {`.scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }`}
-        </style>
-        
-        <Footer />
-      </div>
-    </AnimatedTransition>
-  );
-};
-
-export default Matches;
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2

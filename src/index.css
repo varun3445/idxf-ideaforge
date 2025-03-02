@@ -117,3 +117,43 @@
 .grid-card {
   @apply relative overflow-hidden rounded-md border border-border;
 }
+
+.matches-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4;
+}
+
+.match-card {
+  @apply bg-background border border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200;
+}
+
+.match-card-image {
+  @apply w-full aspect-square object-cover grayscale hover:grayscale-0 transition-all duration-300;
+}
+
+.match-card-title {
+  @apply font-bold text-sm;
+}
+
+.match-card-subtitle {
+  @apply text-xs text-muted-foreground;
+}
+
+.match-card-meta {
+  @apply mt-auto pt-2 text-[10px] text-muted-foreground border-t border-border;
+}
+
+.minimal-page-container {
+  @apply max-w-full px-6 py-8 mx-auto;
+}
+
+.minimal-search {
+  @apply bg-transparent border-b border-border rounded-none px-0 py-2 focus:ring-0 placeholder:text-muted-foreground;
+}
+
+.minimal-header {
+  @apply text-xl md:text-2xl font-bold mb-8;
+}
+
+.minimal-subheader {
+  @apply text-primary font-medium text-sm mb-4;
+}
