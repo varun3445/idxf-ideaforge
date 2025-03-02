@@ -1,6 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Index from './pages/Index';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
@@ -17,7 +18,7 @@ function App() {
   const showNavbar = !['/', '/login', '/signup'].includes(location.pathname);
   
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col">
       {showNavbar && <Navbar />}
       <main className={`flex-1 ${showNavbar ? 'md:ml-20' : ''}`}>
         <Routes>
@@ -47,6 +48,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      {showNavbar && <Footer />}
     </div>
   );
 }
