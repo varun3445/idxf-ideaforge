@@ -275,7 +275,7 @@ const Signup = () => {
                 <Label>Skills</Label>
                 <SkillsetSelector
                   selectedSkills={skills}
-                  onSkillsChange={setSkills}
+                  onChange={setSkills}
                 />
               </div>
               
