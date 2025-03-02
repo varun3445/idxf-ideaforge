@@ -181,16 +181,16 @@ const ProjectDetail = () => {
               <p className="text-lg leading-relaxed text-left">{project.longDescription}</p>
               
               <div>
-                <h3 className="text-xl font-semibold mb-4 text-left">Project Goals</h3>
+                <h3 className="text-xl font-semibold mb-4 my-0 py-0 text-left">Project Goals</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.goals.map((goal, index) => <li key={index} className="text-muted-foreground">{goal}</li>)}
+                  {project.goals.map((goal, index) => <li key={index} className="text-muted-foreground text-left">{goal}</li>)}
                 </ul>
               </div>
               
               <div>
                 <h3 className="text-xl font-semibold mb-4 text-left">Technical Challenges</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.challenges.map((challenge, index) => <li key={index} className="text-muted-foreground px-0">{challenge}</li>)}
+                  {project.challenges.map((challenge, index) => <li key={index} className="text-muted-foreground px-0 text-left">{challenge}</li>)}
                 </ul>
               </div>
             </div>
