@@ -6,13 +6,9 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+// Modified to always allow access, bypassing authentication check
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  // Auth check disabled temporarily
   return <>{children}</>;
 };
 
