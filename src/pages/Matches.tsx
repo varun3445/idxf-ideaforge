@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
@@ -33,6 +33,8 @@ const Matches = () => {
   const [matchedUsers, setMatchedUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAiSearching, setIsAiSearching] = useState(false);
+  const [searchMode, setSearchMode] = useState<'regular' | 'ai'>('regular');
   
   const calculateLocationSimilarity = (location1: string, location2: string) => {
     const location1Parts = location1.toLowerCase().split(',').map(p => p.trim());
@@ -77,6 +79,10 @@ const Matches = () => {
   
   // Filter users based on search query
   useEffect(() => {
+    if (searchMode === 'ai') {
+      return; // Skip regular filtering when AI mode is active
+    }
+    
     if (!searchQuery.trim()) {
       setFilteredUsers(matchedUsers);
       return;
@@ -99,7 +105,94 @@ const Matches = () => {
     });
     
     setFilteredUsers(filtered);
-  }, [searchQuery, matchedUsers]);
+  }, [searchQuery, matchedUsers, searchMode]);
+
+  const performAiSearch = async () => {
+    if (!searchQuery.trim() || !matchedUsers.length) {
+      setFilteredUsers(matchedUsers);
+      return;
+    }
+
+    setIsAiSearching(true);
+    setSearchMode('ai');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('search-with-ai', {
+        body: {
+          query: searchQuery,
+          profiles: matchedUsers,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const { matchingIds } = data;
+      
+      if (Array.isArray(matchingIds) && matchingIds.length > 0) {
+        const aiFiltered = matchedUsers.filter(profile => 
+          matchingIds.includes(profile.id)
+        );
+        setFilteredUsers(aiFiltered);
+      } else {
+        // If no matches or invalid response, show empty results
+        setFilteredUsers([]);
+      }
+    } catch (error) {
+      console.error('Error using AI search:', error);
+      toast({
+        title: "AI Search Failed",
+        description: "There was an error processing your search with AI. Falling back to regular search.",
+        variant: "destructive"
+      });
+      // Fall back to regular search
+      setSearchMode('regular');
+      
+      // Trigger the regular search effect
+      const query = searchQuery.toLowerCase().trim();
+      const filtered = matchedUsers.filter(profile => {
+        const hasMatchingSkill = profile.skills.some(skill => 
+          skill.toLowerCase().includes(query)
+        );
+        const nameMatch = profile.name.toLowerCase().includes(query);
+        const locationMatch = profile.location.toLowerCase().includes(query);
+        return hasMatchingSkill || nameMatch || locationMatch;
+      });
+      setFilteredUsers(filtered);
+    } finally {
+      setIsAiSearching(false);
+    }
+  };
+
+  // Handle search input changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setSearchQuery(newQuery);
+    
+    // Reset to regular search mode when query is empty
+    if (!newQuery.trim()) {
+      setFilteredUsers(matchedUsers);
+      setSearchMode('regular');
+    } else {
+      // Set a small delay for AI search to avoid too many requests
+      if (searchMode === 'ai') {
+        const delaySearch = setTimeout(() => {
+          performAiSearch();
+        }, 800);
+        
+        return () => clearTimeout(delaySearch);
+      }
+    }
+  };
+
+  // Handle search form submission
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      performAiSearch();
+    }
+  };
   
   useEffect(() => {
     const addSampleUsers = async () => {
@@ -341,15 +434,38 @@ const Matches = () => {
         </div>
         
         <div className="mb-8 max-w-xl mx-auto">
-          <div className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by skill, name, or location..."
-              className="pl-10 py-6"
+              onChange={handleSearchChange}
+              placeholder="Search by skill, name, location or ask AI (e.g., 'Find designers in Europe')..."
+              className="pl-10 py-6 pr-12"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          </div>
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+              {isAiSearching ? (
+                <Loader2 size={18} className="animate-spin text-primary" />
+              ) : (
+                <Search size={18} />
+              )}
+            </div>
+            
+            <button 
+              type="submit"
+              className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full 
+                ${searchMode === 'ai' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'} 
+                transition-colors`}
+              title="Use AI for this search"
+            >
+              <Sparkles size={18} />
+            </button>
+          </form>
+          
+          {searchMode === 'ai' && searchQuery.trim() && (
+            <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+              <Sparkles size={12} className="text-primary" />
+              <span>AI-powered search is active</span>
+            </div>
+          )}
         </div>
         
         <div className="mb-6">
@@ -361,7 +477,7 @@ const Matches = () => {
           </div>
         </div>
         
-        {loading ? (
+        {loading || isAiSearching ? (
           <div className="flex justify-center items-center py-20">
             <Loader2 size={32} className="animate-spin text-primary" />
           </div>
@@ -389,7 +505,7 @@ const Matches = () => {
           <div className="glassmorphic-card text-center py-12">
             <h3 className="text-lg font-medium mb-2">No matches found</h3>
             <p className="text-muted-foreground">
-              Try searching for different skills or locations
+              Try searching with different keywords or asking a more general question
             </p>
           </div>
         )}
