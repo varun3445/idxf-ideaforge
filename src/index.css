@@ -157,3 +157,37 @@
 .minimal-subheader {
   @apply text-primary font-medium text-sm mb-4;
 }
+
+/* New profile grid styles based on reference image */
+.profile-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6;
+}
+
+.profile-card {
+  @apply flex flex-col border-b border-border pb-4 hover:border-primary transition-all duration-300;
+}
+
+.profile-image {
+  @apply mb-3 aspect-square bg-muted flex items-center justify-center text-2xl font-bold text-primary;
+}
+
+.profile-name {
+  @apply font-bold text-sm;
+}
+
+.profile-location {
+  @apply text-xs text-muted-foreground mb-2;
+}
+
+.profile-skills {
+  @apply flex flex-wrap gap-1 mt-1;
+}
+
+.profile-metadata {
+  @apply mt-auto pt-2 text-[10px] text-muted-foreground flex justify-between items-center;
+}
+
+/* Make sure the page has proper side padding like the reference */
+.minimal-container {
+  @apply max-w-full px-8 py-12;
+}
