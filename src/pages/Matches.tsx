@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
-import { Search, Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
@@ -879,16 +880,15 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="px-6 py-8 minimal-search text-lg tracking-wider rounded-full"
+                  className="px-8 py-8 minimal-search text-lg tracking-wider rounded-full"
                 />
-                <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
                 
                 {(searching || isTyping) && (
-                  <Loader2 className="absolute right-16 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
+                  <Loader2 className="absolute right-6 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
                 )}
                 
                 {!searching && !isTyping && searchQuery.trim() && (
-                  <Sparkles className="absolute right-16 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
+                  <Sparkles className="absolute right-6 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
                 )}
               </div>
               
