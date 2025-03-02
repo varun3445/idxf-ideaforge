@@ -89,7 +89,7 @@ const Matches = () => {
 
     try {
       if (!query.trim()) {
-        setFilteredUsers(matchedUsers.map(profile => ({...profile, matchScore: undefined})));
+        setFilteredUsers(matchedUsers.map(profile => ({...profile, matchScore: undefined, isNearby: false})));
         return;
       }
 
@@ -110,12 +110,21 @@ const Matches = () => {
         const profilesWithScores = matchedUsers
           .map(profile => {
             const match = matchingProfiles.find(m => m.id === profile.id);
+            
+            const queryLower = query.toLowerCase();
+            const locationParts = profile.location.toLowerCase().split(/[,\s]+/).filter(Boolean);
+            const isNearby = locationParts.some(part => 
+              queryLower.includes(part) || 
+              part.includes(queryLower)
+            );
+            
             return {
               ...profile,
-              matchScore: match ? match.matchScore : 0
+              matchScore: match ? match.matchScore : 0,
+              isNearby
             };
           })
-          .filter(profile => profile.matchScore > 0)
+          .filter(profile => profile.matchScore > 0 || profile.isNearby)
           .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
         
         setFilteredUsers(profilesWithScores);
@@ -128,47 +137,44 @@ const Matches = () => {
       console.error('Error using AI search:', error);
       
       const query = searchQuery.toLowerCase().trim();
+      
+      if (!query) {
+        setFilteredUsers(matchedUsers);
+        return;
+      }
+      
       const filtered = matchedUsers.filter(profile => {
         const queryWords = query.split(/\s+/).filter(word => word.length > 1);
         
-        const skillMatches = profile.skills.filter(skill => 
+        const matchingSkills = profile.skills.filter(skill => 
           queryWords.some(word => skill.toLowerCase().includes(word))
         );
         
-        const nameWords = profile.name.toLowerCase().split(/\s+/);
-        const nameMatches = nameWords.filter(nameWord => 
-          queryWords.some(queryWord => nameWord.includes(queryWord))
-        );
-        
         const locationWords = profile.location.toLowerCase().split(/[,\s]+/).filter(Boolean);
-        const locationMatches = locationWords.filter(locWord => 
+        const isNearby = locationWords.some(locWord => 
           queryWords.some(queryWord => locWord.includes(queryWord) || queryWord.includes(locWord))
         );
         
-        const hasAnyMatch = skillMatches.length > 0 || nameMatches.length > 0 || locationMatches.length > 0;
-        
-        if (hasAnyMatch) {
-          const skillScore = skillMatches.length > 0 ? 
-            Math.min(50, (skillMatches.length / profile.skills.length) * 50) : 0;
-          
-          const nameScore = nameMatches.length > 0 ? 20 : 0;
-          
-          const locationScore = locationMatches.length > 0 ? 
-            Math.min(30, (locationMatches.length / locationWords.length) * 30) : 0;
-          
-          profile.matchScore = Math.round(skillScore + nameScore + locationScore);
-          
-          return true;
+        let matchScore = 0;
+        if (matchingSkills.length > 0) {
+          matchScore = Math.min(100, Math.round((matchingSkills.length / profile.skills.length) * 100));
         }
         
-        return false;
+        const hasMatch = matchScore > 0 || isNearby;
+        
+        if (hasMatch) {
+          profile.matchScore = matchScore;
+          profile.isNearby = isNearby;
+        }
+        
+        return hasMatch;
       }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
       
       setFilteredUsers(filtered);
       
       toast({
         title: "Simple search mode",
-        description: "AI search is unavailable. Using basic text matching instead.",
+        description: "AI search is unavailable. Using basic skills and location matching instead.",
         variant: "default"
       });
     } finally {
@@ -415,7 +421,7 @@ const Matches = () => {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by skill, name, or location or ask naturally (e.g., 'designers in Bengaluru')..."
+              placeholder="Search by skill or location (e.g., 'UI Design' or 'New York')..."
               className="pl-10 py-6 pr-12"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -473,11 +479,11 @@ const Matches = () => {
                   avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
                   skills: profile.skills,
                   location: profile.location,
-                  isNearby: profile.distance === 1,
+                  isNearby: profile.isNearby,
                   matchScore: profile.matchScore,
                   portfolio: []
                 }}
-                showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined}
+                showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined && profile.matchScore > 0}
               />
             ))}
           </div>
@@ -485,7 +491,7 @@ const Matches = () => {
           <div className="glassmorphic-card text-center py-12">
             <h3 className="text-lg font-medium mb-2">No matches found</h3>
             <p className="text-muted-foreground">
-              Try searching with different keywords or phrasing your question differently
+              Try searching with different keywords or check for skills that might be listed differently
             </p>
           </div>
         )}

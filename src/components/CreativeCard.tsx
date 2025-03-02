@@ -52,7 +52,7 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
       {creative.isNearby && (
         <div className="absolute top-2 right-2 bg-green-500/90 text-white text-xs px-2 py-0.5 rounded-full flex items-center">
           <MapPin size={10} className="mr-1" />
-          Near you
+          Close to you
         </div>
       )}
       
@@ -98,7 +98,7 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
             <div className="flex items-center gap-2">
               <Search size={16} className="text-primary" />
               <div className="text-sm">
-                <span className="text-muted-foreground">Search match: </span>
+                <span className="text-muted-foreground">Skills match: </span>
                 <span className="font-medium">{displayMatchScore}%</span>
               </div>
             </div>
