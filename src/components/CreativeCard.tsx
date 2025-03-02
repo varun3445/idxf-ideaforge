@@ -1,8 +1,25 @@
 
 import { useState } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
-import { Creative } from '../data/mockData';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, MapPin, ArrowRight } from 'lucide-react';
+import { Button } from './ui/button';
+
+interface Creative {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  avatar: string;
+  skills: string[];
+  location: string;
+  isNearby?: boolean;
+  matchScore?: number;
+  portfolio: Array<{
+    id: string;
+    title: string;
+    image: string;
+  }>;
+}
 
 interface CreativeCardProps {
   creative: Creative;
@@ -19,10 +36,17 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
 
   return (
     <GlassmorphicCard
-      className="h-full flex flex-col"
+      className="h-full flex flex-col relative overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {creative.isNearby && (
+        <div className="absolute top-2 right-2 bg-green-500/90 text-white text-xs px-2 py-0.5 rounded-full flex items-center">
+          <MapPin size={10} className="mr-1" />
+          Near you
+        </div>
+      )}
+      
       <div className="flex items-center gap-4 mb-4">
         <div className="relative flex-shrink-0">
           <img 
@@ -30,9 +54,9 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
             alt={creative.name} 
             className="w-12 h-12 rounded-full object-cover"
           />
-          {showMatchScore && (
-            <div className="absolute -bottom-1 -right-1 bg-primary text-xs text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
-              {creative.matchScore || 0}
+          {showMatchScore && creative.matchScore !== undefined && (
+            <div className="absolute -bottom-1 -right-1 bg-primary text-xs text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-background font-medium">
+              {creative.matchScore}
             </div>
           )}
         </div>
@@ -59,19 +83,25 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
         )}
       </div>
       
-      {showMatchScore && (
+      {showMatchScore && creative.matchScore !== undefined && (
         <div className="mt-auto pt-4 border-t border-border">
-          <div className="flex items-center gap-2">
-            <BarChart2 size={16} className="text-primary" />
-            <div className="text-sm">
-              <span className="text-muted-foreground">Match Score: </span>
-              <span className="font-medium">{creative.matchScore || 0}%</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart2 size={16} className="text-primary" />
+              <div className="text-sm">
+                <span className="text-muted-foreground">Match: </span>
+                <span className="font-medium">{creative.matchScore}%</span>
+              </div>
             </div>
+            
+            <Button size="sm" variant="ghost" className="text-xs h-8">
+              Connect <ArrowRight size={12} className="ml-1" />
+            </Button>
           </div>
         </div>
       )}
       
-      {!showMatchScore && (
+      {!showMatchScore && creative.portfolio.length > 0 && (
         <div className="mt-auto pt-4 grid grid-cols-2 gap-2">
           {creative.portfolio.slice(0, 2).map((item) => (
             <div key={item.id} className="grid-card rounded-md overflow-hidden aspect-square">
@@ -82,6 +112,19 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
               />
             </div>
           ))}
+        </div>
+      )}
+      
+      {!showMatchScore && creative.portfolio.length === 0 && (
+        <div className="mt-auto pt-4 flex justify-between items-center border-t border-border">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin size={14} />
+            <span>{creative.location}</span>
+          </div>
+          
+          <Button size="sm" variant="ghost" className="text-xs h-8">
+            Connect <ArrowRight size={12} className="ml-1" />
+          </Button>
         </div>
       )}
     </GlassmorphicCard>

@@ -1,10 +1,12 @@
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
-import { X } from 'lucide-react';
+import { X, ArrowLeft, MapPin, Loader2 } from 'lucide-react';
+import { useAuth } from '../AuthContext';
+import { useToast } from '../hooks/use-toast';
 
 interface SkillProps {
   name: string;
@@ -21,6 +23,7 @@ const Skill = ({ name, selected, color, onClick }: SkillProps) => {
       }`}
       style={{ backgroundColor: selected ? color : 'rgba(255, 255, 255, 0.1)' }}
       onClick={onClick}
+      type="button"
     >
       {name}
       {selected && (
@@ -31,13 +34,17 @@ const Skill = ({ name, selected, color, onClick }: SkillProps) => {
 };
 
 const Signup = () => {
-  const navigate = useNavigate();
+  const { signup } = useAuth();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [location, setLocation] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const availableSkills = [
     { name: 'UX Design', color: '#8B5CF6' },
@@ -62,19 +69,137 @@ const Signup = () => {
       setSelectedSkills(selectedSkills.filter(s => s !== skillName));
     } else if (selectedSkills.length < 5) {
       setSelectedSkills([...selectedSkills, skillName]);
+    } else {
+      toast({
+        title: "Maximum skills reached",
+        description: "You can select up to 5 skills",
+        variant: "destructive"
+      });
     }
   };
 
   const goToNextStep = () => {
+    if (currentStep === 1) {
+      if (!name || !email || !password || !location) {
+        setError('Please fill in all fields');
+        return;
+      }
+      setError('');
+    }
     setCurrentStep(currentStep + 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const goToPreviousStep = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const detectLocation = () => {
+    setLocationLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Use Nominatim API for reverse geocoding (free and doesn't require API key)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`
+            );
+            
+            if (!response.ok) {
+              throw new Error('Failed to fetch location data');
+            }
+            
+            const data = await response.json();
+            
+            // Extract city and state/country from the response
+            const city = data.address.city || data.address.town || data.address.village || '';
+            const state = data.address.state || '';
+            const country = data.address.country || '';
+            
+            // Format the location string based on available data
+            let locationString = '';
+            if (city) {
+              locationString += city;
+              if (state) {
+                locationString += `, ${state}`;
+              } else if (country) {
+                locationString += `, ${country}`;
+              }
+            } else if (state) {
+              locationString = `${state}, ${country}`;
+            } else {
+              locationString = country;
+            }
+            
+            setLocation(locationString);
+            setLocationLoading(false);
+            
+            toast({
+              title: "Location detected",
+              description: `Your location: ${locationString}`,
+            });
+          } catch (error) {
+            console.error('Error getting location name:', error);
+            setLocationLoading(false);
+            toast({
+              title: "Location detection failed",
+              description: "Please enter your location manually",
+              variant: "destructive"
+            });
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          setLocationLoading(false);
+          toast({
+            title: "Location detection failed",
+            description: error.message || "Please enter your location manually",
+            variant: "destructive"
+          });
+        }
+      );
+    } else {
+      setLocationLoading(false);
+      toast({
+        title: "Geolocation not supported",
+        description: "Your browser doesn't support geolocation",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would handle actual signup
-    console.log({ name, email, password, location, selectedSkills });
-    // Redirect to the app after signup
-    navigate('/explore');
+    
+    if (selectedSkills.length === 0) {
+      setError('Please select at least one skill');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      const { error } = await signup(name, email, password, location, selectedSkills);
+      
+      if (error) {
+        setError(error.message);
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Welcome to Idea Forge!",
+          description: "Your account has been created successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,6 +213,12 @@ const Signup = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {error && (
+            <div className="p-3 bg-destructive/20 border border-destructive text-destructive text-sm rounded-md">
+              {error}
+            </div>
+          )}
+          
           {currentStep === 1 && (
             <div className="space-y-4 animate-fade-in">
               <div className="space-y-2">
@@ -127,7 +258,24 @@ const Signup = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="location">Location</Label>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={detectLocation}
+                    disabled={locationLoading}
+                    className="h-8 px-2 text-xs"
+                  >
+                    {locationLoading ? (
+                      <Loader2 size={14} className="mr-1 animate-spin" />
+                    ) : (
+                      <MapPin size={14} className="mr-1" />
+                    )}
+                    Detect
+                  </Button>
+                </div>
                 <Input
                   id="location"
                   type="text"
@@ -188,6 +336,7 @@ const Signup = () => {
                         <button 
                           onClick={() => toggleSkill(skillName)}
                           className="hover:bg-white/20 rounded-full p-0.5"
+                          type="button"
                         >
                           <X size={14} />
                         </button>
@@ -201,17 +350,25 @@ const Signup = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setCurrentStep(1)}
+                  onClick={goToPreviousStep}
                   className="flex-1"
                 >
+                  <ArrowLeft size={16} className="mr-1" />
                   Back
                 </Button>
                 <Button 
                   type="submit" 
                   className="flex-1"
-                  disabled={selectedSkills.length === 0}
+                  disabled={selectedSkills.length === 0 || loading}
                 >
-                  Complete Signup
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} className="mr-1 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Complete Signup"
+                  )}
                 </Button>
               </div>
             </div>

@@ -9,7 +9,84 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          location: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          location: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          location?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          color: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      user_skills: {
+        Row: {
+          id: string
+          skill_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          skill_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          skill_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_skills_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
