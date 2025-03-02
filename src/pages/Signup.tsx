@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -9,7 +8,7 @@ import { useToast } from '../hooks/use-toast';
 import { Loader2, Camera, Upload, X } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { supabase } from '../integrations/supabase/client';
-import { SkillsetSelector } from '../components/SkillsetSelector';
+import SkillsetSelector from '../components/SkillsetSelector';
 
 const Signup = () => {
   const navigate = useNavigate();

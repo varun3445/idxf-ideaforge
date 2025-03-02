@@ -1,4 +1,3 @@
-
 import { supabase } from '../integrations/supabase/client';
 import { User } from '../types/auth.types';
 
@@ -18,7 +17,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     // Get user profile data
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('name, email, location, sex')
+      .select('name, email, location')
       .eq('id', userId as any)
       .single();
       
@@ -47,8 +46,8 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
       name: profileData?.name || '',
       email: profileData?.email || '',
       location: profileData?.location || '',
-      sex: profileData?.sex || 'male',
-      skills: skills.filter(Boolean) // Filter out any undefined values
+      skills: skills.filter(Boolean), // Filter out any undefined values
+      avatar: null // Adding the avatar property with default null value
     };
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
@@ -134,7 +133,6 @@ export async function createUserSkill(userId: string, skillName: string): Promis
   }
 }
 
-// New function to generate and register multiple users
 export async function generateMultipleUsers(count: number = 25): Promise<boolean> {
   try {
     console.log(`Starting to generate ${count} users...`);
@@ -151,8 +149,6 @@ export async function generateMultipleUsers(count: number = 25): Promise<boolean
                       'London, UK', 'Berlin, Germany', 'Paris, France', 'Rome, Italy', 'Madrid, Spain', 
                       'Tokyo, Japan', 'Beijing, China', 'Mumbai, India', 'Sydney, Australia', 'Toronto, Canada',
                       'Mexico City, Mexico', 'Rio de Janeiro, Brazil', 'Cairo, Egypt', 'Lagos, Nigeria', 'Cape Town, South Africa'];
-    
-    const sexOptions = ['male', 'female'];
     
     const skillsList = [
       'UX Design', 'UI Design', 'Frontend Development', 'Backend Development', 'Product Management',
@@ -187,7 +183,6 @@ export async function generateMultipleUsers(count: number = 25): Promise<boolean
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`;
       const password = 'Password123!'; // Simple password for test users
       const location = getRandomValue(locations);
-      const sex = getRandomValue(sexOptions);
       
       // Select 3-5 random skills for this user
       const numSkills = Math.floor(Math.random() * 3) + 3; // 3 to 5 skills
@@ -214,15 +209,14 @@ export async function generateMultipleUsers(count: number = 25): Promise<boolean
       if (authData.user) {
         const userId = authData.user.id;
         
-        // Create profile
+        // Create profile without sex field
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
             name,
             email,
-            location,
-            sex
+            location
           } as any);
           
         if (profileError) {
