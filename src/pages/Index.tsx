@@ -39,18 +39,18 @@ const Index = () => {
   return (
     <AnimatedTransition>
       <div className="page-container">
-        <section className="flex flex-col lg:flex-row gap-12 items-center justify-between py-16 lg:py-32">
+        <section className="flex flex-col lg:flex-row gap-12 items-center justify-between py-16 lg:py-24">
           <div className="max-w-2xl space-y-6">
             <div 
               className={`transition-all duration-1000 delay-100 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
-              <span className="chip bg-primary/10 text-primary mb-4">Idea Forge</span>
+              <span className="chip bg-neon/10 text-neon mb-4">Idea Forge</span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
                 Connect, Collaborate, Create
               </h1>
-              <p className="text-xl text-muted-foreground mb-8 max-w-xl">
+              <p className="text-xl text-gray-600 mb-8 max-w-xl">
                 Find the perfect creative partners with complementary skillsets and bring your ideas to life.
               </p>
             </div>
@@ -69,10 +69,9 @@ const Index = () => {
           </div>
           
           <div className={`
-            relative w-full max-w-lg aspect-square transition-all duration-1000 delay-300
+            relative w-full max-w-md aspect-square transition-all duration-1000 delay-300
             ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
           `}>
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/5 rounded-full blur-3xl opacity-50 animate-pulse-soft" />
             <div className="relative w-full h-full flex items-center justify-center">
               <img 
                 src="/lovable-uploads/9484ae90-ca94-4226-8d3f-b46add98f1fc.png" 
@@ -95,18 +94,18 @@ const Index = () => {
                 }`}
               >
                 <GlassmorphicCard className="h-full flex flex-col">
-                  <div className="mb-4 p-3 rounded-full bg-primary/10 w-fit">
-                    <feature.icon size={24} className="text-primary" />
+                  <div className="mb-4 p-3 rounded-full bg-neon/10 w-fit">
+                    <feature.icon size={24} className="text-neon" />
                   </div>
                   
                   <h3 className="text-xl font-medium mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm mb-6">
+                  <p className="text-gray-600 text-sm mb-6">
                     {feature.description}
                   </p>
                   
                   <Link
                     to={feature.path}
-                    className="mt-auto flex items-center font-medium text-primary hover:underline gap-1 group"
+                    className="mt-auto flex items-center font-medium text-neon hover:underline gap-1 group"
                   >
                     <span>Explore {feature.title}</span>
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />

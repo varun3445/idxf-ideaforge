@@ -1,124 +1,151 @@
-
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import CreativeCard from '../components/CreativeCard';
-import { creatives, Creative, PortfolioItem } from '../data/mockData';
+import GlassmorphicCard from '../components/GlassmorphicCard';
+
+interface PortfolioItem {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  creator: string;
+}
 
 const Explore = () => {
+  const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCreatives, setFilteredCreatives] = useState<Creative[]>(creatives);
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'creatives' | 'portfolio'>('portfolio');
-  
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
+    {
+      id: '1',
+      title: 'AI-Powered Art Generator',
+      description: 'A web app that generates unique art pieces based on user prompts using the latest AI models.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Alice Wonderland',
+    },
+    {
+      id: '2',
+      title: 'Decentralized Social Media Platform',
+      description: 'A social media platform built on blockchain technology, ensuring user data privacy and content ownership.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Bob The Builder',
+    },
+    {
+      id: '3',
+      title: 'Smart Home Automation System',
+      description: 'An integrated system that automates home functions like lighting, temperature, and security using IoT devices.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Charlie Chaplin',
+    },
+    {
+      id: '4',
+      title: 'AI-Powered Art Generator',
+      description: 'A web app that generates unique art pieces based on user prompts using the latest AI models.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Alice Wonderland',
+    },
+    {
+      id: '5',
+      title: 'Decentralized Social Media Platform',
+      description: 'A social media platform built on blockchain technology, ensuring user data privacy and content ownership.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Bob The Builder',
+    },
+    {
+      id: '6',
+      title: 'Smart Home Automation System',
+      description: 'An integrated system that automates home functions like lighting, temperature, and security using IoT devices.',
+      imageUrl: '/placeholder-image.jpg',
+      creator: 'Charlie Chaplin',
+    },
+  ]);
+
   useEffect(() => {
-    // Collect all portfolio items from all creatives
-    const items = creatives.flatMap(creative => 
-      creative.portfolio.map(item => ({
-        ...item,
-        creator: creative.name,
-        creatorRole: creative.role,
-        creatorId: creative.id
-      }))
-    );
-    
-    setPortfolioItems(items);
+    setIsVisible(true);
   }, []);
-  
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredCreatives(creatives);
-      return;
-    }
-    
-    const query = searchQuery.toLowerCase();
-    const filtered = creatives.filter(
-      creative => 
-        creative.name.toLowerCase().includes(query) ||
-        creative.role.toLowerCase().includes(query) ||
-        creative.skills.some(skill => skill.toLowerCase().includes(query)) ||
-        creative.bio.toLowerCase().includes(query)
-    );
-    
-    setFilteredCreatives(filtered);
-  }, [searchQuery]);
-  
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredPortfolioItems = portfolioItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.creator.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <AnimatedTransition>
       <div className="page-container">
-        <div className="mb-8">
-          <h1 className="page-header">Explore</h1>
-          <p className="page-subheader">
-            Discover talented creatives and inspiring projects
-          </p>
-        </div>
-        
-        <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <div className="relative flex-grow">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-muted-foreground" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by name, role, or skills..."
+        <section className="py-12">
+          <div className={`
+            transition-all duration-1000
+            ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          `}>
+            <h1 className="page-header">Explore Projects</h1>
+            <p className="page-subheader">
+              Discover innovative projects and connect with talented creators.
+            </p>
+          </div>
+
+          <div className={`
+            mb-8 transition-all duration-1000 delay-100
+            ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          `}>
+            <Label htmlFor="search" className="sr-only">
+              Search projects
+            </Label>
+            <Input
+              type="search"
+              id="search"
+              placeholder="Search for projects..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full h-12 rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onChange={handleSearchChange}
             />
           </div>
-          
-          <div className="flex">
-            <button
-              onClick={() => setActiveTab('portfolio')}
-              className={`px-6 py-3 rounded-l-lg border border-r-0 transition-all ${
-                activeTab === 'portfolio'
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary text-secondary-foreground border-input hover:bg-secondary/80'
-              }`}
-            >
-              Portfolio
-            </button>
-            <button
-              onClick={() => setActiveTab('creatives')}
-              className={`px-6 py-3 rounded-r-lg border transition-all ${
-                activeTab === 'creatives'
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary text-secondary-foreground border-input hover:bg-secondary/80'
-              }`}
-            >
-              Creatives
-            </button>
-          </div>
-        </div>
-        
-        {activeTab === 'portfolio' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {portfolioItems.map((item) => (
-              <div key={item.id} className="group">
-                <div className="grid-card rounded-xl overflow-hidden aspect-square mb-3">
-                  <img 
-                    src={item.image} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover"
-                    loading="lazy"
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPortfolioItems.map((item) => (
+              <div
+                key={item.id}
+                className={`transition-all duration-700 delay-${100} ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                }`}
+              >
+                <GlassmorphicCard className="h-full flex flex-col">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="aspect-video w-full object-cover rounded-md mb-4"
                   />
-                </div>
-                <h3 className="font-medium text-lg mb-1 group-hover:text-primary transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  by <span className="font-medium">{item.creator}</span>
-                </p>
+                  <h3 className="text-xl font-medium mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{item.description}</p>
+                  <p className="text-muted-foreground text-xs mb-4">
+                    By {item.creator}
+                  </p>
+                  <Link
+                    to={`/project/${item.id}`}
+                    className="mt-auto flex items-center font-medium text-primary hover:underline gap-1 group"
+                  >
+                    <span>Learn More</span>
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </GlassmorphicCard>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCreatives.map((creative) => (
-              <CreativeCard key={creative.id} creative={creative} />
-            ))}
-          </div>
-        )}
+        </section>
       </div>
     </AnimatedTransition>
   );
