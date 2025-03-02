@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code } from 'lucide-react';
@@ -6,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
-
 interface ProjectDetails {
   id: string;
   title: string;
@@ -21,13 +19,17 @@ interface ProjectDetails {
   goals: string[];
   challenges: string[];
 }
-
 const ProjectDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     // In a real app, this would fetch from an API
     const mockProjects: Record<string, ProjectDetails> = {
@@ -42,18 +44,8 @@ const ProjectDetail = () => {
         category: 'AI & Design',
         techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
         createdAt: '2023-11-15',
-        goals: [
-          'Create an AI assistant that understands design principles',
-          'Provide real-time feedback on design decisions',
-          'Help designers learn and improve through contextual suggestions',
-          'Adapt to individual designer preferences over time'
-        ],
-        challenges: [
-          'Training ML models to understand subjective design qualities',
-          'Creating feedback that\'s helpful without being intrusive',
-          'Balancing automation with designer creative control',
-          'Building a system that learns without requiring excessive data'
-        ]
+        goals: ['Create an AI assistant that understands design principles', 'Provide real-time feedback on design decisions', 'Help designers learn and improve through contextual suggestions', 'Adapt to individual designer preferences over time'],
+        challenges: ['Training ML models to understand subjective design qualities', 'Creating feedback that\'s helpful without being intrusive', 'Balancing automation with designer creative control', 'Building a system that learns without requiring excessive data']
       },
       '2': {
         id: '2',
@@ -66,18 +58,8 @@ const ProjectDetail = () => {
         category: 'Web3',
         techStack: ['Solidity', 'React', 'IPFS', 'Ethereum'],
         createdAt: '2023-09-23',
-        goals: [
-          'Create a trustless marketplace for creative professionals',
-          'Eliminate intermediary fees through direct client-creator transactions',
-          'Automate licensing and rights management via smart contracts',
-          'Build a reputation system that works across creative disciplines'
-        ],
-        challenges: [
-          'Creating smart contracts flexible enough for creative work',
-          'Balancing blockchain transaction costs with marketplace usability',
-          'Designing an accessible UX for non-technical creative professionals',
-          'Implementing fair dispute resolution mechanisms'
-        ]
+        goals: ['Create a trustless marketplace for creative professionals', 'Eliminate intermediary fees through direct client-creator transactions', 'Automate licensing and rights management via smart contracts', 'Build a reputation system that works across creative disciplines'],
+        challenges: ['Creating smart contracts flexible enough for creative work', 'Balancing blockchain transaction costs with marketplace usability', 'Designing an accessible UX for non-technical creative professionals', 'Implementing fair dispute resolution mechanisms']
       },
       '3': {
         id: '3',
@@ -90,18 +72,8 @@ const ProjectDetail = () => {
         category: 'Education',
         techStack: ['Unity', 'WebXR', 'Three.js', 'Node.js'],
         createdAt: '2023-07-09',
-        goals: [
-          'Make abstract concepts tangible through spatial interaction',
-          'Create immersive historical and scientific simulations',
-          'Adapt content to different learning styles and paces',
-          'Enable educators to build VR content without coding skills'
-        ],
-        challenges: [
-          'Designing interactions that enhance rather than distract from learning',
-          'Making VR experiences accessible to schools with limited resources',
-          'Creating an authoring tool intuitive enough for non-technical educators',
-          'Measuring learning outcomes in a new educational medium'
-        ]
+        goals: ['Make abstract concepts tangible through spatial interaction', 'Create immersive historical and scientific simulations', 'Adapt content to different learning styles and paces', 'Enable educators to build VR content without coding skills'],
+        challenges: ['Designing interactions that enhance rather than distract from learning', 'Making VR experiences accessible to schools with limited resources', 'Creating an authoring tool intuitive enough for non-technical educators', 'Measuring learning outcomes in a new educational medium']
       },
       '4': {
         id: '4',
@@ -114,18 +86,8 @@ const ProjectDetail = () => {
         category: 'Sustainability',
         techStack: ['React', 'Python', 'D3.js', 'PostgreSQL'],
         createdAt: '2023-05-12',
-        goals: [
-          'Create an accessible tool for environmental impact assessment',
-          'Help designers make sustainable choices without sacrificing quality',
-          'Provide actionable, prioritized optimization recommendations',
-          'Support both digital and physical product sustainability'
-        ],
-        challenges: [
-          'Gathering accurate environmental impact data across industries',
-          'Making complex sustainability metrics understandable to designers',
-          'Balancing design constraints with environmental optimizations',
-          'Creating a system flexible enough for diverse design disciplines'
-        ]
+        goals: ['Create an accessible tool for environmental impact assessment', 'Help designers make sustainable choices without sacrificing quality', 'Provide actionable, prioritized optimization recommendations', 'Support both digital and physical product sustainability'],
+        challenges: ['Gathering accurate environmental impact data across industries', 'Making complex sustainability metrics understandable to designers', 'Balancing design constraints with environmental optimizations', 'Creating a system flexible enough for diverse design disciplines']
       },
       '5': {
         id: '5',
@@ -138,18 +100,8 @@ const ProjectDetail = () => {
         category: 'Music & Audio',
         techStack: ['WebRTC', 'Web Audio API', 'React', 'Node.js'],
         createdAt: '2023-03-04',
-        goals: [
-          'Create studio-quality collaborative experiences for remote teams',
-          'Support real-time multitrack editing with minimal latency',
-          'Build specialized tools for different audio disciplines',
-          'Integrate with existing professional audio workflows'
-        ],
-        challenges: [
-          'Synchronizing high-fidelity audio editing in real-time',
-          'Managing complex version control for collaborative audio projects',
-          'Creating an interface accessible to different audio disciplines',
-          'Ensuring compatibility with existing professional tools'
-        ]
+        goals: ['Create studio-quality collaborative experiences for remote teams', 'Support real-time multitrack editing with minimal latency', 'Build specialized tools for different audio disciplines', 'Integrate with existing professional audio workflows'],
+        challenges: ['Synchronizing high-fidelity audio editing in real-time', 'Managing complex version control for collaborative audio projects', 'Creating an interface accessible to different audio disciplines', 'Ensuring compatibility with existing professional tools']
       },
       '6': {
         id: '6',
@@ -162,21 +114,10 @@ const ProjectDetail = () => {
         category: 'Accessibility',
         techStack: ['React', 'TypeScript', 'ARIA', 'Storybook'],
         createdAt: '2023-01-21',
-        goals: [
-          'Create components that are accessible by default, not as an afterthought',
-          'Build educational tools that teach accessibility best practices',
-          'Develop testing automation that catches accessibility issues early',
-          'Support accessibility needs across diverse brands and visual styles'
-        ],
-        challenges: [
-          'Balancing aesthetic cohesion with accessibility requirements',
-          'Supporting the full range of assistive technologies',
-          'Creating educational materials that drive adoption',
-          'Building components flexible enough for diverse brand identities'
-        ]
+        goals: ['Create components that are accessible by default, not as an afterthought', 'Build educational tools that teach accessibility best practices', 'Develop testing automation that catches accessibility issues early', 'Support accessibility needs across diverse brands and visual styles'],
+        challenges: ['Balancing aesthetic cohesion with accessibility requirements', 'Supporting the full range of assistive technologies', 'Creating educational materials that drive adoption', 'Building components flexible enough for diverse brand identities']
       }
     };
-
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
@@ -184,27 +125,21 @@ const ProjectDetail = () => {
       setIsLoading(false);
     }, 500);
   }, [id]);
-
   const handleCollaborate = () => {
     if (project) {
       toast({
         title: "Collaboration Request Sent",
-        description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`,
+        description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`
       });
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="page-container flex justify-center items-center min-h-[60vh]">
+    return <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
-      </div>
-    );
+      </div>;
   }
-
   if (!project) {
-    return (
-      <div className="page-container">
+    return <div className="page-container">
         <div className="text-center py-20">
           <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
           <p className="mb-8">The project you're looking for doesn't exist or may have been removed.</p>
@@ -212,12 +147,9 @@ const ProjectDetail = () => {
             <Button>Return to Explore</Button>
           </Link>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <AnimatedTransition>
+  return <AnimatedTransition>
       <div className="page-container">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary hover:underline mb-8">
           <ArrowLeft size={18} />
@@ -226,13 +158,9 @@ const ProjectDetail = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <img 
-              src={project.imageUrl} 
-              alt={project.title} 
-              className="w-full aspect-video object-cover rounded-lg shadow-lg mb-6" 
-            />
+            <img src={project.imageUrl} alt={project.title} className="w-full aspect-video object-cover rounded-lg shadow-lg mb-6" />
             
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{project.title}</h1>
             
             <div className="flex flex-wrap gap-3 mb-8">
               <span className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full">
@@ -250,23 +178,19 @@ const ProjectDetail = () => {
             </div>
             
             <div className="space-y-6 mb-8">
-              <p className="text-lg leading-relaxed">{project.longDescription}</p>
+              <p className="text-lg leading-relaxed text-left">{project.longDescription}</p>
               
               <div>
-                <h3 className="text-xl font-semibold mb-4">Project Goals</h3>
+                <h3 className="text-xl font-semibold mb-4 text-left">Project Goals</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.goals.map((goal, index) => (
-                    <li key={index} className="text-muted-foreground">{goal}</li>
-                  ))}
+                  {project.goals.map((goal, index) => <li key={index} className="text-muted-foreground">{goal}</li>)}
                 </ul>
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold mb-4">Technical Challenges</h3>
+                <h3 className="text-xl font-semibold mb-4 text-left">Technical Challenges</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.challenges.map((challenge, index) => (
-                    <li key={index} className="text-muted-foreground">{challenge}</li>
-                  ))}
+                  {project.challenges.map((challenge, index) => <li key={index} className="text-muted-foreground px-0">{challenge}</li>)}
                 </ul>
               </div>
             </div>
@@ -285,12 +209,10 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => (
-                      <span key={index} className="inline-flex items-center gap-1 text-sm bg-muted/80 px-3 py-1.5 rounded-full">
+                    {project.techStack.map((tech, index) => <span key={index} className="inline-flex items-center gap-1 text-sm bg-muted/80 px-3 py-1.5 rounded-full">
                         <Code size={14} />
                         {tech}
-                      </span>
-                    ))}
+                      </span>)}
                   </div>
                 </div>
                 
@@ -304,8 +226,6 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default ProjectDetail;
