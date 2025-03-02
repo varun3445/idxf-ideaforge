@@ -9,6 +9,7 @@ interface User {
   email: string;
   location: string;
   skills: string[];
+  sex: string; // Add sex field to interface
 }
 
 interface AuthContextType {
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Get user profile data
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('name, email, location')
+            .select('name, email, location, sex')
             .eq('id', session.user.id)
             .single();
             
@@ -64,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
+            sex: profileData.sex || 'male', // Set default if missing
             skills: skills
           });
         }
@@ -86,7 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Get user profile after sign-in
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
-            .select('name, email, location')
+            .select('name, email, location, sex')
             .eq('id', session.user.id)
             .single();
             
@@ -113,6 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
+            sex: profileData.sex || 'male', // Set default if missing
             skills: skills
           });
           setLoading(false);

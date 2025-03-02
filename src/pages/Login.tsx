@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
+import { checkAuthState } from '../integrations/supabase/client';
 
 const Login = () => {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
@@ -20,7 +21,15 @@ const Login = () => {
 
   // Debug log for auth state
   useEffect(() => {
-    console.log('Auth state:', { isAuthenticated, authLoading });
+    console.log('Auth state on mount:', { isAuthenticated, authLoading });
+    
+    // Check Supabase session directly
+    const verifySession = async () => {
+      const result = await checkAuthState();
+      console.log('Direct session check:', result);
+    };
+    
+    verifySession();
   }, [isAuthenticated, authLoading]);
 
   // Redirect authenticated users
@@ -41,7 +50,7 @@ const Login = () => {
     setError('');
     
     try {
-      console.log('Starting login process...');
+      console.log('Starting login process with email:', email);
       const { error } = await login(email, password);
       
       if (error) {
@@ -53,24 +62,27 @@ const Login = () => {
           variant: "destructive"
         });
       } else {
-        console.log('Login successful');
+        console.log('Login successful, checking auth state...');
+        // Double check the auth state
+        const { data } = await checkAuthState();
+        console.log('Auth state after login:', data);
+        
         toast({
           title: "Login successful",
           description: "Redirecting you to the app...",
         });
         
-        // Immediately check if we can navigate
-        if (isAuthenticated) {
-          console.log('Already authenticated, redirecting now');
-          navigate('/explore');
-        } else {
-          console.log('Waiting for auth state to update');
-          // We'll let the useEffect handle the redirect once auth state updates
-        }
+        // Force navigation after successful login
+        navigate('/explore', { replace: true });
       }
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred');
+      toast({
+        title: "Login error",
+        description: "An unexpected error occurred during login",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
