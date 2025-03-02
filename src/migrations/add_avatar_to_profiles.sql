@@ -5,7 +5,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1
         FROM information_schema.columns
-        WHERE table_name = 'profiles'
+        WHERE table_schema = 'public'
+        AND table_name = 'profiles'
         AND column_name = 'avatar'
     ) THEN
         ALTER TABLE profiles ADD COLUMN avatar TEXT;
