@@ -1,8 +1,9 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
 
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -16,9 +17,13 @@ import BetaIndicator from './components/BetaIndicator';
 
 import './App.css';
 
-function App() {
+// Inner component that uses the auth context
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <AuthProvider>
+    <>
+      {isAuthenticated && <Navbar />}
       <BetaIndicator />
       <Routes>
         <Route path="/" element={<Index />} />
@@ -31,6 +36,14 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
+    </>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

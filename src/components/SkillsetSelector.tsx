@@ -13,6 +13,22 @@ interface SkillsetSelectorProps {
   availableSkills?: Skill[]; // Now accepting skills as prop
 }
 
+// Default available skills (fallback if none provided)
+const defaultSkills: Skill[] = [
+  { name: "UI Design", color: "#3B82F6" },
+  { name: "UX Design", color: "#8B5CF6" },
+  { name: "Graphic Design", color: "#EC4899" },
+  { name: "Frontend Development", color: "#10B981" },
+  { name: "Backend Development", color: "#6366F1" },
+  { name: "Game Development", color: "#F59E0B" },
+  { name: "3D Modeling", color: "#EF4444" },
+  { name: "Illustration", color: "#14B8A6" },
+  { name: "Animation", color: "#F97316" },
+  { name: "Sound Design", color: "#8B5CF6" },
+  { name: "Marketing", color: "#06B6D4" },
+  { name: "Project Management", color: "#64748B" }
+];
+
 // Define some default skill categories for organization
 const defaultCategories = [
   "Design", 
@@ -41,9 +57,12 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   const [activeCategory, setActiveCategory] = useState(defaultCategories[0]);
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // Use default skills if none provided
+  const skillsToUse = availableSkills.length > 0 ? availableSkills : defaultSkills;
+  
   // Group skills by category
   const skillsByCategory = defaultCategories.reduce((acc, category) => {
-    acc[category] = availableSkills.filter(skill => 
+    acc[category] = skillsToUse.filter(skill => 
       categorizeSkill(skill.name) === category
     );
     return acc;
@@ -73,7 +92,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         ) : (
           <div className="flex flex-wrap gap-2">
             {selectedSkills.map(skill => {
-              const skillInfo = availableSkills.find(s => s.name === skill);
+              const skillInfo = skillsToUse.find(s => s.name === skill);
               return (
                 <div 
                   key={skill} 
@@ -97,14 +116,14 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
       <div className="relative">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="button-secondary flex items-center justify-center gap-2 w-full"
+          className="button-secondary flex items-center justify-center gap-2 w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
         >
           <Plus size={18} />
           <span>{isExpanded ? 'Close Skill Selector' : 'Add Skills'}</span>
         </button>
         
         {isExpanded && (
-          <div className="absolute top-full left-0 right-0 mt-2 glassmorphic-card z-10">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-50">
             <div className="flex gap-1 mb-4 overflow-x-auto pb-2 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button
@@ -119,7 +138,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
               ))}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto">
               {skillsByCategory[activeCategory]?.map(skill => {
                 const isSelected = selectedSkills.includes(skill.name);
                 return (
@@ -128,7 +147,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                     onClick={() => handleToggleSkill(skill.name)}
                     className={`
                       text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2
-                      ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-secondary'}
+                      ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-secondary/10'}
                     `}
                   >
                     <div className={`

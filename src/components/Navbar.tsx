@@ -109,7 +109,7 @@ const Navbar = () => {
 
             {profileOpen && (
               <div 
-                className="absolute right-0 left-0 bottom-full mb-2 rounded-md shadow-lg bg-black border border-white/10"
+                className="absolute right-0 left-0 bottom-full mb-2 rounded-md shadow-lg bg-black/95 border border-white/10 z-50"
               >
                 <div className="py-1">
                   <Link 
