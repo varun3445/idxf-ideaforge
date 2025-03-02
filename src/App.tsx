@@ -1,35 +1,48 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Explore from "./pages/Explore";
-import Matches from "./pages/Matches";
-import ExperimentLab from "./pages/ExperimentLab";
-import NotFound from "./pages/NotFound";
-import Navbar from "./components/Navbar";
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Index from './pages/Index';
+import Explore from './pages/Explore';
+import Matches from './pages/Matches';
+import ExperimentLab from './pages/ExperimentLab';
+import NotFound from './pages/NotFound';
+import Signup from './pages/Signup';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
+import { useLocation } from 'react-router-dom';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Navbar />
+function App() {
+  const location = useLocation();
+  const showNavbar = !['/', '/login', '/signup'].includes(location.pathname);
+  
+  return (
+    <>
+      {showNavbar && <Navbar />}
+      <main>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/matches" element={<Matches />} />
-          <Route path="/lab" element={<ExperimentLab />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/explore" element={
+            <ProtectedRoute>
+              <Explore />
+            </ProtectedRoute>
+          } />
+          <Route path="/matches" element={
+            <ProtectedRoute>
+              <Matches />
+            </ProtectedRoute>
+          } />
+          <Route path="/lab" element={
+            <ProtectedRoute>
+              <ExperimentLab />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </main>
+    </>
+  );
+}
 
 export default App;

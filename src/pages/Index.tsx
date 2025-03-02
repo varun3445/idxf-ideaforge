@@ -59,11 +59,11 @@ const Index = () => {
               flex flex-col sm:flex-row gap-4 transition-all duration-1000 delay-200
               ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
             `}>
-              <Link to="/explore" className="button-primary">
-                Get Started
+              <Link to="/signup" className="button-primary">
+                Sign Up
               </Link>
-              <Link to="/matches" className="button-secondary">
-                Find Collaborators
+              <Link to="/login" className="button-secondary">
+                Log In
               </Link>
             </div>
           </div>
@@ -104,10 +104,10 @@ const Index = () => {
                   </p>
                   
                   <Link
-                    to={feature.path}
+                    to="/signup"
                     className="mt-auto flex items-center font-medium text-neon hover:underline gap-1 group"
                   >
-                    <span>Explore {feature.title}</span>
+                    <span>Try {feature.title}</span>
                     <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                   </Link>
                 </GlassmorphicCard>

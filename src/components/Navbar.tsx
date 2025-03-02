@@ -36,13 +36,8 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link 
           to="/" 
-          className="text-xl font-bold tracking-tight transition-opacity hover:opacity-80 flex items-center"
+          className="text-xl font-bold tracking-tight transition-opacity hover:opacity-80"
         >
-          <img 
-            src="/lovable-uploads/9484ae90-ca94-4226-8d3f-b46add98f1fc.png" 
-            alt="Idea Forge Logo" 
-            className="h-8 mr-2" 
-          />
           <span>Idea Forge</span>
         </Link>
         
