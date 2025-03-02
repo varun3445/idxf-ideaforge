@@ -97,14 +97,14 @@ const Login = () => {
 
   return (
     <AnimatedTransition>
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
             <h1 className="text-4xl font-extrabold mb-2">Idea Forge</h1>
             <p className="text-muted-foreground">Connect with like-minded innovators</p>
           </div>
           
-          <div className="bg-background border border-border rounded-lg p-8">
+          <div className="bg-card border border-border rounded-lg p-8">
             <h2 className="text-2xl font-bold mb-6">Sign In</h2>
             
             {previousUser && (
