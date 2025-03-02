@@ -158,7 +158,7 @@ const ProjectDetail = () => {
   return <AnimatedTransition>
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
-          <Link to="/explore" className="inline-flex items-center gap-2 text-primary hover:underline px-0 py-0">
+          <Link to="/explore" className="inline-flex items-center gap-2 text-black hover:underline px-0 py-0">
             <ArrowLeft size={18} />
             <span className="text-left px-[2px] mx-0">Back to Explore</span>
           </Link>
