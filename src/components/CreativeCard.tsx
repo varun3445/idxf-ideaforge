@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
-import { BarChart2, MapPin, ArrowRight, Search } from 'lucide-react';
+import { BarChart2, MapPin, ArrowRight, Search, Trophy } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface Creative {
@@ -15,6 +15,8 @@ interface Creative {
   sex?: string;
   isNearby?: boolean;
   matchScore?: number;
+  locationMatch?: boolean;
+  skillMatch?: boolean;
   portfolio: Array<{
     id: string;
     title: string;
@@ -83,7 +85,7 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
       
       <div className="flex flex-wrap gap-1 mb-4">
         {creative.skills.slice(0, 4).map((skill, index) => (
-          <span key={index} className="chip">
+          <span key={index} className={`chip ${creative.skillMatch && skill.toLowerCase() === creative.role.toLowerCase() ? 'bg-primary/20 border-primary/30' : ''}`}>
             {skill}
           </span>
         ))}
@@ -95,12 +97,28 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
       {showMatchScore && displayMatchScore !== undefined && (
         <div className="mt-auto pt-4 border-t border-border">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search size={16} className="text-primary" />
-              <div className="text-sm">
-                <span className="text-muted-foreground">Skills match: </span>
-                <span className="font-medium">{displayMatchScore}%</span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Search size={16} className="text-primary" />
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Match: </span>
+                  <span className="font-medium">{displayMatchScore}%</span>
+                </div>
               </div>
+              
+              {creative.locationMatch && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <MapPin size={12} className="text-green-500" />
+                  <span>Location match</span>
+                </div>
+              )}
+              
+              {creative.skillMatch && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Trophy size={12} className="text-amber-500" />
+                  <span>Skill match</span>
+                </div>
+              )}
             </div>
             
             <Button size="sm" variant="ghost" className="text-xs h-8">

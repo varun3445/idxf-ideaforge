@@ -1,13 +1,37 @@
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-
+// Set up CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Initialize Supabase client
+const supabaseClient = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+);
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  location: string;
+  skills: string[];
+}
+
+interface SearchBody {
+  query: string;
+  profiles: UserProfile[];
+  userLocation?: string | null;
+}
+
+interface ProfileMatch {
+  id: string;
+  matchScore: number;
+  reasons: string[];
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -16,114 +40,128 @@ serve(async (req) => {
   }
 
   try {
-    const { query, profiles, userLocation } = await req.json();
-
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY is not set in Supabase environment variables');
-    }
-
+    // Extract request data
+    const requestData: SearchBody = await req.json();
+    const { query, profiles, userLocation } = requestData;
+    
     if (!query || !profiles || !Array.isArray(profiles)) {
-      throw new Error('Missing required parameters: query or profiles');
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
     }
-
-    // Prepare structured profile data for the AI
-    const structuredProfiles = profiles.map(profile => ({
-      id: profile.id,
-      name: profile.name,
-      location: profile.location,
-      skills: profile.skills.join(', ')
-    }));
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: `You are an AI assistant helping to find matching profiles for collaboration.
-            Analyze the user's search query and find relevant profiles based on skills, location, or other criteria.
-            For each profile, calculate a match percentage (0-100) based on the following criteria:
-            1. Skills match: How well the profile's skills match the skills mentioned in the query
-            2. Location match: If the query mentions a location, how well it matches the profile's location
-            
-            Important rules:
-            - The match score should be proportional to how relevant the profile is to the search query
-            - A perfect match (100%) should only happen when ALL search terms are matched
-            - Only include profiles with at least one matching skill or location relevance
-            - For any profile with a score less than 20%, set it to 0
-            
-            Return a JSON object with two properties:
-            1. "matchingProfiles": an array of objects with "id" and "matchScore" (percentage as a number)
-            2. "searchExplanation": a brief explanation of how you interpreted the search`
-          },
-          { 
-            role: 'user', 
-            content: `Search query: "${query}"\nAvailable profiles: ${JSON.stringify(structuredProfiles)}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1500,
+    
+    console.log(`Search query: "${query}" with ${profiles.length} profiles`);
+    
+    // Process the search query to identify key terms
+    const queryTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 2);
+    const locationTerms: string[] = [];
+    const skillTerms: string[] = [];
+    
+    // Try to separate location terms from skill terms
+    queryTerms.forEach(term => {
+      const isLocationIndicator = ['in', 'at', 'near', 'from'].includes(term);
+      const nextTermIndex = queryTerms.indexOf(term) + 1;
+      
+      if (isLocationIndicator && nextTermIndex < queryTerms.length) {
+        // The term after a location indicator is likely a location
+        locationTerms.push(queryTerms[nextTermIndex]);
+      } else if (!isLocationIndicator) {
+        // Filter out common words and keep potential skill terms
+        if (!['the', 'and', 'with', 'for', 'any', 'anyone', 'someone'].includes(term)) {
+          skillTerms.push(term);
+        }
+      }
+    });
+    
+    console.log(`Identified terms - Locations: ${locationTerms.join(', ')} | Skills: ${skillTerms.join(', ')}`);
+    
+    // If "anyone" or similar generic terms are used with a location, prioritize location matching
+    const isGenericPersonSearch = query.toLowerCase().includes('anyone') || 
+                                query.toLowerCase().includes('someone') ||
+                                query.toLowerCase().includes('people');
+    
+    // Match profiles using our own algorithm instead of calling an external API
+    const matchingProfiles: ProfileMatch[] = profiles.map(profile => {
+      let matchScore = 0;
+      const reasons: string[] = [];
+      
+      // Location matching
+      const profileLocation = profile.location.toLowerCase();
+      const hasLocationMatch = locationTerms.some(term => 
+        profileLocation.includes(term) || 
+        (userLocation && profileLocation.includes(userLocation.toLowerCase()))
+      );
+      
+      // Check for location match to prioritize profiles from that location
+      if (hasLocationMatch) {
+        matchScore += 60; // Significant boost for location match
+        reasons.push(`Location matches "${locationTerms.join(', ')}"`);
+      }
+      
+      // Skills matching - only if we have skill terms or it's not just a generic search
+      if (skillTerms.length > 0 || !isGenericPersonSearch) {
+        const lowerSkills = profile.skills.map(s => s.toLowerCase());
+        const matchingSkills = skillTerms.filter(term => 
+          lowerSkills.some(skill => skill.includes(term) || term.includes(skill))
+        );
+        
+        if (matchingSkills.length > 0) {
+          // Calculate skill match percentage
+          const skillMatchPercentage = (matchingSkills.length / skillTerms.length) * 100;
+          matchScore += skillMatchPercentage;
+          reasons.push(`Skills match: ${matchingSkills.join(', ')}`);
+        }
+      } else if (isGenericPersonSearch && hasLocationMatch) {
+        // For generic searches like "anyone in India", give them a full 100% if location matches
+        matchScore = 100;
+        reasons.push('Matches location search for any creative');
+      }
+      
+      return {
+        id: profile.id,
+        matchScore: Math.min(100, matchScore), // Cap at 100%
+        reasons
+      };
+    }).filter(profile => profile.matchScore > 0);
+    
+    // Sort by matchScore (highest first) and limit to 10 results
+    matchingProfiles.sort((a, b) => b.matchScore - a.matchScore);
+    
+    let searchExplanation = '';
+    if (matchingProfiles.length > 0) {
+      if (locationTerms.length > 0 && skillTerms.length > 0) {
+        searchExplanation = `Found ${matchingProfiles.length} creatives matching your search for ${skillTerms.join(', ')} in ${locationTerms.join(', ')}`;
+      } else if (locationTerms.length > 0) {
+        searchExplanation = `Found ${matchingProfiles.length} creatives in ${locationTerms.join(', ')}`;
+      } else if (skillTerms.length > 0) {
+        searchExplanation = `Found ${matchingProfiles.length} creatives with skills in ${skillTerms.join(', ')}`;
+      } else {
+        searchExplanation = `Found ${matchingProfiles.length} creatives matching "${query}"`;
+      }
+    } else {
+      searchExplanation = `No creatives found matching "${query}"`;
+    }
+    
+    console.log(`Returning ${matchingProfiles.length} matches with explanation: ${searchExplanation}`);
+    
+    return new Response(
+      JSON.stringify({ 
+        matchingProfiles, 
+        searchExplanation 
       }),
-    });
-
-    const data = await response.json();
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
     
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('Invalid response from OpenAI');
-    }
-
-    // Extract the JSON response from OpenAI
-    const content = data.choices[0].message.content.trim();
-    let aiResponse;
-    
-    try {
-      // Try to parse the response as JSON
-      aiResponse = JSON.parse(content);
-      
-      // Ensure the expected properties exist
-      if (!aiResponse.matchingProfiles || !Array.isArray(aiResponse.matchingProfiles)) {
-        throw new Error('Response does not contain matchingProfiles array');
-      }
-      
-      // Limit to top 10 matching profiles
-      if (aiResponse.matchingProfiles.length > 10) {
-        aiResponse.matchingProfiles = aiResponse.matchingProfiles
-          .sort((a, b) => b.matchScore - a.matchScore)
-          .slice(0, 10);
-      }
-      
-    } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      console.log('Raw response:', content);
-      
-      // Return a simple error response
-      return new Response(JSON.stringify({ 
-        error: 'Failed to parse AI response',
-        matchingProfiles: [],
-        searchExplanation: 'Error processing your search'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
-    }
-
-    return new Response(JSON.stringify(aiResponse), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (error) {
-    console.error('Error in search-with-ai function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      matchingProfiles: [],
-      searchExplanation: 'An error occurred while processing your search'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error processing search request:', error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to process search request', 
+        details: error.message 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
   }
 });

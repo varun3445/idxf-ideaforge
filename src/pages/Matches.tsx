@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
@@ -25,6 +24,8 @@ interface UserProfile {
   distance?: number;
   matchScore?: number;
   isNearby?: boolean;
+  skillMatch?: boolean;
+  locationMatch?: boolean;
 }
 
 // Function to calculate distance between two locations using Haversine formula
@@ -135,6 +136,23 @@ const Matches = () => {
     
     return false;
   };
+
+  // Enhanced function to check for location matching
+  const checkLocationMatch = (profileLocation: string, searchTerms: string[]): boolean => {
+    if (!profileLocation || !searchTerms.length) return false;
+    
+    const locationParts = profileLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
+    
+    for (const term of searchTerms) {
+      for (const part of locationParts) {
+        if (part.includes(term) || term.includes(part)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
   
   useEffect(() => {
     if (user?.location) {
@@ -197,7 +215,13 @@ const Matches = () => {
 
     try {
       if (!query.trim()) {
-        setFilteredUsers(matchedUsers.slice(0, 10).map(profile => ({...profile, matchScore: undefined, isNearby: false})));
+        setFilteredUsers(matchedUsers.slice(0, 10).map(profile => ({
+          ...profile, 
+          matchScore: undefined, 
+          isNearby: false,
+          skillMatch: false,
+          locationMatch: false
+        })));
         return;
       }
 
@@ -205,6 +229,7 @@ const Matches = () => {
         body: {
           query,
           profiles: matchedUsers,
+          userLocation: user?.location || null
         },
       });
 
@@ -215,22 +240,53 @@ const Matches = () => {
       const { matchingProfiles, searchExplanation } = data;
       
       if (Array.isArray(matchingProfiles) && matchingProfiles.length > 0) {
+        // Extract potential location terms from the query
+        const queryTerms = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
+        
         const profilesWithScores = matchedUsers
           .map(profile => {
             const match = matchingProfiles.find(m => m.id === profile.id);
             
-            // Check if location is nearby based on improved logic
+            // Check if location is nearby based on user's location
             const isNearby = user && user.location ? 
               isLocationNearby(user.location, profile.location) : false;
             
+            // Check if the profile location matches any search terms
+            const locationMatch = checkLocationMatch(profile.location, queryTerms);
+            
+            // Check if any skills directly match query terms
+            const skillMatch = profile.skills.some(skill => 
+              queryTerms.some(term => skill.toLowerCase().includes(term))
+            );
+            
+            // Boost score for location matches
+            let finalScore = match ? match.matchScore : 0;
+            if (locationMatch && finalScore > 0) {
+              // Prioritize profiles that match both skill and location
+              finalScore = Math.min(100, finalScore + 20);
+            }
+            
             return {
               ...profile,
-              matchScore: match ? match.matchScore : 0,
-              isNearby
+              matchScore: finalScore,
+              isNearby,
+              locationMatch,
+              skillMatch
             };
           })
           .filter(profile => profile.matchScore > 0)
-          .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+          .sort((a, b) => {
+            // First prioritize exact location matches for the main requested skill
+            if (a.locationMatch && a.skillMatch && (!b.locationMatch || !b.skillMatch)) return -1;
+            if (b.locationMatch && b.skillMatch && (!a.locationMatch || !a.skillMatch)) return 1;
+            
+            // Then prioritize location matches
+            if (a.locationMatch && !b.locationMatch) return -1;
+            if (b.locationMatch && !a.locationMatch) return 1;
+            
+            // Then sort by match score
+            return (b.matchScore || 0) - (a.matchScore || 0);
+          })
           .slice(0, 10); // Limit to 10 results max
         
         setFilteredUsers(profilesWithScores);
@@ -265,11 +321,9 @@ const Matches = () => {
         }
         
         // Check if location matches search terms
-        const isLocationMatch = queryTerms.some(term => 
-          profile.location.toLowerCase().includes(term)
-        );
+        const locationMatch = checkLocationMatch(profile.location, queryTerms);
         
-        if (isLocationMatch) {
+        if (locationMatch) {
           matchScore = Math.max(matchScore, 50); // Boost score for location match
         }
         
@@ -277,14 +331,32 @@ const Matches = () => {
         const isNearby = user && user.location ? 
           isLocationNearby(user.location, profile.location) : false;
         
+        // Check if any skills directly match query terms (for highlighting)
+        const skillMatch = profile.skills.some(skill => 
+          queryTerms.some(term => skill.toLowerCase().includes(term))
+        );
+        
         return {
           ...profile,
           matchScore,
-          isNearby
+          isNearby,
+          locationMatch,
+          skillMatch
         };
       })
       .filter(profile => profile.matchScore > 0)
-      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+      .sort((a, b) => {
+        // First prioritize exact location matches for the main requested skill
+        if (a.locationMatch && a.skillMatch && (!b.locationMatch || !b.skillMatch)) return -1;
+        if (b.locationMatch && b.skillMatch && (!a.locationMatch || !a.skillMatch)) return 1;
+        
+        // Then prioritize location matches
+        if (a.locationMatch && !b.locationMatch) return -1;
+        if (b.locationMatch && !a.locationMatch) return 1;
+        
+        // Then sort by match score
+        return (b.matchScore || 0) - (a.matchScore || 0);
+      })
       .slice(0, 10); // Limit to 10 results max
       
       setFilteredUsers(filtered);
@@ -310,7 +382,6 @@ const Matches = () => {
     return () => clearTimeout(delaySearch);
   }, [searchQuery, matchedUsers]);
   
-  // Function to add sample users if there aren't enough in the database
   useEffect(() => {
     const addSampleUsers = async () => {
       if (!user) return;
@@ -586,7 +657,6 @@ const Matches = () => {
     }
   }, [user, dbConnectionChecked]);
   
-  // Critical fetch users function - modified to better handle profiles
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user) return;
@@ -766,6 +836,8 @@ const Matches = () => {
                   location: profile.location,
                   isNearby: profile.isNearby,
                   matchScore: profile.matchScore,
+                  locationMatch: profile.locationMatch,
+                  skillMatch: profile.skillMatch,
                   portfolio: []
                 }}
                 showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined && profile.matchScore > 0}
