@@ -17,13 +17,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [userInitiatedLogin, setUserInitiatedLogin] = useState(false);
 
-  // Single useEffect for authentication redirect
+  // Only redirect if user has explicitly logged in via form submission
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
+    if (isAuthenticated && !authLoading && userInitiatedLogin) {
       navigate('/explore', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, userInitiatedLogin]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -35,6 +36,7 @@ const Login = () => {
     
     setLoading(true);
     setError('');
+    setUserInitiatedLogin(true); // Track that login was user-initiated
     
     try {
       const { error } = await login(email, password);

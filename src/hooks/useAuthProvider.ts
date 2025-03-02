@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
@@ -57,6 +56,7 @@ export function useAuthProvider() {
   
   const login = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -70,6 +70,8 @@ export function useAuthProvider() {
     } catch (error) {
       console.error('Login error:', error);
       return { error: error as Error };
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -128,7 +130,10 @@ export function useAuthProvider() {
   };
   
   const logout = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
+    setUser(null);
+    setLoading(false);
     navigate('/');
   };
   
