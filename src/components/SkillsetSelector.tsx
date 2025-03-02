@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { Plus, X, Circle } from 'lucide-react';
+import { Plus, X, Circle, PlusCircle } from 'lucide-react';
+import { Input } from './ui/input';
 
 interface Skill {
   name: string;
@@ -29,13 +30,22 @@ const defaultSkills: Skill[] = [
   { name: "Project Management", color: "#64748B" }
 ];
 
+// Colors for random assignment to custom skills
+const customSkillColors = [
+  "#9b87f5", "#7E69AB", "#6E59A5", "#8B5CF6", 
+  "#D946EF", "#F97316", "#0EA5E9", "#1EAEDB", 
+  "#33C3F0", "#10B981", "#F59E0B", "#EF4444",
+  "#14B8A6", "#06B6D4", "#64748B", "#EC4899"
+];
+
 // Define some default skill categories for organization
 const defaultCategories = [
   "Design", 
   "Development", 
   "Management", 
   "Creative", 
-  "Technical"
+  "Technical",
+  "Custom"
 ];
 
 // Helper function to categorize skills (simplified)
@@ -53,18 +63,30 @@ const categorizeSkill = (skillName: string): string => {
   }
 };
 
+// Helper function to get a random color from customSkillColors
+const getRandomColor = (): string => {
+  const randomIndex = Math.floor(Math.random() * customSkillColors.length);
+  return customSkillColors[randomIndex];
+};
+
 const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: SkillsetSelectorProps) => {
   const [activeCategory, setActiveCategory] = useState(defaultCategories[0]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [customSkill, setCustomSkill] = useState("");
+  const [customSkills, setCustomSkills] = useState<Skill[]>([]);
   
   // Use default skills if none provided
   const skillsToUse = availableSkills.length > 0 ? availableSkills : defaultSkills;
   
   // Group skills by category
   const skillsByCategory = defaultCategories.reduce((acc, category) => {
-    acc[category] = skillsToUse.filter(skill => 
-      categorizeSkill(skill.name) === category
-    );
+    if (category === "Custom") {
+      acc[category] = customSkills;
+    } else {
+      acc[category] = skillsToUse.filter(skill => 
+        categorizeSkill(skill.name) === category
+      );
+    }
     return acc;
   }, {} as Record<string, Skill[]>);
   
@@ -79,6 +101,34 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   const handleRemoveSkill = (skill: string) => {
     onChange(selectedSkills.filter(s => s !== skill));
   };
+
+  const handleAddCustomSkill = () => {
+    if (customSkill.trim() === "") return;
+    
+    // Create the new custom skill with a random color
+    const newSkill = {
+      name: customSkill.trim(),
+      color: getRandomColor()
+    };
+    
+    // Add to custom skills
+    setCustomSkills([...customSkills, newSkill]);
+    
+    // Also add to selected skills
+    if (!selectedSkills.includes(newSkill.name)) {
+      onChange([...selectedSkills, newSkill.name]);
+    }
+    
+    // Reset input
+    setCustomSkill("");
+  };
+  
+  const handleCustomSkillKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddCustomSkill();
+    }
+  };
   
   return (
     <div className="glassmorphic-card w-full max-w-xl">
@@ -92,7 +142,11 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         ) : (
           <div className="flex flex-wrap gap-3">
             {selectedSkills.map(skill => {
-              const skillInfo = skillsToUse.find(s => s.name === skill);
+              // Find the skill in all available sources
+              const skillInfo = 
+                skillsToUse.find(s => s.name === skill) || 
+                customSkills.find(s => s.name === skill);
+                
               return (
                 <div 
                   key={skill} 
@@ -137,6 +191,29 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                 </button>
               ))}
             </div>
+            
+            {activeCategory === "Custom" ? (
+              <div className="mb-5">
+                <div className="flex gap-2">
+                  <Input
+                    value={customSkill}
+                    onChange={(e) => setCustomSkill(e.target.value)}
+                    onKeyPress={handleCustomSkillKeyPress}
+                    placeholder="Enter a custom skill..."
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={handleAddCustomSkill}
+                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    <PlusCircle size={20} />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Press Enter or click the + button to add your custom skill
+                </p>
+              </div>
+            ) : null}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-2">
               {skillsByCategory[activeCategory]?.map(skill => {
