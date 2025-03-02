@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -839,7 +840,7 @@ const Matches = () => {
                   ref={resultsContainerRef}
                   className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide"
                 >
-                  {filteredUsers.slice(0, 5).map((profile) => (
+                  {filteredUsers.map((profile) => (
                     <div key={profile.id} className="profile-card flex-shrink-0 w-[220px]">
                       <div className="profile-image">
                         {profile.name.charAt(0)}
@@ -879,9 +880,9 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="pl-12 py-8 pr-12 minimal-search text-lg tracking-wide"
+                  className="pl-16 py-8 pr-12 minimal-search text-lg tracking-wider rounded-full"
                 />
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
                 
                 {(searching || isTyping) && (
                   <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
