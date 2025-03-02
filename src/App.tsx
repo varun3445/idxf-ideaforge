@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {showNavbar && <Navbar />}
-      <main className={`flex-1 ${showNavbar ? 'md:ml-20' : ''}`}>
+      <main className={`flex-1 ${showNavbar ? 'fixed-nav-content' : ''}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<Signup />} />
@@ -48,7 +48,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {showNavbar && <Footer />}
+      {showNavbar && <Footer className="pl-64" />}
     </div>
   );
 }

@@ -1,7 +1,5 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import Footer from '../components/Footer';
 import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
@@ -799,8 +797,8 @@ const Matches = () => {
   
   return (
     <AnimatedTransition>
-      <div className="minimal-container flex flex-col min-h-screen pl-64 pb-24"> {/* Added pb-24 for bottom padding */}
-        <div className="mb-8 mt-6"> {/* Added mt-6 for top margin */}
+      <div className="minimal-container flex flex-col min-h-screen pb-16">
+        <div className="mb-8 mt-8">
           <h1 className="text-4xl font-bold">find and</h1>
           <h1 className="text-4xl font-bold mb-8">be found.</h1>
           <p className="text-muted-foreground max-w-lg">
@@ -907,8 +905,6 @@ const Matches = () => {
           </>
         )}
       </div>
-      
-      <Footer className="pl-64" /> {/* Added pl-64 padding to the Footer */}
     </AnimatedTransition>
   );
 };
