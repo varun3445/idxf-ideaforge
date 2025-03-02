@@ -59,10 +59,10 @@ const Index = () => {
               flex flex-col sm:flex-row gap-4 transition-all duration-1000 delay-200
               ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
             `}>
-              <Link to="/signup" className="button-primary bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 font-medium">
+              <Link to="/signup" className="button-primary">
                 Sign Up
               </Link>
-              <Link to="/login" className="button-secondary bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 font-medium">
+              <Link to="/login" className="button-secondary">
                 Log In
               </Link>
             </div>

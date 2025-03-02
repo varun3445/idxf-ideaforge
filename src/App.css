@@ -13,10 +13,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #39FF14aa); /* Changed to lime green */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #39FF14aa); /* Changed to lime green */
 }
 
 @keyframes logo-spin {
@@ -39,5 +39,14 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: #fff; /* Changed to white */
+}
+
+/* Add button styles to ensure they use the correct colors */
+.button-primary {
+  @apply bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 font-medium;
+}
+
+.button-secondary {
+  @apply bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 font-medium;
 }
