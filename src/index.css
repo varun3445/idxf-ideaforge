@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -151,7 +152,7 @@
 }
 
 .minimal-search {
-  @apply bg-transparent border-b border-border rounded-none px-0 py-2 focus:ring-0 placeholder:text-muted-foreground;
+  @apply bg-transparent border-b border-border rounded-none px-0 py-2 focus:ring-0 placeholder:text-muted-foreground letter-spacing-wide;
 }
 
 .minimal-header {
@@ -194,4 +195,9 @@
 /* Make sure the page has proper side padding like the reference */
 .minimal-container {
   @apply max-w-full px-8 py-12;
+}
+
+/* Add letter spacing for search text */
+.letter-spacing-wide {
+  letter-spacing: 0.03em;
 }

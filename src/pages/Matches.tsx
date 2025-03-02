@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -30,7 +29,6 @@ interface UserProfile {
   locationMatch?: boolean;
 }
 
-// Function to calculate distance between two locations using Haversine formula
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
@@ -48,9 +46,7 @@ const deg2rad = (deg: number): number => {
   return deg * (Math.PI/180);
 };
 
-// Function to extract coordinates from a location string using a simple heuristic
 const extractCoordinates = (location: string): { lat: number, lon: number } | null => {
-  // Default coordinates for well-known cities (very simplified example)
   const cityCoordinates: {[key: string]: {lat: number, lon: number}} = {
     'new york': { lat: 40.7128, lon: -74.0060 },
     'london': { lat: 51.5074, lon: -0.1278 },
@@ -82,7 +78,6 @@ const extractCoordinates = (location: string): { lat: number, lon: number } | nu
   
   const locationLower = location.toLowerCase();
   
-  // Try to find a city match
   for (const [city, coords] of Object.entries(cityCoordinates)) {
     if (locationLower.includes(city)) {
       return coords;
@@ -107,11 +102,9 @@ const Matches = () => {
   const [userCoordinates, setUserCoordinates] = useState<{lat: number, lon: number} | null>(null);
   const resultsContainerRef = useRef<HTMLDivElement>(null);
   
-  // Function to check if two locations are within 250km or have a direct match
   const isLocationNearby = (userLocation: string, searchLocation: string): boolean => {
     if (!userLocation || !searchLocation) return false;
     
-    // Direct match checking (city or country name matches)
     const userLocationParts = userLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     const searchLocationParts = searchLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     
@@ -123,7 +116,6 @@ const Matches = () => {
       }
     }
     
-    // Distance-based matching
     const userCoords = extractCoordinates(userLocation);
     const searchCoords = extractCoordinates(searchLocation);
     
@@ -133,25 +125,22 @@ const Matches = () => {
         searchCoords.lat, searchCoords.lon
       );
       
-      return distance <= 250; // Within 250km range
+      return distance <= 250;
     }
     
     return false;
   };
 
-  // Enhanced function to check for location matching with improved natural language understanding
   const checkLocationMatch = (profileLocation: string, searchTerms: string[]): boolean => {
     if (!profileLocation || !searchTerms.length) return false;
     
     const locationParts = profileLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     
-    // Check for direct country/city matches
     const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
     
     for (let i = 0; i < searchTerms.length; i++) {
       const term = searchTerms[i];
       
-      // Check if this term is preceded by a location keyword
       const isPrecededByLocationKeyword = i > 0 && locationKeywords.includes(searchTerms[i-1]);
       
       if (isPrecededByLocationKeyword) {
@@ -162,9 +151,7 @@ const Matches = () => {
         }
       }
       
-      // Direct location match without keyword
       for (const part of locationParts) {
-        // Check for common country/city names
         if ((part.length > 3 && (part.includes(term) || term.includes(part))) ||
             (part === term)) {
           return true;
@@ -181,7 +168,6 @@ const Matches = () => {
     }
   }, [user]);
   
-  // Database connection and skills fetching
   useEffect(() => {
     const checkConnection = async () => {
       const { count, error } = await checkDatabaseConnection();
@@ -261,17 +247,13 @@ const Matches = () => {
         return;
       }
 
-      // Improved search params with natural language understanding
-      // Extract location keywords and skill keywords
       const queryWords = query.toLowerCase().split(/\s+/);
       const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
       let potentialLocations: string[] = [];
       
-      // Look for location patterns like "in India" or "from New York"
       for (let i = 0; i < queryWords.length - 1; i++) {
         if (locationKeywords.includes(queryWords[i])) {
           potentialLocations.push(queryWords[i+1]);
-          // Handle multi-word locations like "New York"
           if (i < queryWords.length - 2) {
             potentialLocations.push(`${queryWords[i+1]} ${queryWords[i+2]}`);
           }
@@ -294,29 +276,23 @@ const Matches = () => {
       const { matchingProfiles, searchExplanation } = data;
       
       if (Array.isArray(matchingProfiles) && matchingProfiles.length > 0) {
-        // Extract potential location terms from the query
         const queryTerms = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
         
         const profilesWithScores = matchedUsers
           .map(profile => {
             const match = matchingProfiles.find(m => m.id === profile.id);
             
-            // Check if location is nearby based on user's location
             const isNearby = user && user.location ? 
               isLocationNearby(user.location, profile.location) : false;
             
-            // Improved location matching
             const locationMatch = checkLocationMatch(profile.location, queryTerms);
             
-            // Check if any skills directly match query terms
             const skillMatch = profile.skills.some(skill => 
               queryTerms.some(term => skill.toLowerCase().includes(term))
             );
             
-            // Boost score for location matches
             let finalScore = match ? match.matchScore : 0;
             
-            // Prioritize exact location matches with extra boost
             if (potentialLocations.length > 0) {
               const locationLower = profile.location.toLowerCase();
               for (const loc of potentialLocations) {
@@ -327,7 +303,6 @@ const Matches = () => {
               }
             }
             
-            // Add regular location match boost
             if (locationMatch && finalScore > 0) {
               finalScore = Math.min(100, finalScore + 20);
             }
@@ -342,18 +317,15 @@ const Matches = () => {
           })
           .filter(profile => profile.matchScore > 0)
           .sort((a, b) => {
-            // First prioritize exact location matches for the main requested skill
             if (a.locationMatch && a.skillMatch && (!b.locationMatch || !b.skillMatch)) return -1;
             if (b.locationMatch && b.skillMatch && (!a.locationMatch || !a.skillMatch)) return 1;
             
-            // Then prioritize location matches
             if (a.locationMatch && !b.locationMatch) return -1;
             if (b.locationMatch && !a.locationMatch) return 1;
             
-            // Then sort by match score
             return (b.matchScore || 0) - (a.matchScore || 0);
           })
-          .slice(0, 10); // Limit to 10 results max
+          .slice(0, 10);
         
         setFilteredUsers(profilesWithScores);
         setSearchExplanation(searchExplanation || null);
@@ -364,7 +336,6 @@ const Matches = () => {
     } catch (error) {
       console.error('Error using AI search:', error);
       
-      // Custom matching logic as fallback with improved location matching
       const query = searchQuery.toLowerCase().trim();
       
       if (!query) {
@@ -373,17 +344,14 @@ const Matches = () => {
         return;
       }
       
-      // More sophisticated query parsing
       const queryTerms = query.split(/\s+/).filter(word => word.length > 1);
       
-      // Extract location patterns like "in India"
       const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
       let potentialLocations: string[] = [];
       
       for (let i = 0; i < queryTerms.length - 1; i++) {
         if (locationKeywords.includes(queryTerms[i])) {
           potentialLocations.push(queryTerms[i+1]);
-          // Handle multi-word locations
           if (i < queryTerms.length - 2) {
             potentialLocations.push(`${queryTerms[i+1]} ${queryTerms[i+2]}`);
           }
@@ -391,39 +359,33 @@ const Matches = () => {
       }
       
       const filtered = matchedUsers.map(profile => {
-        // Calculate match score based on skills match
         const matchingSkills = profile.skills.filter(skill => 
           queryTerms.some(term => skill.toLowerCase().includes(term))
         );
         
         let matchScore = 0;
         if (matchingSkills.length > 0) {
-          // Calculate percentage match based on how many skills match the query
           matchScore = Math.min(100, Math.round((matchingSkills.length / queryTerms.length) * 100));
         }
         
-        // Check if location matches search terms with improved matching
         const locationLower = profile.location.toLowerCase();
         let locationMatch = checkLocationMatch(profile.location, queryTerms);
         
-        // Exact location matching for location patterns
         if (potentialLocations.length > 0) {
           for (const loc of potentialLocations) {
             if (locationLower.includes(loc)) {
               locationMatch = true;
-              matchScore = Math.max(matchScore, 80); // Higher boost for explicit location match
+              matchScore = Math.max(matchScore, 80);
               break;
             }
           }
         } else if (locationMatch) {
-          matchScore = Math.max(matchScore, 50); // Regular boost for location match
+          matchScore = Math.max(matchScore, 50);
         }
         
-        // Check if location is nearby to user's location
         const isNearby = user && user.location ? 
           isLocationNearby(user.location, profile.location) : false;
         
-        // Check if any skills directly match query terms (for highlighting)
         const skillMatch = profile.skills.some(skill => 
           queryTerms.some(term => skill.toLowerCase().includes(term))
         );
@@ -438,18 +400,15 @@ const Matches = () => {
       })
       .filter(profile => profile.matchScore > 0)
       .sort((a, b) => {
-        // First prioritize exact location matches for the main requested skill
         if (a.locationMatch && a.skillMatch && (!b.locationMatch || !b.skillMatch)) return -1;
         if (b.locationMatch && b.skillMatch && (!a.locationMatch || !a.skillMatch)) return 1;
         
-        // Then prioritize location matches
         if (a.locationMatch && !b.locationMatch) return -1;
         if (b.locationMatch && !a.locationMatch) return 1;
         
-        // Then sort by match score
         return (b.matchScore || 0) - (a.matchScore || 0);
       })
-      .slice(0, 10); // Limit to 10 results max
+      .slice(0, 10);
       
       setFilteredUsers(filtered);
       
@@ -474,13 +433,11 @@ const Matches = () => {
     return () => clearTimeout(delaySearch);
   }, [searchQuery, matchedUsers]);
   
-  // Sample users generation (for demo)
   useEffect(() => {
     const addSampleUsers = async () => {
       if (!user) return;
       
       try {
-        // Check how many profiles exist
         const { data: existingProfiles, error: checkError } = await supabase
           .from('profiles')
           .select('count')
@@ -658,7 +615,6 @@ const Matches = () => {
         for (const sampleUser of sampleUsers) {
           const uniqueId = crypto.randomUUID();
           
-          // Create profile
           const { error: profileError } = await supabase
             .from('profiles')
             .insert({
@@ -666,7 +622,7 @@ const Matches = () => {
               name: sampleUser.name,
               email: sampleUser.email,
               location: sampleUser.location,
-              sex: Math.random() > 0.5 ? 'male' : 'female' // Randomize for variety
+              sex: Math.random() > 0.5 ? 'male' : 'female'
             } as any);
             
           if (profileError) {
@@ -674,10 +630,8 @@ const Matches = () => {
             continue;
           }
           
-          // Add skills for each user
           let skillSuccessCount = 0;
           for (const skillName of sampleUser.skills) {
-            // Check if skill exists
             const { data: existingSkill, error: skillFetchError } = await supabase
               .from('skills')
               .select('id')
@@ -693,7 +647,6 @@ const Matches = () => {
             if (existingSkill) {
               skillId = existingSkill.id;
             } else {
-              // Create new skill
               const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
               const { data: newSkill, error: newSkillError } = await supabase
                 .from('skills')
@@ -712,7 +665,6 @@ const Matches = () => {
               skillId = newSkill?.id;
             }
             
-            // Add user skill association
             const { error: userSkillError } = await supabase
               .from('user_skills')
               .insert({
@@ -750,7 +702,6 @@ const Matches = () => {
     }
   }, [user, dbConnectionChecked]);
   
-  // User profile fetching
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user) return;
@@ -760,7 +711,6 @@ const Matches = () => {
       try {
         console.log("Fetching profiles from database...");
         
-        // Use a more direct approach to get profiles
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('*')
@@ -780,7 +730,6 @@ const Matches = () => {
         
         console.log(`Found ${profiles.length} profiles in the database:`, profiles);
         
-        // Get all user_skills with related skill names in a separate query
         const { data: userSkillsData, error: skillsError } = await supabase
           .from('user_skills')
           .select('user_id, skills(name)');
@@ -791,7 +740,6 @@ const Matches = () => {
         
         const userSkillsMap = new Map();
         
-        // Build a map of user_id -> skills[]
         if (userSkillsData) {
           userSkillsData.forEach(skill => {
             if (skill.user_id && skill.skills) {
@@ -808,7 +756,6 @@ const Matches = () => {
         
         console.log("User skills map:", Array.from(userSkillsMap.entries()));
         
-        // Build complete user profiles
         const usersWithSkills = profiles.map(profile => {
           return {
             id: profile.id || '',
@@ -822,7 +769,7 @@ const Matches = () => {
         console.log(`Processed ${usersWithSkills.length} profiles with skills:`, usersWithSkills);
         
         setMatchedUsers(usersWithSkills);
-        setFilteredUsers(usersWithSkills.slice(0, 10)); // Initially show up to 10 results
+        setFilteredUsers(usersWithSkills.slice(0, 10));
         
         if (usersWithSkills.length === 0) {
           console.warn("No profiles with skills found");
@@ -892,7 +839,7 @@ const Matches = () => {
                   ref={resultsContainerRef}
                   className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide"
                 >
-                  {filteredUsers.map((profile) => (
+                  {filteredUsers.slice(0, 5).map((profile) => (
                     <div key={profile.id} className="profile-card flex-shrink-0 w-[220px]">
                       <div className="profile-image">
                         {profile.name.charAt(0)}
@@ -926,13 +873,13 @@ const Matches = () => {
               </div>
             )}
             
-            <div className="mb-12 max-w-2xl">
+            <div className="mb-12 mx-auto w-full max-w-4xl">
               <div className="relative">
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="pl-12 py-8 pr-12 minimal-search text-lg"
+                  className="pl-12 py-8 pr-12 minimal-search text-lg tracking-wide"
                 />
                 <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
                 
