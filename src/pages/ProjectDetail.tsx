@@ -151,7 +151,7 @@ const ProjectDetail = () => {
   }
   return <AnimatedTransition>
       <div className="page-container">
-        <Link to="/explore" className="inline-flex items-left gap-2 text-primary hover:underline mb-8 mx-[240px] px-0 py-0">
+        <Link to="/explore" className="inline-flex items-left gap-2 text-primary hover:underline mb-8 px-0 py-0 mx-0">
           <ArrowLeft size={18} />
           <span className="text-left px-[2px] mx-0">Back to Explore</span>
         </Link>
