@@ -9,7 +9,7 @@ interface User {
   email: string;
   location: string;
   skills: string[];
-  sex: string; // Add sex field to interface
+  sex: string;
 }
 
 interface AuthContextType {
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
-            sex: profileData.sex || 'male', // Set default if missing
+            sex: profileData.sex || 'male', // Use the field from database or default
             skills: skills
           });
         }
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
-            sex: profileData.sex || 'male', // Set default if missing
+            sex: profileData.sex || 'male', // Use the field from database or default
             skills: skills
           });
           setLoading(false);
