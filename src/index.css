@@ -5,23 +5,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
 
     --primary: 142 100% 54%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 70%;
 
     --accent: 142 100% 54%;
     --accent-foreground: 0 0% 0%;
@@ -29,8 +29,8 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 142 100% 54%;
 
     --radius: 0.75rem;
@@ -48,7 +48,7 @@
 
 @layer utilities {
   .glassmorphism {
-    @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-black/90 backdrop-blur-md border border-white/10 shadow-sm;
   }
   
   .text-balance {
@@ -83,7 +83,7 @@
   }
   
   .glassmorphic-card {
-    @apply bg-white border border-gray-100 rounded-2xl p-6 shadow-sm transition-all duration-300;
+    @apply bg-card border border-border rounded-2xl p-6 shadow-sm transition-all duration-300;
   }
   
   .button-primary {
@@ -93,20 +93,20 @@
   }
   
   .button-secondary {
-    @apply px-6 py-3 rounded-full bg-gray-100 text-black font-medium 
-           transition-all duration-300 hover:bg-gray-200 active:scale-[0.98] 
+    @apply px-6 py-3 rounded-full bg-secondary text-white font-medium 
+           transition-all duration-300 hover:bg-secondary/80 active:scale-[0.98] 
            focus:outline-none focus:ring-2 focus:ring-neon/20 focus:ring-offset-2;
   }
   
   .button-ghost {
     @apply px-6 py-3 rounded-full bg-transparent text-foreground font-medium 
-           transition-all duration-300 hover:bg-gray-100 active:scale-[0.98] 
+           transition-all duration-300 hover:bg-secondary active:scale-[0.98] 
            focus:outline-none focus:ring-2 focus:ring-neon/20 focus:ring-offset-2;
   }
   
   .chip {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
-           bg-gray-100 text-black transition-colors;
+           bg-secondary text-white transition-colors;
   }
   
   .chip-active {
