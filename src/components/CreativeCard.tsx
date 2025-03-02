@@ -38,6 +38,11 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
   // Use sex for avatar if available, default to seed-based avatar
   const avatarSrc =  `https://api.dicebear.com/7.x/avataaars/svg?seed=${creative.name}&gender=${creative.sex || 'male'}`;
 
+  // Make sure matchScore is displayed as an integer
+  const displayMatchScore = creative.matchScore !== undefined 
+    ? Math.round(creative.matchScore) 
+    : undefined;
+
   return (
     <GlassmorphicCard
       className="h-full flex flex-col relative overflow-hidden"
@@ -58,9 +63,9 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
             alt={creative.name} 
             className="w-12 h-12 rounded-full object-cover"
           />
-          {showMatchScore && creative.matchScore !== undefined && (
+          {showMatchScore && displayMatchScore !== undefined && (
             <div className="absolute -bottom-1 -right-1 bg-primary text-xs text-white rounded-full w-6 h-6 flex items-center justify-center border-2 border-background font-medium">
-              {creative.matchScore}
+              {displayMatchScore}
             </div>
           )}
         </div>
@@ -87,14 +92,14 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
         )}
       </div>
       
-      {showMatchScore && creative.matchScore !== undefined && (
+      {showMatchScore && displayMatchScore !== undefined && (
         <div className="mt-auto pt-4 border-t border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BarChart2 size={16} className="text-primary" />
               <div className="text-sm">
                 <span className="text-muted-foreground">Match: </span>
-                <span className="font-medium">{creative.matchScore}%</span>
+                <span className="font-medium">{displayMatchScore}%</span>
               </div>
             </div>
             
