@@ -19,29 +19,34 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [generatingUsers, setGeneratingUsers] = useState(false);
 
-  // Generate users automatically on component mount
+  // Generate users only once
   useEffect(() => {
-    const generateUsers = async () => {
-      setGeneratingUsers(true);
-      try {
-        console.log("Automatically generating 25 sample users...");
-        const success = await generateMultipleUsers(25);
-        if (success) {
-          toast({
-            title: "Users generated successfully",
-            description: "25 users have been created in the database",
-          });
-        } else {
-          console.error("Failed to generate users automatically");
+    const hasGeneratedUsers = localStorage.getItem('hasGeneratedUsers') === 'true';
+    
+    if (!hasGeneratedUsers) {
+      const generateUsers = async () => {
+        setGeneratingUsers(true);
+        try {
+          console.log("Automatically generating 25 sample users...");
+          const success = await generateMultipleUsers(25);
+          if (success) {
+            localStorage.setItem('hasGeneratedUsers', 'true');
+            toast({
+              title: "Users generated successfully",
+              description: "25 users have been created in the database",
+            });
+          } else {
+            console.error("Failed to generate users automatically");
+          }
+        } catch (error) {
+          console.error('Error generating users automatically:', error);
+        } finally {
+          setGeneratingUsers(false);
         }
-      } catch (error) {
-        console.error('Error generating users automatically:', error);
-      } finally {
-        setGeneratingUsers(false);
-      }
-    };
+      };
 
-    generateUsers();
+      generateUsers();
+    }
   }, [toast]);
 
   const togglePasswordVisibility = () => {
