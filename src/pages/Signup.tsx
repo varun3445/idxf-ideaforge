@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
-import { X, ArrowLeft, MapPin, Loader2 } from 'lucide-react';
+import { X, ArrowLeft, MapPin, Loader2, Eye, EyeOff, Plus } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 
@@ -45,8 +45,12 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const availableSkills = [
+  const [showPassword, setShowPassword] = useState(false);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillColor, setNewSkillColor] = useState('#6366F1');
+  const [isAddingSkill, setIsAddingSkill] = useState(false);
+  
+  const [availableSkills, setAvailableSkills] = useState([
     { name: 'UX Design', color: '#8B5CF6' },
     { name: 'UI Design', color: '#D946EF' },
     { name: 'Frontend Development', color: '#F97316' },
@@ -62,20 +66,56 @@ const Signup = () => {
     { name: 'Sound Design', color: '#0EA5E9' },
     { name: 'Game Development', color: '#10B981' },
     { name: 'Data Science', color: '#F59E0B' },
-  ];
+  ]);
 
   const toggleSkill = (skillName: string) => {
     if (selectedSkills.includes(skillName)) {
       setSelectedSkills(selectedSkills.filter(s => s !== skillName));
-    } else if (selectedSkills.length < 5) {
-      setSelectedSkills([...selectedSkills, skillName]);
     } else {
+      setSelectedSkills([...selectedSkills, skillName]);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const addNewSkill = () => {
+    if (!newSkillName.trim()) {
       toast({
-        title: "Maximum skills reached",
-        description: "You can select up to 5 skills",
+        title: "Skill name required",
+        description: "Please enter a skill name",
         variant: "destructive"
       });
+      return;
     }
+
+    // Check if skill already exists
+    if (availableSkills.some(skill => skill.name.toLowerCase() === newSkillName.trim().toLowerCase())) {
+      toast({
+        title: "Skill already exists",
+        description: "This skill is already in the list",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newSkill = {
+      name: newSkillName.trim(),
+      color: newSkillColor
+    };
+
+    setAvailableSkills([...availableSkills, newSkill]);
+    setSelectedSkills([...selectedSkills, newSkill.name]);
+    
+    // Reset form
+    setNewSkillName('');
+    setIsAddingSkill(false);
+
+    toast({
+      title: "Skill added",
+      description: `${newSkill.name} has been added to your skills`,
+    });
   };
 
   const goToNextStep = () => {
@@ -170,11 +210,6 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (selectedSkills.length === 0) {
-      setError('Please select at least one skill');
-      return;
-    }
-    
     setLoading(true);
     setError('');
     
@@ -247,14 +282,24 @@ const Signup = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -300,10 +345,71 @@ const Signup = () => {
           {currentStep === 2 && (
             <div className="space-y-6 animate-fade-in">
               <div>
-                <h3 className="text-lg font-medium mb-3">Select your top skills (max 5)</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Choose up to 5 skills that best represent your expertise
-                </p>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium">Select your skills</h3>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddingSkill(!isAddingSkill)}
+                    className="flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Add Custom
+                  </Button>
+                </div>
+                
+                {isAddingSkill && (
+                  <div className="mb-4 p-3 bg-background/50 border rounded-md space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="newSkillName">Skill Name</Label>
+                      <Input
+                        id="newSkillName"
+                        type="text"
+                        placeholder="Enter skill name"
+                        value={newSkillName}
+                        onChange={(e) => setNewSkillName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="newSkillColor">Skill Color</Label>
+                      <div className="flex gap-2">
+                        <input
+                          id="newSkillColor"
+                          type="color"
+                          value={newSkillColor}
+                          onChange={(e) => setNewSkillColor(e.target.value)}
+                          className="w-10 h-10 rounded border p-0"
+                        />
+                        <Input
+                          type="text"
+                          value={newSkillColor}
+                          onChange={(e) => setNewSkillColor(e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        onClick={addNewSkill}
+                        className="flex-1"
+                      >
+                        Add Skill
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsAddingSkill(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="flex flex-wrap gap-2">
                   {availableSkills.map((skill) => (
@@ -320,7 +426,7 @@ const Signup = () => {
               
               <div className="pt-4">
                 <p className="text-sm text-muted-foreground mb-2">
-                  Selected skills: {selectedSkills.length}/5
+                  Selected skills: {selectedSkills.length}
                 </p>
                 
                 <div className="flex flex-wrap gap-2">
@@ -359,7 +465,7 @@ const Signup = () => {
                 <Button 
                   type="submit" 
                   className="flex-1"
-                  disabled={selectedSkills.length === 0 || loading}
+                  disabled={loading}
                 >
                   {loading ? (
                     <>
