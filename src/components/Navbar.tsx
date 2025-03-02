@@ -46,7 +46,7 @@ const Navbar = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -55,15 +55,6 @@ const Navbar = () => {
         variant: "destructive"
       });
     }
-  };
-
-  const getAvatarSrc = () => {
-    if (user?.avatar) {
-      return user.avatar;
-    } else if (user?.name) {
-      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}&gender=${user.sex || 'male'}`;
-    }
-    return '';
   };
 
   return (
@@ -100,9 +91,9 @@ const Navbar = () => {
               className="flex items-center justify-start space-x-3 w-full p-3 rounded-lg hover:bg-secondary transition-colors overflow-hidden"
             >
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-secondary flex items-center justify-center">
-                {user ? (
+                {user && user.avatar ? (
                   <img 
-                    src={getAvatarSrc()}
+                    src={user.avatar}
                     alt={user.name || 'User'}
                     className="w-full h-full object-cover"
                   />

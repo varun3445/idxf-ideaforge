@@ -1,12 +1,15 @@
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Input } from '../components/ui/input';
-import { Button } from '../components/ui/button';
-import { Label } from '../components/ui/label';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
+import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '../integrations/supabase/client';
+import AnimatedTransition from '../components/AnimatedTransition';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,134 +17,175 @@ const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [previousUser, setPreviousUser] = useState<{
+    name: string;
+    avatar: string | null;
+  } | null>(null);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  useEffect(() => {
+    const checkPreviousLogin = async () => {
+      try {
+        // Check local storage for the last login email
+        const lastEmail = localStorage.getItem('lastLoginEmail');
+        if (lastEmail) {
+          // Try to fetch user profile from this email
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('name, avatar')
+            .eq('email', lastEmail)
+            .single();
+            
+          if (data && !error) {
+            setPreviousUser({
+              name: data.name,
+              avatar: data.avatar
+            });
+            setEmail(lastEmail);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking previous login:', error);
+      }
+    };
+    
+    checkPreviousLogin();
+  }, []);
 
-  // Check if already authenticated, redirect to explore page
-  if (isAuthenticated) {
-    console.log('User is already authenticated, redirecting to explore');
-    navigate('/explore');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/explore');
+    }
+  }, [isAuthenticated, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+    setIsLoading(true);
     
     try {
-      console.log('Attempting login with:', email);
       const { error } = await login(email, password);
       
       if (error) {
-        console.error('Login error:', error);
-        setError(error.message);
         toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive"
+          title: 'Login failed',
+          description: error.message || 'Please check your credentials and try again',
+          variant: 'destructive',
         });
-      } else {
-        console.log('Login successful, redirecting...');
-        toast({
-          title: "Login successful",
-          description: "Welcome back to Idea Forge!",
-        });
-        // Force navigate to explore page after successful login
-        navigate('/explore', { replace: true });
+        return;
       }
+      
+      // Store email for future logins
+      localStorage.setItem('lastLoginEmail', email);
+      
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully logged in',
+      });
+      
+      navigate('/explore');
     } catch (error) {
-      console.error('Error during login:', error);
-      setError('An unexpected error occurred');
+      console.error('Login error:', error);
+      toast({
+        title: 'Login failed',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome back</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Log in to your account to continue
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {error && (
-            <div className="p-3 bg-destructive/20 border border-destructive text-destructive text-sm rounded-md">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+    <AnimatedTransition>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-extrabold mb-2">Idea Forge</h1>
+            <p className="text-muted-foreground">Connect with like-minded innovators</p>
           </div>
           
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={16} className="mr-2 animate-spin" />
-                Logging in...
-              </>
-            ) : (
-              "Log in"
+          <div className="bg-background border border-border rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6">Sign In</h2>
+            
+            {previousUser && (
+              <div className="mb-6 text-center">
+                <div className="flex flex-col items-center justify-center mb-4">
+                  <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-background mb-2">
+                    {previousUser.avatar ? (
+                      <img 
+                        src={previousUser.avatar} 
+                        alt={previousUser.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-secondary flex items-center justify-center">
+                        <span className="text-xl font-bold">
+                          {previousUser.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="font-medium">Welcome back, {previousUser.name}!</p>
+                </div>
+              </div>
             )}
-          </Button>
-        </form>
-        
-        <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : 'Sign in'}
+              </Button>
+              
+              <div className="text-center text-sm mt-4">
+                <span className="text-muted-foreground">
+                  Don't have an account?{' '}
+                  <Link 
+                    to="/signup" 
+                    className="text-primary font-medium hover:underline"
+                  >
+                    Sign up
+                  </Link>
+                </span>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </AnimatedTransition>
   );
 };
 

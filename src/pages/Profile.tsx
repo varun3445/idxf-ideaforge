@@ -9,8 +9,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Loader2, Save, X, Plus, Upload, Image as ImageIcon, Camera } from 'lucide-react';
+import { Loader2, Save, X, Plus, Upload, Camera, LogOut } from 'lucide-react';
 
 interface Skill {
   id: string;
@@ -26,7 +25,6 @@ const Profile = () => {
   
   const [name, setName] = useState(user?.name || '');
   const [location, setLocation] = useState(user?.location || '');
-  const [sex, setSex] = useState(user?.sex || 'male');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [customAvatar, setCustomAvatar] = useState<string | null>(user?.avatar || null);
   const [userSkills, setUserSkills] = useState<string[]>(user?.skills || []);
@@ -34,11 +32,6 @@ const Profile = () => {
   const [newSkill, setNewSkill] = useState('');
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
-  
-  // Update avatar when name or sex changes
-  useEffect(() => {
-    setAvatar(`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}&gender=${sex}`);
-  }, [name, sex]);
   
   useEffect(() => {
     const fetchSkills = async () => {
@@ -72,7 +65,6 @@ const Profile = () => {
     if (user) {
       setName(user.name || '');
       setLocation(user.location || '');
-      setSex(user.sex || 'male');
       setUserSkills(user.skills || []);
       setCustomAvatar(user.avatar || null);
     }
@@ -181,7 +173,7 @@ const Profile = () => {
       
       toast({
         title: "Profile picture removed",
-        description: "Your custom profile picture has been removed"
+        description: "Your profile picture has been removed"
       });
     } catch (error) {
       console.error('Error removing avatar:', error);
@@ -207,8 +199,7 @@ const Profile = () => {
         .from('profiles')
         .update({
           name,
-          location,
-          sex
+          location
         } as any)
         .eq('id', user.id as any);
         
@@ -317,7 +308,7 @@ const Profile = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -353,11 +344,9 @@ const Profile = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <img 
-                        src={avatar || ''} 
-                        alt={name} 
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="w-full h-full bg-secondary flex items-center justify-center text-muted-foreground">
+                        <Camera size={32} />
+                      </div>
                     )}
 
                     {/* Image upload overlay button */}
@@ -417,39 +406,12 @@ const Profile = () => {
                     )}
                   </div>
                   
-                  {!customAvatar && (
-                    <p className="text-sm text-muted-foreground text-center mb-4">
-                      Default avatar is automatically generated based on your name and gender
-                    </p>
-                  )}
-                  
-                  <div className="w-full mb-6">
-                    <Label htmlFor="sex" className="mb-2 block">Gender for Avatar</Label>
-                    <Select 
-                      value={sex} 
-                      onValueChange={setSex}
-                      disabled={!!customAvatar}
-                    >
-                      <SelectTrigger id="sex">
-                        <SelectValue placeholder="Select gender for avatar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {customAvatar && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Gender selection is disabled when using a custom profile picture
-                      </p>
-                    )}
-                  </div>
-                  
                   <Button 
                     variant="destructive" 
                     className="mt-4 w-full"
                     onClick={handleLogout}
                   >
+                    <LogOut size={16} className="mr-2" />
                     Log out
                   </Button>
                 </CardContent>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { User, AuthContextType } from '../types/auth.types';
@@ -32,7 +33,6 @@ export const useAuthProvider = (): AuthContextType => {
         email: profileData.email,
         name: profileData.name,
         location: profileData.location,
-        sex: profileData.sex,
         skills,
         avatar: profileData.avatar,
       };
@@ -130,7 +130,6 @@ export const useAuthProvider = (): AuthContextType => {
           email: data.user.email || '',
           name: profile?.name || '',
           location: profile?.location || '',
-          sex: profile?.sex || 'male',
           skills,
           avatar: profile?.avatar || null,
         });
@@ -208,7 +207,7 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, location: string, skills: string[] = []) => {
+  const signup = async (name: string, email: string, password: string, location: string, skills: string[] = [], avatar: string | null = null) => {
     setLoading(true);
     setError(null);
     
@@ -231,8 +230,7 @@ export const useAuthProvider = (): AuthContextType => {
             email,
             name,
             location,
-            sex: 'male',
-            avatar: null
+            avatar
           });
           
         if (profileError) {
