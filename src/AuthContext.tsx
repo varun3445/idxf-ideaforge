@@ -141,6 +141,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const signup = async (name: string, email: string, password: string, location: string, skills: string[]) => {
     try {
+      console.log("Starting signup process", { name, email, location });
+      
       // Sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -148,11 +150,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (authError) {
+        console.error('Auth signup error:', authError);
         return { error: authError };
       }
       
       if (authData.user) {
-        // Insert user profile
+        console.log("User created successfully with ID:", authData.user.id);
+        
+        // After successful signup, we need to insert the profile using the authenticated user
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -164,34 +169,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
         if (profileError) {
           console.error('Error creating profile:', profileError);
+          // Attempt to delete the auth user if profile creation fails
+          await supabase.auth.admin.deleteUser(authData.user.id);
           return { error: profileError };
         }
         
+        console.log("Profile created successfully");
+        
         // Insert user skills
         for (const skillName of skills) {
-          // Get skill ID
-          const { data: skillData } = await supabase
+          // First check if the skill exists
+          const { data: existingSkill, error: skillFetchError } = await supabase
             .from('skills')
             .select('id')
             .eq('name', skillName)
             .single();
-            
-          if (skillData) {
-            // Insert user-skill association
-            const { error: skillError } = await supabase
-              .from('user_skills')
+          
+          if (skillFetchError && skillFetchError.code !== 'PGRST116') {
+            console.error(`Error checking skill ${skillName}:`, skillFetchError);
+            continue;
+          }
+          
+          let skillId;
+          if (existingSkill) {
+            skillId = existingSkill.id;
+          } else {
+            // If the skill doesn't exist, we need to create it with a default color
+            const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+            const { data: newSkill, error: newSkillError } = await supabase
+              .from('skills')
               .insert({
-                user_id: authData.user.id,
-                skill_id: skillData.id,
-              });
+                name: skillName,
+                color: randomColor
+              })
+              .select('id')
+              .single();
               
-            if (skillError) {
-              console.error(`Error adding skill ${skillName}:`, skillError);
+            if (newSkillError) {
+              console.error(`Error creating skill ${skillName}:`, newSkillError);
+              continue;
             }
+            
+            skillId = newSkill.id;
+          }
+          
+          // Now insert the user-skill association
+          const { error: userSkillError } = await supabase
+            .from('user_skills')
+            .insert({
+              user_id: authData.user.id,
+              skill_id: skillId,
+            });
+            
+          if (userSkillError) {
+            console.error(`Error adding skill ${skillName}:`, userSkillError);
           }
         }
         
-        // Navigate to explore page
+        // Navigate to explore page after successful signup
         navigate('/explore');
       }
       
