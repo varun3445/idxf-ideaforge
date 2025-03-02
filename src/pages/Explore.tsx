@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -157,14 +158,16 @@ const Explore = () => {
                     className="aspect-video w-full object-cover rounded-lg mb-8 shadow-md"
                   />
                   
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-2xl font-semibold leading-tight">{item.title}</h3>
-                    <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-full">
-                      {item.category}
-                    </span>
+                  <div className="flex flex-col items-start mb-6">
+                    <h3 className="text-2xl font-semibold leading-tight mb-2">{item.title}</h3>
+                    {item.category && (
+                      <span className="text-sm text-muted-foreground">
+                        {item.category}
+                      </span>
+                    )}
                   </div>
                   
-                  <p className="text-muted-foreground text-base leading-relaxed mb-8">{item.description}</p>
+                  <p className="text-muted-foreground text-base leading-relaxed mb-8 text-left">{item.description}</p>
                   
                   <div className="flex flex-wrap gap-3 mb-8">
                     {item.techStack?.map((tech, index) => (
@@ -174,14 +177,14 @@ const Explore = () => {
                     ))}
                   </div>
                   
-                  <p className="text-muted-foreground text-sm mb-8">
+                  <p className="text-muted-foreground text-sm mb-8 text-left">
                     Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
                   <div className="mt-auto flex justify-between items-center pt-6 border-t border-border">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users size={18} />
-                      <span>{item.collaborators || 0} collaborators</span>
+                      <span>{item.collaborators || 0}</span>
                     </div>
                     
                     <Link
