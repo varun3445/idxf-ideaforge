@@ -974,11 +974,12 @@ const Matches = () => {
           </div>
         )}
         
-        <style jsx>{`
-          .scrollbar-hide::-webkit-scrollbar {
+        {/* Fix: Remove the jsx attribute from the style tag */}
+        <style>
+          {`.scrollbar-hide::-webkit-scrollbar {
             display: none;
-          }
-        `}</style>
+          }`}
+        </style>
         
         <Footer />
       </div>
