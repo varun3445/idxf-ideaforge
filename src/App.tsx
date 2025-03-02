@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar'; // Make sure Navbar is imported
 
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -19,18 +20,23 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
-      <BetaIndicator />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-        <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-        <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Toaster />
+      <div className="min-h-screen flex flex-col">
+        <BetaIndicator />
+        <Navbar /> {/* Ensure Navbar is included here */}
+        <div className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+            <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+            <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        <Toaster />
+      </div>
     </AuthProvider>
   );
 }
