@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 interface ProjectDetails {
   id: string;
@@ -156,6 +156,8 @@ const ProjectDetail = () => {
       </div>;
   }
 
+  const formattedDate = format(new Date(project.createdAt), 'dd-MM-yyyy');
+
   return <AnimatedTransition>
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
@@ -182,7 +184,7 @@ const ProjectDetail = () => {
               </span>
               <span className="inline-flex items-center gap-1 text-sm bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
                 <Calendar size={14} />
-                {project.createdAt}
+                {formattedDate}
               </span>
             </div>
             
