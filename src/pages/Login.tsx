@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
@@ -18,6 +18,31 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [generatingUsers, setGeneratingUsers] = useState(false);
+
+  // Generate users automatically on component mount
+  useEffect(() => {
+    const generateUsers = async () => {
+      setGeneratingUsers(true);
+      try {
+        console.log("Automatically generating 25 sample users...");
+        const success = await generateMultipleUsers(25);
+        if (success) {
+          toast({
+            title: "Users generated successfully",
+            description: "25 users have been created in the database",
+          });
+        } else {
+          console.error("Failed to generate users automatically");
+        }
+      } catch (error) {
+        console.error('Error generating users automatically:', error);
+      } finally {
+        setGeneratingUsers(false);
+      }
+    };
+
+    generateUsers();
+  }, [toast]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -52,34 +77,6 @@ const Login = () => {
     }
   };
 
-  const handleGenerateUsers = async () => {
-    setGeneratingUsers(true);
-    try {
-      const success = await generateMultipleUsers(25);
-      if (success) {
-        toast({
-          title: "Users generated successfully",
-          description: "25 users have been created in the database",
-        });
-      } else {
-        toast({
-          title: "Error generating users",
-          description: "There was a problem creating the users",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error generating users:', error);
-      toast({
-        title: "Error generating users",
-        description: "There was a problem creating the users",
-        variant: "destructive"
-      });
-    } finally {
-      setGeneratingUsers(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6">
       <div className="w-full max-w-md space-y-8">
@@ -88,6 +85,11 @@ const Login = () => {
           <p className="mt-2 text-sm text-muted-foreground">
             Log in to your account to continue
           </p>
+          {generatingUsers && (
+            <p className="mt-2 text-sm text-amber-500">
+              Generating 25 sample users...
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -155,27 +157,6 @@ const Login = () => {
             <Link to="/signup" className="text-primary hover:underline font-medium">
               Sign up
             </Link>
-          </p>
-        </div>
-        
-        <div className="mt-8 pt-6 border-t border-border">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={handleGenerateUsers}
-            disabled={generatingUsers}
-          >
-            {generatingUsers ? (
-              <>
-                <Loader2 size={16} className="mr-2 animate-spin" />
-                Generating 25 Users...
-              </>
-            ) : (
-              "Generate 25 Sample Users"
-            )}
-          </Button>
-          <p className="mt-2 text-xs text-muted-foreground text-center">
-            This will create 25 random user profiles for testing purposes
           </p>
         </div>
       </div>
