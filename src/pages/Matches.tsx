@@ -1,4 +1,4 @@
-<lov-code>
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X, MapPin } from 'lucide-react';
@@ -785,4 +785,26 @@ const Matches = () => {
                               {profile.skills.slice(0, 3).map((skill, index) => (
                                 <Badge 
                                   key={index} 
-                                  style={{
+                                  style={{ backgroundColor: skill.color, color: '#000000' }}
+                                  className="shadow-sm"
+                                >
+                                  {skill.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </AnimatedTransition>
+  );
+};
+
+export default Matches;
