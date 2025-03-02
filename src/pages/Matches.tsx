@@ -422,6 +422,15 @@ const Matches = () => {
     setSelectedProject(project);
     setShowProjectDialog(true);
   };
+  const handleJoinProject = () => {
+    if (!selectedProject) return;
+    toast({
+      title: "Collaboration request sent!",
+      description: `You've requested to join "${selectedProject.title}"`,
+      variant: "success"
+    });
+    setShowProjectDialog(false);
+  };
   const getRandomProjectTitle = () => {
     const titles = ["Smart City Planner", "Health Monitor App", "Sustainable Energy Platform", "Virtual Reality Classroom", "AI Writing Assistant", "Blockchain Voting System", "Digital Art Marketplace", "Remote Work Collaboration Tool", "Fitness Tracking Wearable", "Augmented Reality Navigation"];
     return titles[Math.floor(Math.random() * titles.length)];
@@ -628,98 +637,3 @@ const Matches = () => {
                       </Button>
                     </div>
                   </div>
-                  
-                  <div ref={projectsScrollRef} className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide scroll-smooth">
-                    {projectIdeas.map(project => <div key={project.id} className="flex-shrink-0 w-80 border-3 border-border/40 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md overflow-hidden cursor-pointer" onClick={() => openProjectDetails(project)}>
-                        <div className="w-full h-48 bg-gray-100 relative">
-                          <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                            <h3 className="font-bold text-white text-lg">{project.title}</h3>
-                          </div>
-                        </div>
-                        <div className="p-4">
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {project.description}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {project.skills.map((skill, index) => <Badge key={index} style={{
-                      backgroundColor: skill.color,
-                      color: '#000000'
-                    }} className="shadow-sm">
-                                {skill.name}
-                              </Badge>)}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">
-                              {project.contributors.length} collaborator{project.contributors.length !== 1 ? 's' : ''}
-                            </span>
-                            <Button variant="outline" size="sm" className="shadow-sm">
-                              <Image className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
-                          </div>
-                        </div>
-                      </div>)}
-                  </div>
-                </div>
-              </>}
-          </>}
-      </div>
-      
-      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{selectedProject?.title}</DialogTitle>
-            <DialogDescription>
-              {selectedProject?.description}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="w-full h-48 bg-gray-100 rounded-md overflow-hidden mt-2">
-            {selectedProject?.image && <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />}
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-2">Required skills:</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedProject?.skills.map((skill, index) => <Badge key={index} style={{
-                backgroundColor: skill.color,
-                color: '#000000'
-              }} className="shadow-sm">
-                    {skill.name}
-                  </Badge>)}
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2">Current collaborators:</h4>
-              <div className="flex flex-col space-y-2">
-                {selectedProject?.contributors.map(id => {
-                const contributor = profiles.find(p => p.id === id);
-                return contributor ? <div key={id} className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                        {contributor.avatar ? <img src={contributor.avatar} alt={contributor.name} className="w-full h-full object-cover" /> : <span className="text-sm font-bold">{contributor.name[0]}</span>}
-                      </div>
-                      <span className="text-sm">{contributor.name}</span>
-                    </div> : null;
-              })}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="flex items-center justify-between sm:justify-between flex-row">
-            <Button variant="outline" className="shadow-sm">
-              <X className="h-4 w-4 mr-2" />
-              Not Interested
-            </Button>
-            <Button className="shadow-sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Join Project
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </AnimatedTransition>;
-};
-export default Matches;
