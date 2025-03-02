@@ -1,4 +1,4 @@
-<lov-code>
+
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -77,7 +77,7 @@ const extractCoordinates = (location: string): { lat: number, lon: number } | nu
     'osaka': { lat: 34.6937, lon: 135.5022 },
     'munich': { lat: 48.1351, lon: 11.5820 },
     'tel aviv': { lat: 32.0853, lon: 34.7818 },
-    'taipei': { lat: 25.0330, lon: 121.5654 },
+    'taipei': { lat: 25.0330, lon: 121.5654 }
   };
   
   const locationLower = location.toLowerCase();
@@ -105,7 +105,7 @@ const Matches = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [dbConnectionChecked, setDbConnectionChecked] = useState(false);
   const [userCoordinates, setUserCoordinates] = useState<{lat: number, lon: number} | null>(null);
-  const [resultsContainerRef] = useState<any>(null);
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
   
   // Function to check if two locations are within 250km or have a direct match
   const isLocationNearby = (userLocation: string, searchLocation: string): boolean => {
@@ -257,6 +257,7 @@ const Matches = () => {
           skillMatch: false,
           locationMatch: false
         })));
+        setSearching(false);
         return;
       }
 
@@ -368,6 +369,7 @@ const Matches = () => {
       
       if (!query) {
         setFilteredUsers(matchedUsers.slice(0, 10));
+        setSearching(false);
         return;
       }
       
@@ -864,4 +866,90 @@ const Matches = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-              className="pl-10 py-6 pr-
+              className="pl-10 py-6 pr-12 minimal-search"
+            />
+            <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+            
+            {(searching || isTyping) && (
+              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={20} />
+            )}
+            
+            {!searching && !isTyping && searchQuery.trim() && (
+              <Sparkles className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
+            )}
+          </div>
+          
+          {searchExplanation && !isTyping && !searching && (
+            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+              <Info size={14} className="flex-shrink-0" />
+              <span>{searchExplanation}</span>
+            </div>
+          )}
+        </div>
+        
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="animate-spin text-primary mb-4" size={40} />
+            <p className="text-muted-foreground">Loading creative profiles...</p>
+          </div>
+        ) : (
+          <>
+            {filteredUsers.length > 0 ? (
+              <div className="mb-16">
+                <div className="relative">
+                  <div className="profile-grid">
+                    {filteredUsers.map((profile) => (
+                      <div key={profile.id} className="profile-card">
+                        <div className="profile-image">
+                          {profile.name.charAt(0)}
+                        </div>
+                        <div className="profile-name">{profile.name}</div>
+                        <div className="profile-location">{profile.location}</div>
+                        
+                        <div className="profile-skills">
+                          {profile.skills.slice(0, 3).map((skill, index) => (
+                            <span 
+                              key={`${profile.id}-${index}`} 
+                              className={`chip ${profile.skillMatch ? 'text-primary border-primary' : ''}`}
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                        
+                        <div className="profile-metadata">
+                          <span>
+                            {profile.matchScore ? `${profile.matchScore}% match` : ''}
+                            {profile.isNearby && ' · nearby'}
+                          </span>
+                          <span>
+                            {profile.locationMatch && profile.skillMatch && 'Perfect match!'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground mb-4">No matches found for your search criteria.</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSearchQuery('')}
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  Clear search
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+        
+        <Footer />
+      </div>
+    </AnimatedTransition>
+  );
+};
+
+export default Matches;
