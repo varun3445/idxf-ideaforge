@@ -177,6 +177,7 @@ const Signup = () => {
                        data.address.town || 
                        data.address.village || 
                        data.address.hamlet ||
+                       data.address.city_district ||
                        "";
           const country = data.address.country || "";
           
@@ -315,8 +316,8 @@ const Signup = () => {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="name" className="text-left">Full Name</Label>
                 <Input
                   id="name"
                   value={name}
@@ -326,8 +327,8 @@ const Signup = () => {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="email" className="text-left">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -338,8 +339,8 @@ const Signup = () => {
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="password" className="text-left">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -354,8 +355,8 @@ const Signup = () => {
                 </p>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="location" className="text-left">Location</Label>
                 <div className="flex gap-2">
                   <Input
                     id="location"
@@ -384,8 +385,8 @@ const Signup = () => {
                 </p>
               </div>
               
-              <div className="space-y-2">
-                <Label>Skills</Label>
+              <div className="space-y-2 text-left">
+                <Label className="text-left">Skills</Label>
                 <SkillsetSelector
                   selectedSkills={skills}
                   onChange={setSkills}

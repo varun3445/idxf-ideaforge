@@ -131,8 +131,8 @@ const Login = () => {
             )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-2 text-left">
+                <Label htmlFor="email" className="text-left">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -143,9 +143,9 @@ const Login = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-2 text-left">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-left">Password</Label>
                 </div>
                 <Input
                   id="password"
