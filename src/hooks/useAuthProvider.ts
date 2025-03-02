@@ -59,7 +59,7 @@ export function useAuthProvider() {
             email,
             location,
             sex: 'male'
-          });
+          } as any);
           
         if (profileError) {
           console.error('Error creating profile:', profileError);

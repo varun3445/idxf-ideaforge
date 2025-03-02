@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
@@ -85,7 +86,7 @@ const Matches = () => {
           throw error;
         }
         
-        setAllSkills(data);
+        setAllSkills(data as Skill[] || []);
       } catch (error) {
         console.error('Error fetching skills:', error);
         toast({
@@ -221,14 +222,14 @@ const Matches = () => {
         const { data: existingProfiles, error: checkError } = await supabase
           .from('profiles')
           .select('count')
-          .neq('id', user.id);
+          .neq('id', user.id as any);
           
         if (checkError) {
           console.error('Error checking for existing profiles:', checkError);
           return;
         }
         
-        const userCount = existingProfiles[0]?.count || 0;
+        const userCount = existingProfiles?.[0]?.count || 0;
         console.log(`Found ${userCount} existing profiles in the database`);
         
         if (userCount > 5) {
@@ -401,8 +402,9 @@ const Matches = () => {
               id: uniqueId,
               name: sampleUser.name,
               email: sampleUser.email,
-              location: sampleUser.location
-            });
+              location: sampleUser.location,
+              sex: 'male'
+            } as any);
             
           if (profileError) {
             console.error(`Error creating profile for ${sampleUser.name}:`, profileError);
@@ -414,7 +416,7 @@ const Matches = () => {
             const { data: existingSkill, error: skillFetchError } = await supabase
               .from('skills')
               .select('id')
-              .eq('name', skillName)
+              .eq('name', skillName as any)
               .single();
               
             if (skillFetchError && skillFetchError.code !== 'PGRST116') {
@@ -432,7 +434,7 @@ const Matches = () => {
                 .insert({
                   name: skillName,
                   color: randomColor
-                })
+                } as any)
                 .select('id')
                 .single();
                 
@@ -441,7 +443,7 @@ const Matches = () => {
                 continue;
               }
               
-              skillId = newSkill.id;
+              skillId = newSkill?.id;
             }
             
             const { error: userSkillError } = await supabase
@@ -449,7 +451,7 @@ const Matches = () => {
               .insert({
                 user_id: uniqueId,
                 skill_id: skillId
-              });
+              } as any);
               
             if (userSkillError) {
               console.error(`Error adding skill ${skillName} for ${sampleUser.name}:`, userSkillError);
@@ -492,13 +494,13 @@ const Matches = () => {
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, name, email, location')
-          .neq('id', user.id);
+          .neq('id', user.id as any);
           
         if (profilesError) {
           throw profilesError;
         }
         
-        console.log(`Found ${profiles.length} profiles in the database`);
+        console.log(`Found ${profiles?.length || 0} profiles in the database`);
         
         console.log("Fetching user skills...");
         const { data: userSkills, error: skillsError } = await supabase
@@ -509,17 +511,17 @@ const Matches = () => {
           throw skillsError;
         }
         
-        console.log(`Found ${userSkills.length} user skills in the database`);
+        console.log(`Found ${userSkills?.length || 0} user skills in the database`);
         
-        const usersWithSkills: UserProfile[] = profiles.map((profile) => {
-          const profileSkills = userSkills
+        const usersWithSkills: UserProfile[] = (profiles || []).map((profile) => {
+          const profileSkills = (userSkills || [])
             .filter(us => us.user_id === profile.id)
-            .map(us => us.skills.name);
+            .map(us => (us.skills as any).name);
             
           return {
             ...profile,
             skills: profileSkills,
-          };
+          } as UserProfile;
         });
         
         console.log(`Processed ${usersWithSkills.length} profiles with skills`);

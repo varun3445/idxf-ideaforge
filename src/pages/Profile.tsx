@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -45,7 +46,7 @@ const Profile = () => {
           .order('name');
           
         if (error) throw error;
-        setAvailableSkills(data || []);
+        setAvailableSkills(data as Skill[] || []);
       } catch (error) {
         console.error('Error fetching skills:', error);
       }
@@ -78,8 +79,8 @@ const Profile = () => {
           name,
           location,
           sex
-        })
-        .eq('id', user.id);
+        } as any)
+        .eq('id', user.id as any);
         
       if (profileError) throw profileError;
       
@@ -87,7 +88,7 @@ const Profile = () => {
       const { data: existingUserSkills, error: fetchError } = await supabase
         .from('user_skills')
         .select('skill_id, skills(name)')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id as any);
         
       if (fetchError) throw fetchError;
       
@@ -95,7 +96,7 @@ const Profile = () => {
       const { error: deleteError } = await supabase
         .from('user_skills')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', user.id as any);
         
       if (deleteError) throw deleteError;
       
@@ -115,7 +116,7 @@ const Profile = () => {
             .insert({
               name: skillName,
               color: randomColor
-            })
+            } as any)
             .select('id')
             .single();
             
@@ -124,7 +125,7 @@ const Profile = () => {
             continue;
           }
           
-          skillId = newSkill.id;
+          skillId = newSkill?.id;
         }
         
         // Add user skill association
@@ -133,7 +134,7 @@ const Profile = () => {
           .insert({
             user_id: user.id,
             skill_id: skillId
-          });
+          } as any);
           
         if (insertError) {
           console.error(`Error adding skill ${skillName}:`, insertError);

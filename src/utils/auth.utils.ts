@@ -9,7 +9,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('name, email, location, sex')
-      .eq('id', userId)
+      .eq('id', userId as any)
       .single();
       
     if (profileError) {
@@ -23,21 +23,21 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     const { data: skillsData, error: skillsError } = await supabase
       .from('user_skills')
       .select('skills(name)')
-      .eq('user_id', userId);
+      .eq('user_id', userId as any);
       
     if (skillsError) {
       console.error('Error fetching skills:', skillsError);
     }
     
-    const skills = skillsData?.map(item => item.skills.name) || [];
+    const skills = skillsData ? skillsData.map(item => (item.skills as any).name) : [];
     console.log(`Retrieved ${skills.length} skills for user`);
     
     return {
       id: userId,
-      name: profileData.name,
-      email: profileData.email,
-      location: profileData.location,
-      sex: profileData.sex || 'male',
+      name: profileData?.name || '',
+      email: profileData?.email || '',
+      location: profileData?.location || '',
+      sex: profileData?.sex || 'male',
       skills: skills
     };
   } catch (error) {
@@ -53,7 +53,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
     const { data: existingSkill, error: skillFetchError } = await supabase
       .from('skills')
       .select('id')
-      .eq('name', skillName)
+      .eq('name', skillName as any)
       .single();
     
     if (skillFetchError && skillFetchError.code !== 'PGRST116') {
@@ -73,7 +73,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
         .insert({
           name: skillName,
           color: randomColor
-        })
+        } as any)
         .select('id')
         .single();
         
@@ -82,7 +82,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
         return false;
       }
       
-      skillId = newSkill.id;
+      skillId = newSkill?.id;
       console.log(`Created new skill "${skillName}" with ID ${skillId}`);
     }
     
@@ -90,7 +90,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
     const { data: existingUserSkill, error: checkUserSkillError } = await supabase
       .from('user_skills')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', userId as any)
       .eq('skill_id', skillId)
       .maybeSingle();
       
@@ -109,7 +109,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
       .insert({
         user_id: userId,
         skill_id: skillId,
-      });
+      } as any);
       
     if (userSkillError) {
       console.error(`Error adding skill ${skillName}:`, userSkillError);

@@ -31,8 +31,7 @@ export const supabase = createClient<Database>(
       params: {
         eventsPerSecond: 1 // Lower this to reduce memory usage
       }
-    },
-    debug: true // Enable debug logging for troubleshooting
+    }
   }
 );
 
@@ -50,10 +49,11 @@ export const checkAuthState = async () => {
 // Debug function to check database connection
 export const checkDatabaseConnection = async () => {
   try {
-    const { count, error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true });
     
+    const count = data ? data.length : 0;
     console.log("Database connection check:", { count, error });
     return { count, error };
   } catch (error) {
