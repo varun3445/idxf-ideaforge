@@ -16,4 +16,9 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  
+  // Adding missing properties and methods
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<{ error?: any }>;
+  signup: (name: string, email: string, password: string, location: string, skills: string[]) => Promise<{ error?: any }>;
 }
