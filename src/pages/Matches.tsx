@@ -1,12 +1,21 @@
 
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from '../components/ui/dialog';
 import { User } from '../types/auth.types';
 
 interface Skill {
@@ -21,6 +30,8 @@ interface Profile {
   location: string;
   skills: string[];
   avatar: string | null;
+  matchScore?: number;
+  isNearby?: boolean;
 }
 
 interface ProjectIdea {
@@ -55,6 +66,8 @@ const Matches = () => {
   const [nearbyUsers, setNearbyUsers] = useState<Profile[]>([]);
   const [similarSkillsUsers, setSimilarSkillsUsers] = useState<Profile[]>([]);
   const [error, setError] = useState('');
+  const [selectedProject, setSelectedProject] = useState<ProjectIdea | null>(null);
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
   
   const profilesScrollRef = useRef<HTMLDivElement>(null);
   const projectsScrollRef = useRef<HTMLDivElement>(null);
@@ -111,7 +124,6 @@ const Matches = () => {
         }
         
         setProfiles(profilesWithSkills);
-        setFilteredProfiles(profilesWithSkills);
         
         // Generate mock project ideas
         const generatedProjects: ProjectIdea[] = [];
@@ -138,32 +150,49 @@ const Matches = () => {
         
         setProjectIdeas(generatedProjects);
         
-        // Find nearby users (same location)
+        // Find nearby users and calculate scores (same location)
         if (user?.location) {
           const nearby = profilesWithSkills.filter(p => 
             p.location.toLowerCase().includes(user.location.toLowerCase())
-          );
+          ).map(p => ({...p, isNearby: true}));
           setNearbyUsers(nearby);
         }
         
-        // Find users with similar skills
+        // Find users with similar skills and calculate match scores
         if (user?.skills && user.skills.length > 0) {
           const withSimilarSkills = profilesWithSkills
             .map(profile => {
               const commonSkills = profile.skills.filter(skill => 
                 user.skills.includes(skill)
               );
+              
+              // Calculate match score
+              const matchScore = user.skills.length > 0 ? 
+                Math.round((commonSkills.length / user.skills.length) * 100) : 0;
+              
+              // Check if user is nearby for additional sorting
+              const isNearby = user.location && 
+                profile.location.toLowerCase().includes(user.location.toLowerCase());
+              
               return {
-                profile,
-                commonCount: commonSkills.length,
-                percentage: user.skills.length > 0 ? 
-                  (commonSkills.length / user.skills.length) * 100 : 0
+                ...profile,
+                matchScore,
+                isNearby
               };
             })
-            .filter(item => item.commonCount > 0)
-            .sort((a, b) => b.commonCount - a.commonCount);
+            .filter(item => item.matchScore > 0)
+            .sort((a, b) => {
+              // First sort by match score
+              if (b.matchScore !== a.matchScore) {
+                return b.matchScore - a.matchScore;
+              }
+              // Then by proximity if scores are equal
+              return (b.isNearby ? 1 : 0) - (a.isNearby ? 1 : 0);
+            });
             
-          setSimilarSkillsUsers(withSimilarSkills.map(item => item.profile));
+          // Limit to top 10 matches
+          setSimilarSkillsUsers(withSimilarSkills.slice(0, 10));
+          setFilteredProfiles(withSimilarSkills.slice(0, 10));
         }
         
       } catch (error) {
@@ -179,7 +208,12 @@ const Matches = () => {
   
   useEffect(() => {
     if (!search) {
-      setFilteredProfiles(profiles);
+      // When search is empty, show default view with similar skills users
+      if (similarSkillsUsers.length > 0) {
+        setFilteredProfiles(similarSkillsUsers);
+      } else {
+        setFilteredProfiles(profiles.slice(0, 10)); // Show only top 10 by default
+      }
       setUsingAI(false);
       return;
     }
@@ -191,15 +225,52 @@ const Matches = () => {
       profile.name.toLowerCase().includes(searchLower) ||
       profile.location.toLowerCase().includes(searchLower) ||
       profile.skills.some(skill => {
-        // Enhanced search for UX terms
-        if (searchLower === 'ux' && skill.toLowerCase().includes('design')) {
-          return true;
+        // Enhanced search for UX terms - if UX is searched, match with design skills
+        if (searchLower === 'ux') {
+          return skill.toLowerCase().includes('design');
         }
         return skill.toLowerCase().includes(searchLower);
       })
     );
     
-    setFilteredProfiles(filtered);
+    // Apply the same sorting as for similar skills users
+    const sortedFiltered = filtered
+      .map(profile => {
+        // For searches, calculate match score based on how many skills match the search term
+        const matchingSkills = profile.skills.filter(skill => 
+          skill.toLowerCase().includes(searchLower) || 
+          (searchLower === 'ux' && skill.toLowerCase().includes('design'))
+        );
+        
+        // If searching for UX and has design skill, give 100% match
+        const matchScore = searchLower === 'ux' && profile.skills.some(s => 
+          s.toLowerCase().includes('design')
+        ) ? 100 : Math.min(
+          Math.round((matchingSkills.length / profile.skills.length) * 100), 
+          100
+        );
+        
+        // Check if user is nearby
+        const isNearby = user?.location && 
+          profile.location.toLowerCase().includes(user.location.toLowerCase());
+        
+        return {
+          ...profile,
+          matchScore,
+          isNearby
+        };
+      })
+      .sort((a, b) => {
+        // First sort by match score
+        if (b.matchScore !== a.matchScore) {
+          return b.matchScore - a.matchScore;
+        }
+        // Then by proximity if scores are equal
+        return (b.isNearby ? 1 : 0) - (a.isNearby ? 1 : 0);
+      })
+      .slice(0, 10); // Limit to top 10 matches
+      
+    setFilteredProfiles(sortedFiltered);
     
     // If we have minimal results, try AI search
     if (filtered.length < 3 && searchLower.length > 2) {
@@ -207,7 +278,7 @@ const Matches = () => {
     } else {
       setUsingAI(false);
     }
-  }, [search, profiles]);
+  }, [search, profiles, similarSkillsUsers, user?.location]);
   
   const handleAISearch = async () => {
     if (!search || search.length < 3) return;
@@ -219,14 +290,58 @@ const Matches = () => {
       // Simulate AI search results
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Example AI response
+      // Example AI response - but now sorting by match score and proximity
       const aiMatches = profiles
-        .sort(() => 0.5 - Math.random())
-        .slice(0, Math.floor(Math.random() * 5) + 3)
-        .map(profile => ({
-          profile,
-          matchScore: Math.floor(Math.random() * 40) + 60
-        }));
+        .map(profile => {
+          // For AI search, generate a more intelligent match score
+          const searchTerms = search.toLowerCase().split(' ');
+          
+          // Check if any search terms appear in skills
+          const skillMatch = profile.skills.some(skill => 
+            searchTerms.some(term => skill.toLowerCase().includes(term))
+          );
+          
+          // Higher match for skill matches
+          let matchScore = Math.floor(Math.random() * 30) + 50;
+          
+          // Boost score for skill matches
+          if (skillMatch) {
+            matchScore += 20;
+          }
+          
+          // UX designers get 100% match for UX searches
+          if (search.toLowerCase().includes('ux') && 
+              profile.skills.some(s => s.toLowerCase().includes('design'))) {
+            matchScore = 100;
+          }
+          
+          // Check if user is nearby
+          const isNearby = user?.location && 
+            profile.location.toLowerCase().includes(user.location.toLowerCase());
+          
+          // Boost score for nearby users
+          if (isNearby) {
+            matchScore = Math.min(matchScore + 10, 100);
+          }
+          
+          return {
+            profile: {
+              ...profile,
+              matchScore,
+              isNearby
+            },
+            matchScore
+          };
+        })
+        .sort((a, b) => {
+          // First sort by match score
+          if (b.matchScore !== a.matchScore) {
+            return b.matchScore - a.matchScore;
+          }
+          // Then by proximity if scores are equal
+          return (b.profile.isNearby ? 1 : 0) - (a.profile.isNearby ? 1 : 0);
+        })
+        .slice(0, 10); // Limit to top 10
         
       setAiResults(aiMatches);
     } catch (error) {
@@ -250,6 +365,11 @@ const Matches = () => {
       const scrollAmount = direction === 'left' ? -300 : 300;
       current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+  };
+  
+  const openProjectDetails = (project: ProjectIdea) => {
+    setSelectedProject(project);
+    setShowProjectDialog(true);
   };
   
   const getRandomProjectTitle = () => {
@@ -286,10 +406,10 @@ const Matches = () => {
   
   return (
     <AnimatedTransition>
-      <div className="minimal-container flex flex-col min-h-screen pb-16">
-        <div className="mb-8 mt-8">
+      <div className="minimal-container flex flex-col min-h-screen pb-16 mt-4">
+        <div className="mb-6 mt-2">
           <h1 className="text-4xl font-bold">find and</h1>
-          <h1 className="text-4xl font-bold mb-8">be found.</h1>
+          <h1 className="text-4xl font-bold mb-6">be found.</h1>
           <p className="text-muted-foreground max-w-lg">
             Connect with creative minds and innovative projects that match your skills and interests.
           </p>
@@ -298,7 +418,7 @@ const Matches = () => {
         <div className={`w-full transition-all duration-300 ${searchFocused ? 'max-w-full' : 'max-w-xl'}`}>
           <div className="relative">
             <Input
-              className={`minimal-search letter-spacing-wide transition-all duration-300 ${
+              className={`minimal-search letter-spacing-wide transition-all duration-300 pl-4 ${
                 searchFocused ? 'text-lg' : 'text-base'
               }`}
               placeholder="Search for skills, people, locations..."
@@ -396,6 +516,13 @@ const Matches = () => {
                           </div>
                           <h3 className="profile-name">{profile.name}</h3>
                           <p className="profile-location">{profile.location}</p>
+                          {profile.matchScore && (
+                            <div className="flex items-center mb-2">
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                {profile.matchScore}% match
+                              </Badge>
+                            </div>
+                          )}
                           <div className="profile-skills">
                             {profile.skills.map((skill, index) => (
                               <Badge key={index} variant="secondary" className="chip">
@@ -420,7 +547,7 @@ const Matches = () => {
               <>
                 {/* Users with similar skills */}
                 {similarSkillsUsers.length > 0 && (
-                  <div className="mt-10">
+                  <div className="mt-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="minimal-header mb-0">People with similar skills</h2>
@@ -467,6 +594,18 @@ const Matches = () => {
                           </div>
                           <h3 className="font-bold text-base">{profile.name}</h3>
                           <p className="text-sm text-muted-foreground mb-3">{profile.location}</p>
+                          {profile.matchScore && (
+                            <div className="mb-2">
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                                {profile.matchScore}% match
+                              </Badge>
+                              {profile.isNearby && (
+                                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200">
+                                  Nearby
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-2 mt-2">
                             {profile.skills.slice(0, 3).map((skill, index) => (
                               <Badge key={index} variant="secondary" className="chip">
@@ -560,7 +699,8 @@ const Matches = () => {
                     {projectIdeas.map(project => (
                       <div 
                         key={project.id} 
-                        className="flex-shrink-0 w-80 border border-border rounded-md overflow-hidden hover:border-primary transition-all duration-300"
+                        className="flex-shrink-0 w-80 border border-border rounded-md overflow-hidden hover:border-primary transition-all duration-300 cursor-pointer"
+                        onClick={() => openProjectDetails(project)}
                       >
                         <div className="w-full h-40 bg-muted">
                           <img 
@@ -583,9 +723,15 @@ const Matches = () => {
                             <span className="text-xs text-muted-foreground">
                               {project.contributors.length} contributor{project.contributors.length !== 1 ? 's' : ''}
                             </span>
-                            <Button variant="outline" size="sm">
-                              View Details
-                            </Button>
+                            {project.contributors.length >= 10 ? (
+                              <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
+                                <Check size={12} className="mr-1" /> Full
+                              </Badge>
+                            ) : (
+                              <Button variant="outline" size="sm">
+                                View Details
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -596,6 +742,70 @@ const Matches = () => {
             )}
           </>
         )}
+        
+        {/* Project Details Dialog */}
+        <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{selectedProject?.title}</DialogTitle>
+              <DialogDescription>
+                {selectedProject?.description}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="mt-2">
+              <div className="w-full h-64 rounded-md overflow-hidden mb-4">
+                {selectedProject?.image && (
+                  <img 
+                    src={selectedProject.image} 
+                    alt={selectedProject?.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Required Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProject?.skills.map((skill, index) => (
+                      <Badge key={index} variant="secondary">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Team Status</h4>
+                  <div className="flex items-center">
+                    <UserPlus size={16} className="mr-2 text-muted-foreground" />
+                    <span>
+                      {selectedProject?.contributors.length} / 10 contributors
+                      {selectedProject?.contributors.length === 10 && " (Project is full)"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter className="flex justify-between items-center">
+              <DialogClose asChild>
+                <Button variant="outline">
+                  <X size={16} className="mr-2" />
+                  Close
+                </Button>
+              </DialogClose>
+              
+              {selectedProject && selectedProject.contributors.length < 10 && (
+                <Button>
+                  <UserPlus size={16} className="mr-2" />
+                  Collaborate
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AnimatedTransition>
   );

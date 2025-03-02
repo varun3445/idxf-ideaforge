@@ -240,3 +240,24 @@ export async function generateMultipleUsers(count: number = 25): Promise<boolean
     return false;
   }
 }
+
+export const createUserProfile = async (userId: string, userData: Partial<User>) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        name: userData.name,
+        email: userData.email,
+        location: userData.location,
+        avatar: userData.avatar
+      });
+      
+    if (error) throw error;
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error creating user profile:', error);
+    return { data: null, error };
+  }
+};

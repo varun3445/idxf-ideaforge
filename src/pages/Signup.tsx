@@ -94,11 +94,11 @@ const Signup = () => {
     try {
       // Create a unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `temp-avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `avatar-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
       
       // Upload the image to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user_avatars')
         .upload(filePath, file);
         
