@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, profiles } = await req.json();
+    const { query, profiles, userLocation } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error('OPENAI_API_KEY is not set in Supabase environment variables');
@@ -47,7 +47,16 @@ serve(async (req) => {
             role: 'system', 
             content: `You are an AI assistant helping to find matching profiles for collaboration.
             Analyze the user's search query and find relevant profiles based on skills, location, or other criteria.
-            For each profile, calculate a match percentage (0-100) based on how well it matches the query.
+            For each profile, calculate a match percentage (0-100) based on the following criteria:
+            1. Skills match: How well the profile's skills match the skills mentioned in the query
+            2. Location match: If the query mentions a location, how well it matches the profile's location
+            
+            Important rules:
+            - The match score should be proportional to how relevant the profile is to the search query
+            - A perfect match (100%) should only happen when ALL search terms are matched
+            - Only include profiles with at least one matching skill or location relevance
+            - For any profile with a score less than 20%, set it to 0
+            
             Return a JSON object with two properties:
             1. "matchingProfiles": an array of objects with "id" and "matchScore" (percentage as a number)
             2. "searchExplanation": a brief explanation of how you interpreted the search`
@@ -58,6 +67,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.3,
+        max_tokens: 1500,
       }),
     });
 
@@ -79,6 +89,14 @@ serve(async (req) => {
       if (!aiResponse.matchingProfiles || !Array.isArray(aiResponse.matchingProfiles)) {
         throw new Error('Response does not contain matchingProfiles array');
       }
+      
+      // Limit to top 10 matching profiles
+      if (aiResponse.matchingProfiles.length > 10) {
+        aiResponse.matchingProfiles = aiResponse.matchingProfiles
+          .sort((a, b) => b.matchScore - a.matchScore)
+          .slice(0, 10);
+      }
+      
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       console.log('Raw response:', content);

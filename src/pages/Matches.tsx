@@ -27,6 +27,69 @@ interface UserProfile {
   isNearby?: boolean;
 }
 
+// Function to calculate distance between two locations using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const distance = R * c; // Distance in km
+  return distance;
+};
+
+const deg2rad = (deg: number): number => {
+  return deg * (Math.PI/180);
+};
+
+// Function to extract coordinates from a location string using a simple heuristic
+// This is a simplified version - in a production app, you would use a geocoding API
+const extractCoordinates = (location: string): { lat: number, lon: number } | null => {
+  // Default coordinates for well-known cities (very simplified example)
+  const cityCoordinates: {[key: string]: {lat: number, lon: number}} = {
+    'new york': { lat: 40.7128, lon: -74.0060 },
+    'london': { lat: 51.5074, lon: -0.1278 },
+    'tokyo': { lat: 35.6762, lon: 139.6503 },
+    'paris': { lat: 48.8566, lon: 2.3522 },
+    'berlin': { lat: 52.5200, lon: 13.4050 },
+    'madrid': { lat: 40.4168, lon: -3.7038 },
+    'rome': { lat: 41.9028, lon: 12.4964 },
+    'chicago': { lat: 41.8781, lon: -87.6298 },
+    'toronto': { lat: 43.6532, lon: -79.3832 },
+    'sydney': { lat: -33.8688, lon: 151.2093 },
+    'san francisco': { lat: 37.7749, lon: -122.4194 },
+    'los angeles': { lat: 34.0522, lon: -118.2437 },
+    'vancouver': { lat: 49.2827, lon: -123.1207 },
+    'barcelona': { lat: 41.3851, lon: 2.1734 },
+    'mumbai': { lat: 19.0760, lon: 72.8777 },
+    'shanghai': { lat: 31.2304, lon: 121.4737 },
+    'mexico city': { lat: 19.4326, lon: -99.1332 },
+    'seoul': { lat: 37.5665, lon: 126.9780 },
+    'lisbon': { lat: 38.7223, lon: -9.1393 },
+    'dubai': { lat: 25.2048, lon: 55.2708 },
+    'moscow': { lat: 55.7558, lon: 37.6173 },
+    'buenos aires': { lat: -34.6037, lon: -58.3816 },
+    'osaka': { lat: 34.6937, lon: 135.5022 },
+    'munich': { lat: 48.1351, lon: 11.5820 },
+    'tel aviv': { lat: 32.0853, lon: 34.7818 },
+    'taipei': { lat: 25.0330, lon: 121.5654 },
+  };
+  
+  const locationLower = location.toLowerCase();
+  
+  // Try to find a city match
+  for (const [city, coords] of Object.entries(cityCoordinates)) {
+    if (locationLower.includes(city)) {
+      return coords;
+    }
+  }
+  
+  return null;
+};
+
 const Matches = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -39,23 +102,45 @@ const Matches = () => {
   const [searchExplanation, setSearchExplanation] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [dbConnectionChecked, setDbConnectionChecked] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState<{lat: number, lon: number} | null>(null);
   
-  const calculateLocationSimilarity = (location1: string, location2: string) => {
-    if (!location1 || !location2) return false;
+  // Function to check if two locations are within 250km or have a direct match
+  const isLocationNearby = (userLocation: string, searchLocation: string): boolean => {
+    if (!userLocation || !searchLocation) return false;
     
-    const location1Parts = location1.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
-    const location2Parts = location2.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
+    // Direct match checking (city or country name matches)
+    const userLocationParts = userLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
+    const searchLocationParts = searchLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     
-    for (const part1 of location1Parts) {
-      for (const part2 of location2Parts) {
-        if (part1 === part2 && part1.length > 1) {
+    for (const part1 of userLocationParts) {
+      for (const part2 of searchLocationParts) {
+        if (part1 === part2 && part1.length > 2) {
           return true;
         }
       }
     }
     
+    // Distance-based matching
+    const userCoords = extractCoordinates(userLocation);
+    const searchCoords = extractCoordinates(searchLocation);
+    
+    if (userCoords && searchCoords) {
+      const distance = calculateDistance(
+        userCoords.lat, userCoords.lon, 
+        searchCoords.lat, searchCoords.lon
+      );
+      
+      return distance <= 250; // Within 250km range
+    }
+    
     return false;
   };
+  
+  useEffect(() => {
+    if (user?.location) {
+      setUserCoordinates(extractCoordinates(user.location));
+    }
+  }, [user]);
   
   useEffect(() => {
     const checkConnection = async () => {
@@ -112,7 +197,7 @@ const Matches = () => {
 
     try {
       if (!query.trim()) {
-        setFilteredUsers(matchedUsers.map(profile => ({...profile, matchScore: undefined, isNearby: false})));
+        setFilteredUsers(matchedUsers.slice(0, 10).map(profile => ({...profile, matchScore: undefined, isNearby: false})));
         return;
       }
 
@@ -134,12 +219,9 @@ const Matches = () => {
           .map(profile => {
             const match = matchingProfiles.find(m => m.id === profile.id);
             
-            const queryLower = query.toLowerCase();
-            const locationParts = profile.location.toLowerCase().split(/[,\s]+/).filter(Boolean);
-            const isNearby = locationParts.some(part => 
-              queryLower.includes(part) || 
-              part.includes(queryLower)
-            );
+            // Check if location is nearby based on improved logic
+            const isNearby = user && user.location ? 
+              isLocationNearby(user.location, profile.location) : false;
             
             return {
               ...profile,
@@ -147,8 +229,9 @@ const Matches = () => {
               isNearby
             };
           })
-          .filter(profile => profile.matchScore > 0 || profile.isNearby)
-          .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+          .filter(profile => profile.matchScore > 0)
+          .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+          .slice(0, 10); // Limit to 10 results max
         
         setFilteredUsers(profilesWithScores);
         setSearchExplanation(searchExplanation || null);
@@ -162,36 +245,47 @@ const Matches = () => {
       const query = searchQuery.toLowerCase().trim();
       
       if (!query) {
-        setFilteredUsers(matchedUsers);
+        setFilteredUsers(matchedUsers.slice(0, 10));
         return;
       }
       
-      const filtered = matchedUsers.filter(profile => {
-        const queryWords = query.split(/\s+/).filter(word => word.length > 1);
-        
+      // Custom matching logic as fallback
+      const queryTerms = query.split(/\s+/).filter(word => word.length > 1);
+      
+      const filtered = matchedUsers.map(profile => {
+        // Calculate match score based on skills match
         const matchingSkills = profile.skills.filter(skill => 
-          queryWords.some(word => skill.toLowerCase().includes(word))
-        );
-        
-        const locationWords = profile.location.toLowerCase().split(/[,\s]+/).filter(Boolean);
-        const isNearby = locationWords.some(locWord => 
-          queryWords.some(queryWord => locWord.includes(queryWord) || queryWord.includes(locWord))
+          queryTerms.some(term => skill.toLowerCase().includes(term))
         );
         
         let matchScore = 0;
         if (matchingSkills.length > 0) {
-          matchScore = Math.min(100, Math.round((matchingSkills.length / profile.skills.length) * 100));
+          // Calculate percentage match based on how many skills match the query
+          matchScore = Math.min(100, Math.round((matchingSkills.length / queryTerms.length) * 100));
         }
         
-        const hasMatch = matchScore > 0 || isNearby;
+        // Check if location matches search terms
+        const isLocationMatch = queryTerms.some(term => 
+          profile.location.toLowerCase().includes(term)
+        );
         
-        if (hasMatch) {
-          profile.matchScore = matchScore;
-          profile.isNearby = isNearby;
+        if (isLocationMatch) {
+          matchScore = Math.max(matchScore, 50); // Boost score for location match
         }
         
-        return hasMatch;
-      }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+        // Check if location is nearby to user's location
+        const isNearby = user && user.location ? 
+          isLocationNearby(user.location, profile.location) : false;
+        
+        return {
+          ...profile,
+          matchScore,
+          isNearby
+        };
+      })
+      .filter(profile => profile.matchScore > 0)
+      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+      .slice(0, 10); // Limit to 10 results max
       
       setFilteredUsers(filtered);
       
@@ -564,7 +658,7 @@ const Matches = () => {
         console.log(`Processed ${usersWithSkills.length} profiles with skills:`, usersWithSkills);
         
         setMatchedUsers(usersWithSkills);
-        setFilteredUsers(usersWithSkills);
+        setFilteredUsers(usersWithSkills.slice(0, 10)); // Initially show up to 10 results
         
         if (usersWithSkills.length === 0) {
           console.warn("No profiles with skills found");
@@ -643,6 +737,7 @@ const Matches = () => {
             <h2 className="text-xl font-medium">Creative Profiles</h2>
             <p className="text-sm text-muted-foreground">
               {filteredUsers.length} creative{filteredUsers.length !== 1 ? 's' : ''} found
+              {filteredUsers.length > 0 && matchedUsers.length > 10 ? ' (showing top 10)' : ''}
             </p>
           </div>
         </div>
