@@ -134,7 +134,8 @@ const ProjectDetail = () => {
     if (project) {
       toast({
         title: "Collaboration Request Sent",
-        description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`
+        description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`,
+        variant: "success"
       });
     }
   };
