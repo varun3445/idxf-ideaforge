@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X } from 'lucide-react';
@@ -77,17 +76,14 @@ const Matches = () => {
       try {
         setLoading(true);
         
-        // Check database connection
         await checkDatabaseConnection();
         
-        // Fetch all users
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('*');
           
         if (profilesError) throw profilesError;
         
-        // Fetch all skills
         const { data: skillsData, error: skillsError } = await supabase
           .from('skills')
           .select('*');
@@ -96,11 +92,10 @@ const Matches = () => {
         
         setSkills(skillsData as Skill[]);
         
-        // Fetch user skills for each user
         const profilesWithSkills: Profile[] = [];
         
         for (const profile of profilesData) {
-          if (profile.id === user?.id) continue; // Skip current user
+          if (profile.id === user?.id) continue;
           
           const { data: userSkillsData, error: userSkillsError } = await supabase
             .from('user_skills')
@@ -128,14 +123,12 @@ const Matches = () => {
         
         setProfiles(profilesWithSkills);
         
-        // Generate mock project ideas with colored skills
         const generatedProjects: ProjectIdea[] = [];
         for (let i = 0; i < 8; i++) {
           const randomProfiles = profilesWithSkills
             .sort(() => 0.5 - Math.random())
             .slice(0, Math.floor(Math.random() * 3) + 1);
           
-          // Flatten all skills and get unique ones with their colors
           const allSkills = randomProfiles.flatMap(p => p.skills);
           const uniqueSkillNames = [...new Set(allSkills.map(s => s.name))];
           const projectSkills = uniqueSkillNames
@@ -154,7 +147,6 @@ const Matches = () => {
         
         setProjectIdeas(generatedProjects);
         
-        // Find nearby users and calculate scores (same location)
         if (user?.location) {
           const nearby = profilesWithSkills.filter(p => 
             p.location.toLowerCase().includes(user.location.toLowerCase())
@@ -162,7 +154,6 @@ const Matches = () => {
           setNearbyUsers(nearby);
         }
         
-        // Find users with similar skills and calculate match scores
         if (user?.skills && user.skills.length > 0) {
           const withSimilarSkills = profilesWithSkills
             .map(profile => {
@@ -171,11 +162,9 @@ const Matches = () => {
                 user.skills.includes(skill)
               );
               
-              // Calculate match score
               const matchScore = user.skills.length > 0 ? 
                 Math.round((commonSkills.length / user.skills.length) * 100) : 0;
               
-              // Check if user is nearby for additional sorting
               const isNearby = user.location && 
                 profile.location.toLowerCase().includes(user.location.toLowerCase());
               
@@ -187,19 +176,15 @@ const Matches = () => {
             })
             .filter(item => item.matchScore > 0)
             .sort((a, b) => {
-              // First sort by match score
               if (b.matchScore !== a.matchScore) {
                 return b.matchScore - a.matchScore;
               }
-              // Then by proximity if scores are equal
               return (b.isNearby ? 1 : 0) - (a.isNearby ? 1 : 0);
             });
             
-          // Limit to top 10 matches
           setSimilarSkillsUsers(withSimilarSkills.slice(0, 10));
           setFilteredProfiles(withSimilarSkills.slice(0, 10));
         }
-        
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data');
@@ -213,11 +198,10 @@ const Matches = () => {
   
   useEffect(() => {
     if (!search) {
-      // When search is empty, show default view with similar skills users
       if (similarSkillsUsers.length > 0) {
         setFilteredProfiles(similarSkillsUsers);
       } else {
-        setFilteredProfiles(profiles.slice(0, 10)); // Show only top 10 by default
+        setFilteredProfiles(profiles.slice(0, 10));
       }
       setUsingAI(false);
       return;
@@ -225,12 +209,10 @@ const Matches = () => {
     
     const searchLower = search.toLowerCase();
     
-    // First try simple filtering
     const filtered = profiles.filter(profile => 
       profile.name.toLowerCase().includes(searchLower) ||
       profile.location.toLowerCase().includes(searchLower) ||
       profile.skills.some(skill => {
-        // Enhanced search for UX terms - if UX is searched, match with design skills
         if (searchLower === 'ux') {
           return skill.name.toLowerCase().includes('design');
         }
@@ -238,16 +220,13 @@ const Matches = () => {
       })
     );
     
-    // Apply the same sorting as for similar skills users
     const sortedFiltered = filtered
       .map(profile => {
-        // For searches, calculate match score based on how many skills match the search term
         const matchingSkills = profile.skills.filter(skill => 
           skill.name.toLowerCase().includes(searchLower) || 
           (searchLower === 'ux' && skill.name.toLowerCase().includes('design'))
         );
         
-        // If searching for UX and has design skill, give 100% match
         const matchScore = searchLower === 'ux' && profile.skills.some(s => 
           s.name.toLowerCase().includes('design')
         ) ? 100 : Math.min(
@@ -255,7 +234,6 @@ const Matches = () => {
           100
         );
         
-        // Check if user is nearby
         const isNearby = user?.location && 
           profile.location.toLowerCase().includes(user.location.toLowerCase());
         
@@ -266,18 +244,15 @@ const Matches = () => {
         };
       })
       .sort((a, b) => {
-        // First sort by match score
         if (b.matchScore !== a.matchScore) {
           return b.matchScore - a.matchScore;
         }
-        // Then by proximity if scores are equal
         return (b.isNearby ? 1 : 0) - (a.isNearby ? 1 : 0);
       })
-      .slice(0, 10); // Limit to top 10 matches
-      
+      .slice(0, 10);
+    
     setFilteredProfiles(sortedFiltered);
     
-    // If we have minimal results, try AI search
     if (filtered.length < 3 && searchLower.length > 2) {
       handleAISearch();
     } else {
@@ -292,42 +267,29 @@ const Matches = () => {
     setUsingAI(true);
     
     try {
-      // Simulate AI search results
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Example AI response - but now sorting by match score and proximity
       const aiMatches = profiles
         .map(profile => {
-          // For AI search, generate a more intelligent match score
           const searchTerms = search.toLowerCase().split(' ');
           
-          // Check if any search terms appear in skills
           const skillMatch = profile.skills.some(skill => 
             searchTerms.some(term => skill.name.toLowerCase().includes(term))
           );
           
-          // Higher match for skill matches
           let matchScore = Math.floor(Math.random() * 30) + 50;
           
-          // Boost score for skill matches
           if (skillMatch) {
             matchScore += 20;
           }
           
-          // UX designers get 100% match for UX searches
           if (search.toLowerCase().includes('ux') && 
               profile.skills.some(s => s.name.toLowerCase().includes('design'))) {
             matchScore = 100;
           }
           
-          // Check if user is nearby
           const isNearby = user?.location && 
             profile.location.toLowerCase().includes(user.location.toLowerCase());
-          
-          // Boost score for nearby users
-          if (isNearby) {
-            matchScore = Math.min(matchScore + 10, 100);
-          }
           
           return {
             profile: {
@@ -339,15 +301,13 @@ const Matches = () => {
           };
         })
         .sort((a, b) => {
-          // First sort by match score
           if (b.matchScore !== a.matchScore) {
             return b.matchScore - a.matchScore;
           }
-          // Then by proximity if scores are equal
           return (b.profile.isNearby ? 1 : 0) - (a.profile.isNearby ? 1 : 0);
         })
-        .slice(0, 10); // Limit to top 10
-        
+        .slice(0, 10);
+      
       setAiResults(aiMatches);
     } catch (error) {
       console.error('Error with AI search:', error);
@@ -548,7 +508,6 @@ const Matches = () => {
               </div>
             ) : (
               <>
-                {/* Users with similar skills */}
                 {similarSkillsUsers.length > 0 && (
                   <div className="mt-8">
                     <div className="flex items-center justify-between mb-4">
@@ -629,7 +588,6 @@ const Matches = () => {
                   </div>
                 )}
                 
-                {/* Nearby users */}
                 {nearbyUsers.length > 0 && (
                   <div className="mt-10">
                     <div className="flex items-center justify-between mb-4">
@@ -670,7 +628,6 @@ const Matches = () => {
                   </div>
                 )}
                 
-                {/* Project ideas */}
                 <div className="mt-10">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -749,7 +706,6 @@ const Matches = () => {
           </>
         )}
         
-        {/* Project Details Dialog - improved with thicker borders and shadows */}
         <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
           <DialogContent className="sm:max-w-[600px] border-3 shadow-xl">
             <DialogHeader>
