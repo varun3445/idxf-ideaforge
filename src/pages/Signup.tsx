@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
@@ -47,7 +46,6 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [newSkillName, setNewSkillName] = useState('');
-  const [newSkillColor, setNewSkillColor] = useState('#6366F1');
   const [isAddingSkill, setIsAddingSkill] = useState(false);
   
   const [availableSkills, setAvailableSkills] = useState([
@@ -80,6 +78,10 @@ const Signup = () => {
     setShowPassword(!showPassword);
   };
 
+  const generateRandomColor = () => {
+    return `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+  };
+
   const addNewSkill = () => {
     if (!newSkillName.trim()) {
       toast({
@@ -90,7 +92,6 @@ const Signup = () => {
       return;
     }
 
-    // Check if skill already exists
     if (availableSkills.some(skill => skill.name.toLowerCase() === newSkillName.trim().toLowerCase())) {
       toast({
         title: "Skill already exists",
@@ -100,15 +101,16 @@ const Signup = () => {
       return;
     }
 
+    const randomColor = generateRandomColor();
+    
     const newSkill = {
       name: newSkillName.trim(),
-      color: newSkillColor
+      color: randomColor
     };
 
     setAvailableSkills([...availableSkills, newSkill]);
     setSelectedSkills([...selectedSkills, newSkill.name]);
     
-    // Reset form
     setNewSkillName('');
     setIsAddingSkill(false);
 
@@ -139,7 +141,6 @@ const Signup = () => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            // Use Nominatim API for reverse geocoding (free and doesn't require API key)
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10`
             );
@@ -150,12 +151,10 @@ const Signup = () => {
             
             const data = await response.json();
             
-            // Extract city and state/country from the response
             const city = data.address.city || data.address.town || data.address.village || '';
             const state = data.address.state || '';
             const country = data.address.country || '';
             
-            // Format the location string based on available data
             let locationString = '';
             if (city) {
               locationString += city;
@@ -370,25 +369,6 @@ const Signup = () => {
                         value={newSkillName}
                         onChange={(e) => setNewSkillName(e.target.value)}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="newSkillColor">Skill Color</Label>
-                      <div className="flex gap-2">
-                        <input
-                          id="newSkillColor"
-                          type="color"
-                          value={newSkillColor}
-                          onChange={(e) => setNewSkillColor(e.target.value)}
-                          className="w-10 h-10 rounded border p-0"
-                        />
-                        <Input
-                          type="text"
-                          value={newSkillColor}
-                          onChange={(e) => setNewSkillColor(e.target.value)}
-                          className="flex-1"
-                        />
-                      </div>
                     </div>
                     
                     <div className="flex gap-2">
