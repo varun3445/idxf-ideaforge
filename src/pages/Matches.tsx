@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import SkillsetSelector from '../components/SkillsetSelector';
@@ -7,6 +6,7 @@ import { Sliders, Loader2 } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
+import crypto from 'crypto';
 
 interface Skill {
   id: string;
@@ -33,13 +33,10 @@ const Matches = () => {
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(true);
   
-  // Calculate distance between two locations (using string comparison for now)
   const calculateLocationSimilarity = (location1: string, location2: string) => {
-    // Simple string matching for now (in a real app, would use coordinates)
     const location1Parts = location1.toLowerCase().split(',').map(p => p.trim());
     const location2Parts = location2.toLowerCase().split(',').map(p => p.trim());
     
-    // Check for exact matches in location parts
     for (const part1 of location1Parts) {
       for (const part2 of location2Parts) {
         if (part1 === part2 && part1.length > 1) {
@@ -51,7 +48,6 @@ const Matches = () => {
     return false;
   };
   
-  // Fetch all skills from Supabase
   useEffect(() => {
     const fetchSkills = async () => {
       try {
@@ -78,7 +74,140 @@ const Matches = () => {
     fetchSkills();
   }, []);
   
-  // Fetch and filter users based on selected skills
+  useEffect(() => {
+    const addSampleUsers = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: existingProfiles, error: checkError } = await supabase
+          .from('profiles')
+          .select('count')
+          .neq('id', user.id);
+          
+        if (checkError) {
+          console.error('Error checking for existing profiles:', checkError);
+          return;
+        }
+        
+        const userCount = existingProfiles[0]?.count || 0;
+        
+        if (userCount > 0) {
+          console.log('Sample users already exist, skipping sample data creation');
+          return;
+        }
+        
+        console.log('Adding sample users...');
+        
+        const sampleUsers = [
+          {
+            name: 'Sarah Johnson',
+            email: 'sarah.johnson@example.com',
+            location: 'New York, USA',
+            skills: ['UX Design', 'Product Management', 'Content Writing']
+          },
+          {
+            name: 'Michael Chen',
+            email: 'michael.chen@example.com',
+            location: 'San Francisco, USA',
+            skills: ['Frontend Development', 'UI Design', 'Animation']
+          },
+          {
+            name: 'Jessica Patel',
+            email: 'jessica.patel@example.com',
+            location: 'London, UK',
+            skills: ['Backend Development', 'Data Science', 'Game Development']
+          },
+          {
+            name: 'Carlos Rodriguez',
+            email: 'carlos.r@example.com',
+            location: 'Barcelona, Spain',
+            skills: ['Graphic Design', 'Illustration', '3D Modeling']
+          },
+          {
+            name: 'Aisha Nakamura',
+            email: 'aisha.n@example.com',
+            location: 'Tokyo, Japan',
+            skills: ['Video Editing', 'Sound Design', 'Animation']
+          }
+        ];
+        
+        for (const sampleUser of sampleUsers) {
+          const uniqueId = crypto.randomUUID();
+          
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: uniqueId,
+              name: sampleUser.name,
+              email: sampleUser.email,
+              location: sampleUser.location
+            });
+            
+          if (profileError) {
+            console.error(`Error creating profile for ${sampleUser.name}:`, profileError);
+            continue;
+          }
+          
+          for (const skillName of sampleUser.skills) {
+            const { data: existingSkill, error: skillFetchError } = await supabase
+              .from('skills')
+              .select('id')
+              .eq('name', skillName)
+              .single();
+              
+            if (skillFetchError && skillFetchError.code !== 'PGRST116') {
+              console.error(`Error checking skill ${skillName}:`, skillFetchError);
+              continue;
+            }
+            
+            let skillId;
+            if (existingSkill) {
+              skillId = existingSkill.id;
+            } else {
+              const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+              const { data: newSkill, error: newSkillError } = await supabase
+                .from('skills')
+                .insert({
+                  name: skillName,
+                  color: randomColor
+                })
+                .select('id')
+                .single();
+                
+              if (newSkillError) {
+                console.error(`Error creating skill ${skillName}:`, newSkillError);
+                continue;
+              }
+              
+              skillId = newSkill.id;
+            }
+            
+            const { error: userSkillError } = await supabase
+              .from('user_skills')
+              .insert({
+                user_id: uniqueId,
+                skill_id: skillId
+              });
+              
+            if (userSkillError) {
+              console.error(`Error adding skill ${skillName} for ${sampleUser.name}:`, userSkillError);
+            }
+          }
+        }
+        
+        toast({
+          title: "Sample users added",
+          description: "Example creative profiles are now available for matching"
+        });
+        
+      } catch (error) {
+        console.error('Error adding sample users:', error);
+      }
+    };
+    
+    addSampleUsers();
+  }, [user]);
+  
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user) return;
@@ -86,7 +215,6 @@ const Matches = () => {
       setLoading(true);
       
       try {
-        // Fetch all users except current user
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, name, email, location')
@@ -96,7 +224,6 @@ const Matches = () => {
           throw profilesError;
         }
         
-        // Fetch all user skills
         const { data: userSkills, error: skillsError } = await supabase
           .from('user_skills')
           .select('user_id, skills(id, name)');
@@ -105,7 +232,6 @@ const Matches = () => {
           throw skillsError;
         }
         
-        // Combine profiles with their skills
         const usersWithSkills: UserProfile[] = profiles.map((profile) => {
           const profileSkills = userSkills
             .filter(us => us.user_id === profile.id)
@@ -117,17 +243,14 @@ const Matches = () => {
           };
         });
         
-        // Calculate match scores if skills are selected
         let matchedProfiles = [...usersWithSkills];
         
         if (selectedSkills.length > 0) {
           matchedProfiles = usersWithSkills.map(profile => {
-            // Count matching skills
             const matchingSkills = profile.skills.filter(skill => 
               selectedSkills.includes(skill)
             );
             
-            // Calculate score - percentage of selected skills that match
             const score = Math.round((matchingSkills.length / selectedSkills.length) * 100);
             
             return {
@@ -136,21 +259,18 @@ const Matches = () => {
             };
           });
           
-          // Sort by match score (highest first)
           matchedProfiles.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
         }
         
-        // Add location proximity information
         matchedProfiles = matchedProfiles.map(profile => {
           const isNearby = calculateLocationSimilarity(user.location, profile.location);
           
           return {
             ...profile,
-            distance: isNearby ? 1 : 0 // 1 for nearby, 0 for distant (simplified)
+            distance: isNearby ? 1 : 0
           };
         });
         
-        // If no skills selected, prioritize by location
         if (selectedSkills.length === 0) {
           matchedProfiles.sort((a, b) => (b.distance || 0) - (a.distance || 0));
         }
@@ -238,14 +358,14 @@ const Matches = () => {
                     creative={{
                       id: profile.id,
                       name: profile.name,
-                      role: profile.skills[0] || "Creative Professional", // Show first skill as role
+                      role: profile.skills[0] || "Creative Professional",
                       bio: `Based in ${profile.location}`,
-                      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`, // Generate avatar
+                      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
                       skills: profile.skills,
                       location: profile.location,
                       matchScore: profile.matchScore,
                       isNearby: !!profile.distance,
-                      portfolio: [] // No portfolio data for now
+                      portfolio: []
                     }}
                     showMatchScore={selectedSkills.length > 0}
                   />
