@@ -66,6 +66,9 @@ const Index = () => {
                     <span>Get Started</span>
                     <ArrowRight size={18} className="ml-2" />
                   </Link>
+                  <Link to="/login" className="button-secondary flex items-center justify-center">
+                    <span>Login</span>
+                  </Link>
                 </div>
               </div>
               
@@ -135,9 +138,14 @@ const Index = () => {
             <p className="text-white/70 mb-8 max-w-2xl">
               Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
-            <Link to="/signup" className="button-primary inline-flex items-center">
-              Get Started For Free
-            </Link>
+            <div className="flex flex-wrap gap-4">
+              <Link to="/signup" className="button-primary inline-flex items-center">
+                Get Started For Free
+              </Link>
+              <Link to="/login" className="bg-transparent border border-white text-white hover:bg-white/10 px-5 py-2 rounded-full inline-flex items-center transition-colors">
+                Login
+              </Link>
+            </div>
           </div>
         </section>
       </div>
