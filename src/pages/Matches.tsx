@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import AnimatedTransition from '../components/AnimatedTransition';
@@ -104,24 +105,47 @@ const Matches = () => {
       const userSkills = userSkillsData.map(item => item.skills?.name).filter(Boolean) as string[];
       
       if (searchQuery.trim() !== '') {
-        const { data: searchResults, error: searchError } = await supabase
-          .functions.invoke('search-with-ai', {
-            body: { 
-              query: searchQuery,
-              userSkills,
-              userLocation: isNearMe ? userLocation : null
-            }
-          });
+        // For AI search functionality - searching with the query
+        try {
+          const { data: searchResults, error: searchError } = await supabase
+            .functions.invoke('search-with-ai', {
+              body: { 
+                query: searchQuery,
+                userSkills,
+                userLocation: isNearMe ? userLocation : null
+              }
+            });
 
-        if (searchError) throw searchError;
-        
-        setMatches({
-          people: searchResults.people || [],
-          projects: searchResults.projects || []
-        });
-        
-        console.log("AI search results:", searchResults);
+          if (searchError) throw searchError;
+          
+          if (searchResults) {
+            setMatches({
+              people: searchResults.people || [],
+              projects: searchResults.projects || []
+            });
+          } else {
+            // Fallback if no AI search results
+            toast({
+              title: "Search completed",
+              description: "No matches found for your search query.",
+              variant: "default"
+            });
+            setMatches({
+              people: [],
+              projects: []
+            });
+          }
+        } catch (error) {
+          console.error("AI search error:", error);
+          toast({
+            title: "Search error",
+            description: "There was an error processing your search. Falling back to regular matches.",
+            variant: "destructive"
+          });
+          // Continue with regular matching
+        }
       } else {
+        // Regular matching (not search)
         const { data: peopleData, error: peopleError } = await supabase
           .from('profiles')
           .select('id, name, avatar, location')
@@ -255,7 +279,9 @@ const Matches = () => {
   };
 
   useEffect(() => {
-    fetchMatches();
+    if (user) {
+      fetchMatches();
+    }
   }, [user, isNearMe]);
 
   const handleSearch = (e: React.FormEvent) => {

@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query } = await req.json();
+    const { query, userSkills, userLocation } = await req.json();
 
     if (!query || typeof query !== 'string') {
       throw new Error('Query parameter is required');
@@ -52,10 +52,70 @@ serve(async (req) => {
 
     const data = await response.json();
     const enhancedQuery = data.choices[0].message.content;
+    
+    // Create mock search results based on the query
+    // In a real implementation, this would query your database
+    const mockPeople = [
+      {
+        id: "p1",
+        name: "Sarah Johnson",
+        bio: "UX designer specializing in user research and wireframing",
+        skills: ["UX Design", "Wireframing", "User Research"],
+        match_percentage: 85
+      },
+      {
+        id: "p2",
+        name: "Michael Chen",
+        bio: "Full-stack developer with 5 years of experience in React and Node.js",
+        skills: ["React", "Node.js", "JavaScript", "TypeScript"],
+        match_percentage: 92
+      },
+      {
+        id: "p3",
+        name: "Jessica Williams",
+        bio: "Graphic designer and illustrator with a background in brand identity",
+        skills: ["Graphic Design", "Illustration", "Brand Design"],
+        match_percentage: 78
+      }
+    ];
+    
+    const mockProjects = [
+      {
+        id: "proj1",
+        title: "E-commerce Platform Redesign",
+        description: "Looking for a UX designer and frontend developer to collaborate on redesigning an e-commerce platform",
+        skills_required: ["UX Design", "Frontend Development", "React"],
+        match_percentage: 88
+      },
+      {
+        id: "proj2",
+        title: "Mobile App Development",
+        description: "Seeking developers experienced in React Native for a new fitness tracking application",
+        skills_required: ["React Native", "Mobile Development", "API Integration"],
+        match_percentage: 75
+      }
+    ];
+    
+    // Filter mock results based on query content
+    // This is simplistic - a real implementation would use more sophisticated matching
+    const query_lower = query.toLowerCase();
+    const filtered_people = mockPeople.filter(person => 
+      person.name.toLowerCase().includes(query_lower) || 
+      person.bio.toLowerCase().includes(query_lower) ||
+      person.skills.some(skill => skill.toLowerCase().includes(query_lower))
+    );
+    
+    const filtered_projects = mockProjects.filter(project =>
+      project.title.toLowerCase().includes(query_lower) ||
+      project.description.toLowerCase().includes(query_lower) ||
+      project.skills_required.some(skill => skill.toLowerCase().includes(query_lower))
+    );
 
     return new Response(JSON.stringify({ 
       originalQuery: query,
       enhancedQuery,
+      people: filtered_people,
+      projects: filtered_projects,
       success: true 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
