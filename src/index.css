@@ -168,27 +168,27 @@
 }
 
 .profile-card {
-  @apply flex flex-col border-b border-border pb-4 hover:border-primary transition-all duration-300;
+  @apply flex flex-col border-b border-border pb-6 hover:border-primary transition-all duration-300;
 }
 
 .profile-image {
-  @apply mb-3 aspect-square bg-muted flex items-center justify-center text-2xl font-bold text-primary;
+  @apply mb-4 aspect-square bg-muted flex items-center justify-center text-3xl font-bold text-primary;
 }
 
 .profile-name {
-  @apply font-bold text-sm;
+  @apply font-bold text-base;
 }
 
 .profile-location {
-  @apply text-xs text-muted-foreground mb-2;
+  @apply text-sm text-muted-foreground mb-3;
 }
 
 .profile-skills {
-  @apply flex flex-wrap gap-1 mt-1;
+  @apply flex flex-wrap gap-2 mt-2;
 }
 
 .profile-metadata {
-  @apply mt-auto pt-2 text-[10px] text-muted-foreground flex justify-between items-center;
+  @apply mt-auto pt-3 text-xs text-muted-foreground flex justify-between items-center;
 }
 
 /* Make sure the page has proper side padding like the reference */
@@ -199,4 +199,9 @@
 /* Add letter spacing for search text */
 .letter-spacing-wide {
   letter-spacing: 0.05em;
+}
+
+/* Add smooth scrolling for profile container */
+.scroll-smooth {
+  scroll-behavior: smooth;
 }

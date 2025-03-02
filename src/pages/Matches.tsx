@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -217,7 +216,7 @@ const Matches = () => {
   const scrollResults = (direction: 'left' | 'right') => {
     if (resultsContainerRef.current) {
       const container = resultsContainerRef.current;
-      const scrollAmount = container.clientWidth * 0.8;
+      const scrollAmount = container.clientWidth * 0.5; // Adjusted for smoother scrolling
       
       if (direction === 'left') {
         container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
@@ -838,10 +837,10 @@ const Matches = () => {
                 </div>
                 <div 
                   ref={resultsContainerRef}
-                  className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide"
+                  className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
                 >
                   {filteredUsers.map((profile) => (
-                    <div key={profile.id} className="profile-card flex-shrink-0 w-[220px]">
+                    <div key={profile.id} className="profile-card flex-shrink-0 w-[280px]">
                       <div className="profile-image">
                         {profile.name.charAt(0)}
                       </div>
@@ -880,16 +879,16 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="pl-16 py-8 pr-12 minimal-search text-lg tracking-wider rounded-full"
+                  className="px-6 py-8 minimal-search text-lg tracking-wider rounded-full"
                 />
-                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
+                <Search className="absolute right-6 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={24} />
                 
                 {(searching || isTyping) && (
-                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
+                  <Loader2 className="absolute right-16 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
                 )}
                 
                 {!searching && !isTyping && searchQuery.trim() && (
-                  <Sparkles className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
+                  <Sparkles className="absolute right-16 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
                 )}
               </div>
               
