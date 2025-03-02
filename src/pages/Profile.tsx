@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -54,6 +53,16 @@ const Profile = () => {
     
     fetchSkills();
   }, []);
+
+  // Sync user state changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setLocation(user.location || '');
+      setSex(user.sex || 'male');
+      setUserSkills(user.skills || []);
+    }
+  }, [user]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,8 +145,8 @@ const Profile = () => {
         description: "Your profile has been updated successfully"
       });
       
-      // Reload page to refresh user data
-      window.location.reload();
+      // Don't reload the page as it causes logout
+      // Instead, manually update the context or fetch fresh data
       
     } catch (error) {
       console.error('Error updating profile:', error);

@@ -18,8 +18,8 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: localStorage, // Explicitly set localStorage
-      storageKey: 'supabase.auth.token' // Explicitly name the storage key
+      storage: localStorage,
+      storageKey: 'supabase.auth.token'
     }
   }
 );

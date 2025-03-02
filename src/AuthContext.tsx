@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -65,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
-            sex: profileData.sex || 'male', // Use the field from database or default
+            sex: profileData.sex || 'male',
             skills: skills
           });
         }
@@ -115,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name: profileData.name,
             email: profileData.email,
             location: profileData.location,
-            sex: profileData.sex || 'male', // Use the field from database or default
+            sex: profileData.sex || 'male',
             skills: skills
           });
           setLoading(false);
@@ -133,16 +132,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const login = async (email: string, password: string) => {
     try {
-      console.log('Login attempt for:', email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (!error) {
-        // Navigation is handled by auth state change listener
-        console.log('Login successful, auth state change should trigger');
-      } else {
+      if (error) {
         console.error('Login error:', error);
       }
       
@@ -179,7 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name,
             email,
             location,
-            sex: 'male' // Default to 'male' for new users
+            sex: 'male'
           });
           
         if (profileError) {
