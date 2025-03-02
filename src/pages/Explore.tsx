@@ -131,19 +131,19 @@ const Explore = () => {
   return (
     <AnimatedTransition>
       <div className="page-container">
-        <section className="py-12">
+        <section className="py-16">
           <div className={`
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-4xl md:text-5xl mb-4">Explore Projects</h1>
-            <p className="page-subheader text-lg md:text-xl">
+            <h1 className="page-header text-4xl md:text-5xl mb-6">Explore Projects</h1>
+            <p className="page-subheader text-lg md:text-xl max-w-3xl">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
 
           <div className={`
-            mb-12 transition-all duration-1000 delay-100
+            mb-16 transition-all duration-1000 delay-100 max-w-2xl mx-auto
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
             <Label htmlFor="search" className="sr-only">
@@ -155,11 +155,11 @@ const Explore = () => {
               placeholder="Search for projects..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="text-lg py-6 px-6"
+              className="text-lg py-6 px-8 rounded-full shadow-md"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
             {filteredPortfolioItems.map((item) => (
               <div
                 key={item.id}
@@ -167,23 +167,23 @@ const Explore = () => {
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
-                <GlassmorphicCard className="h-full flex flex-col p-6 space-y-6">
+                <GlassmorphicCard className="h-full flex flex-col p-8 space-y-8">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="aspect-video w-full object-cover rounded-lg mb-6 shadow-md"
+                    className="aspect-video w-full object-cover rounded-lg mb-8 shadow-md"
                   />
                   
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-2xl font-semibold">{item.title}</h3>
-                    <span className="text-sm text-muted-foreground px-3 py-1.5 bg-muted rounded-full">
+                  <div className="flex justify-between items-start mb-6">
+                    <h3 className="text-2xl font-semibold leading-tight">{item.title}</h3>
+                    <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-full">
                       {item.category}
                     </span>
                   </div>
                   
-                  <p className="text-muted-foreground text-base leading-relaxed mb-6">{item.description}</p>
+                  <p className="text-muted-foreground text-base leading-relaxed mb-8">{item.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  <div className="flex flex-wrap gap-3 mb-8">
                     {item.techStack?.map((tech, index) => (
                       <span key={index} className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full">
                         {tech}
@@ -191,28 +191,29 @@ const Explore = () => {
                     ))}
                   </div>
                   
-                  <p className="text-muted-foreground text-sm mb-6">
+                  <p className="text-muted-foreground text-sm mb-8">
                     Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
-                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-border">
+                  <div className="mt-auto flex justify-between items-center pt-6 border-t border-border">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users size={18} />
                       <span>{item.collaborators || 0} collaborators</span>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => handleCollaborate(item.id, item.title)}
+                        className="px-4 py-2"
                       >
                         Collaborate
                       </Button>
                       
                       <Link
                         to={`/project/${item.id}`}
-                        className="flex items-center font-medium text-primary hover:underline gap-1 group"
+                        className="flex items-center font-medium text-primary hover:underline gap-2 group"
                       >
                         <span>Learn More</span>
                         <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
