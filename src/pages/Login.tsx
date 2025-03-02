@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import AnimatedTransition from '../components/AnimatedTransition';
 
@@ -17,6 +17,7 @@ const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [previousUser, setPreviousUser] = useState<{
     name: string;
@@ -34,7 +35,7 @@ const Login = () => {
             .from('profiles')
             .select('name, avatar')
             .eq('email', lastEmail)
-            .single();
+            .maybeSingle();
             
           if (data && !error) {
             setPreviousUser({
@@ -53,19 +54,27 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
+    // Add a console log to debug authentication state
+    console.log('Authentication state:', isAuthenticated);
+    
     if (isAuthenticated) {
+      console.log('User is authenticated, navigating to /explore');
       navigate('/explore');
     }
   }, [isAuthenticated, navigate]);
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      console.log('Attempting login with:', email);
       const { error } = await login(email, password);
       
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: 'Login failed',
           description: error.message || 'Please check your credentials and try again',
@@ -147,14 +156,29 @@ const Login = () => {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-left">Password</Label>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    className="pr-10"
+                  />
+                  <button 
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
               
               <Button 
