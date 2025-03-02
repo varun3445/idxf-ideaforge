@@ -7,7 +7,6 @@ import { Label } from '../components/ui/label';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
-import { checkAuthState } from '../integrations/supabase/client';
 
 const Login = () => {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
@@ -19,24 +18,10 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Debug log for auth state
-  useEffect(() => {
-    console.log('Auth state on mount:', { isAuthenticated, authLoading });
-    
-    // Check Supabase session directly
-    const verifySession = async () => {
-      const result = await checkAuthState();
-      console.log('Direct session check:', result);
-    };
-    
-    verifySession();
-  }, [isAuthenticated, authLoading]);
-
-  // Redirect authenticated users
+  // Single useEffect for authentication redirect
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      console.log('User is authenticated, redirecting to explore');
-      navigate('/explore');
+      navigate('/explore', { replace: true });
     }
   }, [isAuthenticated, authLoading, navigate]);
 
@@ -46,15 +31,15 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
+    
     setLoading(true);
     setError('');
     
     try {
-      console.log('Starting login process with email:', email);
       const { error } = await login(email, password);
       
       if (error) {
-        console.error('Login error:', error);
         setError(error.message);
         toast({
           title: "Login failed",
@@ -62,18 +47,11 @@ const Login = () => {
           variant: "destructive"
         });
       } else {
-        console.log('Login successful, checking auth state...');
-        // Double check the auth state
-        const { data } = await checkAuthState();
-        console.log('Auth state after login:', data);
-        
         toast({
           title: "Login successful",
           description: "Redirecting you to the app...",
         });
-        
-        // Force navigation after successful login
-        navigate('/explore', { replace: true });
+        // Let the useEffect handle the redirect
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -157,7 +135,7 @@ const Login = () => {
             {loading || authLoading ? (
               <>
                 <Loader2 size={16} className="mr-1 animate-spin" />
-                {isAuthenticated ? 'Redirecting...' : 'Logging in...'}
+                Signing in...
               </>
             ) : (
               "Sign in"

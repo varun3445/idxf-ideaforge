@@ -27,6 +27,5 @@ export const supabase = createClient<Database>(
 // Debug function to check auth state
 export const checkAuthState = async () => {
   const { data, error } = await supabase.auth.getSession();
-  console.log('Current auth state:', data, error);
   return { data, error };
 };
