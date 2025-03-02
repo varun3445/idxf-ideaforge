@@ -23,6 +23,7 @@ interface UserProfile {
   skills: string[];
   distance?: number;
   matchScore?: number;
+  isNearby?: boolean;
 }
 
 const Matches = () => {
