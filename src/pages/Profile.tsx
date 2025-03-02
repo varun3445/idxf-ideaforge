@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -50,7 +49,6 @@ const Profile = () => {
     
     fetchSkills();
     
-    // Fetch user's custom avatar if available
     const fetchUserAvatar = async () => {
       if (user?.id && user?.avatar) {
         setCustomAvatar(user.avatar);
@@ -60,7 +58,6 @@ const Profile = () => {
     fetchUserAvatar();
   }, [user]);
 
-  // Sync user state changes
   useEffect(() => {
     if (user) {
       setName(user.name || '');
@@ -100,28 +97,23 @@ const Profile = () => {
     setUploadingImage(true);
     
     try {
-      // Create a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
       
-      // Create a File object with the file data
       const fileData = new File([file], fileName, { type: file.type });
       
-      // Upload the image to Supabase Storage
       const { data, error: uploadError } = await supabase.storage
         .from('user_avatars')
         .upload(filePath, fileData);
         
       if (uploadError) throw uploadError;
       
-      // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('user_avatars')
         .getPublicUrl(filePath);
         
       if (publicUrlData && publicUrlData.publicUrl) {
-        // Update the user's profile with the avatar URL
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
@@ -131,7 +123,6 @@ const Profile = () => {
           
         if (updateError) throw updateError;
         
-        // Update local state
         setCustomAvatar(publicUrlData.publicUrl);
         
         toast({
@@ -148,7 +139,6 @@ const Profile = () => {
       });
     } finally {
       setUploadingImage(false);
-      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -161,7 +151,6 @@ const Profile = () => {
     setUploadingImage(true);
     
     try {
-      // Update the user's profile to remove the avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -171,7 +160,6 @@ const Profile = () => {
         
       if (updateError) throw updateError;
       
-      // Update local state
       setCustomAvatar(null);
       
       toast({
@@ -197,7 +185,6 @@ const Profile = () => {
     setLoading(true);
     
     try {
-      // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -208,7 +195,6 @@ const Profile = () => {
         
       if (profileError) throw profileError;
       
-      // First, get all existing user skills
       const { data: existingUserSkills, error: fetchError } = await supabase
         .from('user_skills')
         .select('skill_id, skills(name)')
@@ -216,7 +202,6 @@ const Profile = () => {
         
       if (fetchError) throw fetchError;
       
-      // Delete all existing skill associations
       const { error: deleteError } = await supabase
         .from('user_skills')
         .delete()
@@ -224,16 +209,13 @@ const Profile = () => {
         
       if (deleteError) throw deleteError;
       
-      // Add all selected skills
       for (const skillName of userSkills) {
-        // Check if skill exists
         let skillId;
         const existingSkill = availableSkills.find(s => s.name === skillName);
         
         if (existingSkill) {
           skillId = existingSkill.id;
         } else {
-          // Create new skill
           const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
           const { data: newSkill, error: newSkillError } = await supabase
             .from('skills')
@@ -252,7 +234,6 @@ const Profile = () => {
           skillId = newSkill?.id;
         }
         
-        // Add user skill association
         const { error: insertError } = await supabase
           .from('user_skills')
           .insert({
@@ -269,9 +250,6 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile has been updated successfully"
       });
-      
-      // Don't reload the page as it causes logout
-      // Instead, manually update the context or fetch fresh data
       
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -352,7 +330,6 @@ const Profile = () => {
                       </div>
                     )}
 
-                    {/* Image upload overlay button */}
                     <button 
                       type="button"
                       onClick={triggerFileInput}
@@ -370,7 +347,6 @@ const Profile = () => {
                     </button>
                   </div>
 
-                  {/* Hidden file input */}
                   <input 
                     type="file"
                     ref={fileInputRef}
@@ -432,7 +408,7 @@ const Profile = () => {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="name" className="block text-left">Full Name</Label>
                       <Input
                         id="name"
                         value={name}
@@ -444,7 +420,7 @@ const Profile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email" className="block text-left">Email</Label>
                       <Input
                         id="email"
                         value={user?.email || ''}
@@ -457,7 +433,7 @@ const Profile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
+                      <Label htmlFor="location" className="block text-left">Location</Label>
                       <Input
                         id="location"
                         value={location}
@@ -469,7 +445,7 @@ const Profile = () => {
                     </div>
                     
                     <div className="space-y-3">
-                      <Label>Skills</Label>
+                      <Label className="block text-left">Skills</Label>
                       <div className="flex gap-2">
                         <Input
                           value={newSkill}
@@ -495,7 +471,6 @@ const Profile = () => {
                       
                       <div className="flex flex-wrap gap-2 mt-3">
                         {userSkills.map((skill, index) => {
-                          // Find the color for this skill
                           const skillInfo = availableSkills.find(s => s.name === skill);
                           const bgColor = skillInfo?.color || '#9b87f5';
                           
