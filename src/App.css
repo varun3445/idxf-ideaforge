@@ -36,6 +36,9 @@
 
 .card {
   padding: 2em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 .read-the-docs {
@@ -44,9 +47,9 @@
 
 /* Add button styles to ensure they use the correct colors */
 .button-primary {
-  @apply bg-primary text-black px-6 py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300;
+  @apply bg-primary text-black px-6 py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
 }
 
 .button-secondary {
-  @apply bg-white text-black border border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-sm font-medium transition-all duration-300;
+  @apply bg-white text-black border-2 border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
 }

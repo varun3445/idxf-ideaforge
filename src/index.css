@@ -21,8 +21,8 @@
     --accent-foreground: 0 0% 0%; /* Black */
     --destructive: 0 100% 50%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 90%; /* Light gray */
-    --input: 0 0% 90%; /* Light gray */
+    --border: 0 0% 85%; /* Darker gray for thicker-looking borders */
+    --input: 0 0% 85%; /* Darker gray */
     --ring: 114 100% 54%; /* Lime Green (#39FF14) */
     --radius: 0.5rem;
   }
@@ -44,8 +44,8 @@
     --accent-foreground: 0 0% 0%; /* Black */
     --destructive: 0 100% 50%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 90%; /* Light gray */
-    --input: 0 0% 90%; /* Light gray */
+    --border: 0 0% 85%; /* Darker gray for thicker-looking borders */
+    --input: 0 0% 85%; /* Darker gray */
     --ring: 114 100% 54%; /* Lime Green (#39FF14) */
   }
 }
@@ -102,19 +102,19 @@
 }
 
 .glassmorphic-card {
-  @apply rounded-xl border border-border bg-card/80 shadow-sm backdrop-blur-sm p-6;
+  @apply rounded-xl border-2 border-border bg-card/80 shadow-md backdrop-blur-sm p-6;
 }
 
 .glassmorphism {
-  @apply bg-background/80 backdrop-blur-sm border-b border-border;
+  @apply bg-background/80 backdrop-blur-sm border-b-2 border-border shadow-sm;
 }
 
 .chip {
-  @apply text-xs px-2 py-0.5 rounded-full border border-border bg-muted/50 inline-block;
+  @apply text-xs px-2 py-0.5 rounded-full border-2 border-border bg-muted/50 inline-block;
 }
 
 .chip-active {
-  @apply bg-primary text-primary-foreground border-primary;
+  @apply bg-primary text-primary-foreground border-2 border-primary;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -129,7 +129,7 @@
 }
 
 .grid-card {
-  @apply relative overflow-hidden rounded-md border border-border;
+  @apply relative overflow-hidden rounded-md border-2 border-border shadow-sm;
 }
 
 .matches-grid {
@@ -137,7 +137,7 @@
 }
 
 .match-card {
-  @apply bg-card border border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200;
+  @apply bg-card border-2 border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200 shadow-md;
 }
 
 .match-card-image {
@@ -153,7 +153,7 @@
 }
 
 .match-card-meta {
-  @apply mt-auto pt-2 text-[10px] text-muted-foreground border-t border-border;
+  @apply mt-auto pt-2 text-[10px] text-muted-foreground border-t-2 border-border;
 }
 
 .minimal-page-container {
@@ -161,7 +161,7 @@
 }
 
 .minimal-search {
-  @apply bg-transparent border-b border-border rounded-full px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
+  @apply bg-transparent border-b-2 border-border rounded-full px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
 }
 
 .minimal-header {
@@ -178,11 +178,11 @@
 }
 
 .profile-card {
-  @apply flex flex-col border-b border-border pb-6 hover:border-primary transition-all duration-300;
+  @apply flex flex-col border-b-2 border-border pb-6 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-md;
 }
 
 .profile-image {
-  @apply mb-4 aspect-square bg-muted flex items-center justify-center text-3xl font-bold text-primary;
+  @apply mb-4 aspect-square bg-muted flex items-center justify-center text-3xl font-bold text-primary shadow-inner;
 }
 
 .profile-name {
@@ -198,7 +198,7 @@
 }
 
 .profile-metadata {
-  @apply mt-auto pt-3 text-xs text-muted-foreground flex justify-between items-center;
+  @apply mt-auto pt-3 text-xs text-muted-foreground flex justify-between items-center border-t border-border/50;
 }
 
 /* Make sure the page has proper side padding like the reference */
@@ -218,23 +218,23 @@
 
 /* New styles for the modern UI based on reference image */
 .modern-search {
-  @apply bg-white pl-10 pr-4 py-3 rounded-full shadow-sm border-0 w-full focus:ring-1 focus:ring-primary focus:outline-none;
+  @apply bg-white pl-10 pr-4 py-3 rounded-full shadow-md border-0 w-full focus:ring-2 focus:ring-primary focus:outline-none;
 }
 
 .modern-card {
-  @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md;
+  @apply bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg border border-border/30;
 }
 
 .feature-icon {
-  @apply bg-primary/10 text-primary rounded-full p-3 mb-4;
+  @apply bg-primary/10 text-primary rounded-full p-3 mb-4 shadow-sm;
 }
 
 .action-button {
-  @apply bg-primary text-black font-medium px-6 py-3 rounded-full transition-all duration-300 hover:bg-primary/90 hover:shadow-md;
+  @apply bg-primary text-black font-medium px-6 py-3 rounded-full transition-all duration-300 hover:bg-primary/90 hover:shadow-lg border-2 border-primary/30;
 }
 
 .secondary-button {
-  @apply bg-white text-black font-medium px-6 py-3 rounded-full border border-border transition-all duration-300 hover:border-primary;
+  @apply bg-white text-black font-medium px-6 py-3 rounded-full border-2 border-border transition-all duration-300 hover:border-primary hover:shadow-md;
 }
 
 .hero-headline {
@@ -246,7 +246,7 @@
 }
 
 .navbar-dark {
-  @apply bg-black text-white;
+  @apply bg-black text-white shadow-md;
 }
 
 .navbar-item {
