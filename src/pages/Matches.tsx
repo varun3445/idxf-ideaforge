@@ -83,7 +83,6 @@ const Matches = () => {
   const profilesScrollRef = useRef<HTMLDivElement>(null);
   const projectsScrollRef = useRef<HTMLDivElement>(null);
   
-  // Get user's geolocation on component mount
   useEffect(() => {
     const getUserLocation = () => {
       if (navigator.geolocation) {
@@ -118,7 +117,6 @@ const Matches = () => {
     getUserLocation();
   }, [toast]);
   
-  // Calculate distance between two coordinates using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Radius of the earth in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -132,9 +130,7 @@ const Matches = () => {
     return distance;
   };
   
-  // Extract coordinates from location string (format: "City, Country" or "Lat,Long")
   const extractCoordinates = (locationString: string): {latitude: number, longitude: number} | null => {
-    // Try to parse as comma-separated coordinates
     if (locationString.includes(',')) {
       const parts = locationString.split(',').map(part => part.trim());
       const lat = parseFloat(parts[0]);
@@ -145,7 +141,6 @@ const Matches = () => {
       }
     }
     
-    // For this demo, we'll use a simple mapping of common locations for demonstration
     const locationMap: Record<string, {latitude: number, longitude: number}> = {
       'new york': { latitude: 40.7128, longitude: -74.0060 },
       'london': { latitude: 51.5074, longitude: -0.1278 },
@@ -159,7 +154,6 @@ const Matches = () => {
       'sydney': { latitude: -33.8688, longitude: 151.2093 }
     };
     
-    // Try to match the location string to our map
     const lowerCaseLocation = locationString.toLowerCase();
     for (const [key, coords] of Object.entries(locationMap)) {
       if (lowerCaseLocation.includes(key)) {
@@ -211,7 +205,6 @@ const Matches = () => {
             color: item.skills.color
           }));
           
-          // Extract location coordinates
           const coordinates = extractCoordinates(profile.location);
           
           const profileWithSkills: Profile = {
@@ -227,7 +220,6 @@ const Matches = () => {
           profilesWithSkills.push(profileWithSkills);
         }
         
-        // Calculate distances if user coordinates are available
         if (userCoordinates) {
           for (const profile of profilesWithSkills) {
             if (profile.latitude && profile.longitude) {
@@ -237,14 +229,13 @@ const Matches = () => {
                 profile.latitude,
                 profile.longitude
               );
-              profile.isNearby = profile.distance < 100; // Consider "nearby" if less than 100km
+              profile.isNearby = profile.distance < 100;
             }
           }
         }
         
         setProfiles(profilesWithSkills);
         
-        // Generate project ideas
         const generatedProjects: ProjectIdea[] = [];
         for (let i = 0; i < 8; i++) {
           const randomProfiles = profilesWithSkills
@@ -269,7 +260,6 @@ const Matches = () => {
         
         setProjectIdeas(generatedProjects);
         
-        // Find nearby users based on calculated distances
         if (userCoordinates) {
           const nearby = profilesWithSkills
             .filter(p => p.isNearby)
@@ -278,7 +268,6 @@ const Matches = () => {
           setNearbyUsers(nearby);
           console.log("Nearby users based on coordinates:", nearby);
         } else if (user?.location) {
-          // Fallback to string matching if coordinates aren't available
           const nearby = profilesWithSkills.filter(p => 
             p.location.toLowerCase().includes(user.location.toLowerCase())
           ).map(p => ({...p, isNearby: true}));
@@ -304,11 +293,9 @@ const Matches = () => {
             })
             .filter(item => item.matchScore > 0)
             .sort((a, b) => {
-              // Prioritize by match score first
               if (b.matchScore !== a.matchScore) {
                 return b.matchScore - a.matchScore;
               }
-              // Then by distance if available
               return (a.distance || Infinity) - (b.distance || Infinity);
             });
             
@@ -339,12 +326,10 @@ const Matches = () => {
     
     const searchLower = search.toLowerCase();
     
-    // Handle "near me" searches with geolocation
     if (searchLower.includes("near me") || searchLower === "near" || searchLower === "nearby") {
       console.log("Processing 'near me' search with coordinates:", userCoordinates);
       
       if (userCoordinates) {
-        // Use actual geolocation data
         const sortedByDistance = [...profiles]
           .filter(p => p.latitude && p.longitude)
           .map(p => ({
@@ -356,7 +341,7 @@ const Matches = () => {
                 p.latitude,
                 p.longitude
               ) : Infinity,
-            matchScore: 100 // Give high match score for location-based searches
+            matchScore: 100
           }))
           .sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity))
           .slice(0, 10);
@@ -365,7 +350,6 @@ const Matches = () => {
         setFilteredProfiles(sortedByDistance);
         return;
       } else {
-        // Fallback if geolocation isn't available
         toast({
           title: "Location not available",
           description: "Please enable location services for better local matches",
@@ -405,11 +389,9 @@ const Matches = () => {
         };
       })
       .sort((a, b) => {
-        // First by match score
         if (b.matchScore !== a.matchScore) {
           return b.matchScore - a.matchScore;
         }
-        // Then by distance if available
         return (a.distance || Infinity) - (b.distance || Infinity);
       })
       .slice(0, 10);
@@ -430,7 +412,6 @@ const Matches = () => {
     setUsingAI(true);
     
     try {
-      // Simulate AI search with location awareness
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const aiMatches = profiles
@@ -441,7 +422,6 @@ const Matches = () => {
             searchTerms.some(term => skill.name.toLowerCase().includes(term))
           );
           
-          // Base match score
           let matchScore = Math.floor(Math.random() * 30) + 50;
           
           if (skillMatch) {
@@ -453,10 +433,8 @@ const Matches = () => {
             matchScore = 100;
           }
           
-          // Location-based boosting
           let locationScore = 0;
           
-          // If search includes location terms, boost profiles in that location
           if (search.toLowerCase().includes('near') || search.toLowerCase().includes('location')) {
             if (userCoordinates && profile.latitude && profile.longitude) {
               const distance = calculateDistance(
@@ -466,14 +444,12 @@ const Matches = () => {
                 profile.longitude
               );
               
-              // Boost score for nearby profiles (within 100km)
               if (distance < 100) {
-                locationScore = Math.max(0, 50 - (distance / 2)); // Higher boost for closer profiles
+                locationScore = Math.max(0, 50 - (distance / 2));
               }
             }
           }
           
-          // Combined score with location influence
           const finalScore = Math.min(100, matchScore + locationScore);
           
           return {
@@ -487,11 +463,9 @@ const Matches = () => {
           };
         })
         .sort((a, b) => {
-          // First by match score
           if (b.matchScore !== a.matchScore) {
             return b.matchScore - a.matchScore;
           }
-          // Then by distance if available
           return (a.profile.distance || Infinity) - (b.profile.distance || Infinity);
         })
         .slice(0, 10);
@@ -794,4 +768,209 @@ const Matches = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-0">People near you</h2>
-                        <p className="text-sm text-muted-foreground">Connections in
+                        <p className="text-sm text-muted-foreground">Connections in your area</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {nearbyUsers.slice(0, 4).map(profile => (
+                        <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                          <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-full overflow-hidden shadow-md">
+                              {profile.avatar ? (
+                                <img 
+                                  src={profile.avatar} 
+                                  alt={profile.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                                  {profile.name[0]}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-base">{profile.name}</h3>
+                              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                                <MapPin size={14} className="mr-1" />
+                                {profile.location}
+                              </div>
+                              {profile.distance && (
+                                <div className="text-xs text-muted-foreground">
+                                  {profile.distance < 1 
+                                    ? 'Less than 1 km away' 
+                                    : `${Math.round(profile.distance)} km away`}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {profile.skills.slice(0, 2).map((skill, index) => (
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
+                              </Badge>
+                            ))}
+                            {profile.skills.length > 2 && (
+                              <Badge variant="outline" className="shadow-sm">
+                                +{profile.skills.length - 2} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-12">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-0">Project opportunities</h2>
+                      <p className="text-sm text-muted-foreground">Collaborations that might interest you</p>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleProjectsScroll('left')}
+                        className="shadow-md"
+                      >
+                        <ArrowLeft size={18} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleProjectsScroll('right')}
+                        className="shadow-md"
+                      >
+                        <ArrowRight size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div
+                    ref={projectsScrollRef}
+                    className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide scroll-smooth"
+                  >
+                    {projectIdeas.map(project => (
+                      <div
+                        key={project.id}
+                        className="flex-shrink-0 w-80 border-3 border-border/40 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md overflow-hidden cursor-pointer"
+                        onClick={() => openProjectDetails(project)}
+                      >
+                        <div className="w-full h-48 bg-gray-100 relative">
+                          <img 
+                            src={project.image} 
+                            alt={project.title} 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                            <h3 className="font-bold text-white text-lg">{project.title}</h3>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {project.description}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {project.skills.map((skill, index) => (
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">
+                              {project.contributors.length} collaborator{project.contributors.length !== 1 ? 's' : ''}
+                            </span>
+                            <Button variant="outline" size="sm" className="shadow-sm">
+                              <Image className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+      
+      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedProject?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedProject?.description}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="w-full h-48 bg-gray-100 rounded-md overflow-hidden mt-2">
+            {selectedProject?.image && (
+              <img 
+                src={selectedProject.image} 
+                alt={selectedProject.title} 
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium mb-2">Required skills:</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedProject?.skills.map((skill, index) => (
+                  <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                    {skill.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium mb-2">Current collaborators:</h4>
+              <div className="flex flex-col space-y-2">
+                {selectedProject?.contributors.map(id => {
+                  const contributor = profiles.find(p => p.id === id);
+                  return contributor ? (
+                    <div key={id} className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                        {contributor.avatar ? (
+                          <img 
+                            src={contributor.avatar} 
+                            alt={contributor.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-bold">{contributor.name[0]}</span>
+                        )}
+                      </div>
+                      <span className="text-sm">{contributor.name}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex items-center justify-between sm:justify-between flex-row">
+            <Button variant="outline" className="shadow-sm">
+              <X className="h-4 w-4 mr-2" />
+              Not Interested
+            </Button>
+            <Button className="shadow-sm">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Join Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AnimatedTransition>
+  );
+};
+
+export default Matches;
