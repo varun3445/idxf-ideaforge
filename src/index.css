@@ -164,7 +164,7 @@
 
 /* New profile grid styles based on reference image */
 .profile-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
+  @apply grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6;
 }
 
 .profile-card {
@@ -172,11 +172,11 @@
 }
 
 .profile-image {
-  @apply mb-3 aspect-square bg-muted flex items-center justify-center text-2xl font-bold text-primary overflow-hidden;
+  @apply mb-3 aspect-square bg-muted flex items-center justify-center text-2xl font-bold text-primary;
 }
 
 .profile-name {
-  @apply font-bold text-sm mt-2;
+  @apply font-bold text-sm;
 }
 
 .profile-location {
@@ -184,14 +184,14 @@
 }
 
 .profile-skills {
-  @apply flex flex-wrap gap-1 mt-2;
+  @apply flex flex-wrap gap-1 mt-1;
 }
 
 .profile-metadata {
-  @apply mt-auto pt-3 text-[10px] text-muted-foreground flex justify-between items-center;
+  @apply mt-auto pt-2 text-[10px] text-muted-foreground flex justify-between items-center;
 }
 
 /* Make sure the page has proper side padding like the reference */
 .minimal-container {
-  @apply w-full px-4 md:px-8 py-12 mx-auto md:ml-20;
+  @apply max-w-full px-8 py-12;
 }
