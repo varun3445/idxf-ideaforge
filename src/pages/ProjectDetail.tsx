@@ -151,9 +151,9 @@ const ProjectDetail = () => {
   }
   return <AnimatedTransition>
       <div className="page-container">
-        <Link to="/explore" className="inline-flex items-center gap-2 text-primary hover:underline mb-8">
+        <Link to="/explore" className="inline-flex items-left gap-2 text-primary hover:underline mb-8 mx-[240px] px-0 py-0">
           <ArrowLeft size={18} />
-          <span>Back to Explore</span>
+          <span className="text-left px-[2px] mx-0">Back to Explore</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -198,16 +198,16 @@ const ProjectDetail = () => {
           
           <div>
             <GlassmorphicCard className="sticky top-24">
-              <h3 className="text-xl font-semibold mb-6">Project Details</h3>
+              <h3 className="text-xl font-semibold mb-6 text-left">Project Details</h3>
               
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Creator</h4>
-                  <p className="text-lg">{project.creator}</p>
+                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Creator</h4>
+                  <p className="text-lg text-left">{project.creator}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Tech Stack</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
                     {project.techStack.map((tech, index) => <span key={index} className="inline-flex items-center gap-1 text-sm bg-muted/80 px-3 py-1.5 rounded-full">
                         <Code size={14} />
