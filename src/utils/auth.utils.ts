@@ -29,7 +29,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
       console.error('Error fetching skills:', skillsError);
     }
     
-    const skills = skillsData ? skillsData.map(item => (item.skills as any).name) : [];
+    const skills = skillsData ? skillsData.map(item => ((item.skills as any)?.name || '')) : [];
     console.log(`Retrieved ${skills.length} skills for user`);
     
     return {
@@ -38,7 +38,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
       email: profileData?.email || '',
       location: profileData?.location || '',
       sex: profileData?.sex || 'male',
-      skills: skills
+      skills: skills.filter(Boolean) // Filter out any undefined values
     };
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);

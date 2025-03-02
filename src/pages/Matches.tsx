@@ -86,7 +86,9 @@ const Matches = () => {
           throw error;
         }
         
-        setAllSkills(data as Skill[] || []);
+        if (data) {
+          setAllSkills(data as any);
+        }
       } catch (error) {
         console.error('Error fetching skills:', error);
         toast({
@@ -214,11 +216,13 @@ const Matches = () => {
     return () => clearTimeout(delaySearch);
   }, [searchQuery, matchedUsers]);
   
+  // Function to add sample users if there aren't enough in the database
   useEffect(() => {
     const addSampleUsers = async () => {
       if (!user) return;
       
       try {
+        // Check how many profiles exist
         const { data: existingProfiles, error: checkError } = await supabase
           .from('profiles')
           .select('count')
@@ -229,15 +233,15 @@ const Matches = () => {
           return;
         }
         
-        const userCount = existingProfiles?.[0]?.count || 0;
+        const userCount = existingProfiles?.[0]?.count ?? 0;
         console.log(`Found ${userCount} existing profiles in the database`);
         
-        if (userCount > 5) {
+        if (Number(userCount) > 5) {
           console.log('Sample users already exist, skipping sample data creation');
           return;
         }
         
-        console.log('Adding sample users...');
+        console.log('Adding sample users because few were found...');
         
         const sampleUsers = [
           {
@@ -396,6 +400,7 @@ const Matches = () => {
         for (const sampleUser of sampleUsers) {
           const uniqueId = crypto.randomUUID();
           
+          // Create profile
           const { error: profileError } = await supabase
             .from('profiles')
             .insert({
@@ -403,7 +408,7 @@ const Matches = () => {
               name: sampleUser.name,
               email: sampleUser.email,
               location: sampleUser.location,
-              sex: 'male'
+              sex: Math.random() > 0.5 ? 'male' : 'female' // Randomize for variety
             } as any);
             
           if (profileError) {
@@ -411,8 +416,10 @@ const Matches = () => {
             continue;
           }
           
+          // Add skills for each user
           let skillSuccessCount = 0;
           for (const skillName of sampleUser.skills) {
+            // Check if skill exists
             const { data: existingSkill, error: skillFetchError } = await supabase
               .from('skills')
               .select('id')
@@ -428,6 +435,7 @@ const Matches = () => {
             if (existingSkill) {
               skillId = existingSkill.id;
             } else {
+              // Create new skill
               const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
               const { data: newSkill, error: newSkillError } = await supabase
                 .from('skills')
@@ -446,6 +454,7 @@ const Matches = () => {
               skillId = newSkill?.id;
             }
             
+            // Add user skill association
             const { error: userSkillError } = await supabase
               .from('user_skills')
               .insert({
@@ -483,6 +492,7 @@ const Matches = () => {
     }
   }, [user, dbConnectionChecked]);
   
+  // Critical fetch users function - modified to better handle profiles
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user) return;
@@ -491,42 +501,79 @@ const Matches = () => {
       
       try {
         console.log("Fetching profiles from database...");
+        
+        // Use a more direct approach to get profiles
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, name, email, location')
+          .select('*')
           .neq('id', user.id as any);
           
         if (profilesError) {
           throw profilesError;
         }
         
-        console.log(`Found ${profiles?.length || 0} profiles in the database`);
-        
-        console.log("Fetching user skills...");
-        const { data: userSkills, error: skillsError } = await supabase
-          .from('user_skills')
-          .select('user_id, skills(id, name)');
-          
-        if (skillsError) {
-          throw skillsError;
+        if (!profiles || profiles.length === 0) {
+          console.log("No profiles found in the database");
+          setMatchedUsers([]);
+          setFilteredUsers([]);
+          setLoading(false);
+          return;
         }
         
-        console.log(`Found ${userSkills?.length || 0} user skills in the database`);
+        console.log(`Found ${profiles.length} profiles in the database:`, profiles);
         
-        const usersWithSkills: UserProfile[] = (profiles || []).map((profile) => {
-          const profileSkills = (userSkills || [])
-            .filter(us => us.user_id === profile.id)
-            .map(us => (us.skills as any).name);
-            
+        // Get all user_skills with related skill names in a separate query
+        const { data: userSkillsData, error: skillsError } = await supabase
+          .from('user_skills')
+          .select('user_id, skills(name)');
+          
+        if (skillsError) {
+          console.error('Error fetching user skills:', skillsError);
+        }
+        
+        const userSkillsMap = new Map();
+        
+        // Build a map of user_id -> skills[]
+        if (userSkillsData) {
+          userSkillsData.forEach(skill => {
+            if (skill.user_id && skill.skills) {
+              const skillName = (skill.skills as any)?.name;
+              if (skillName) {
+                if (!userSkillsMap.has(skill.user_id)) {
+                  userSkillsMap.set(skill.user_id, []);
+                }
+                userSkillsMap.get(skill.user_id).push(skillName);
+              }
+            }
+          });
+        }
+        
+        console.log("User skills map:", Array.from(userSkillsMap.entries()));
+        
+        // Build complete user profiles
+        const usersWithSkills = profiles.map(profile => {
           return {
-            ...profile,
-            skills: profileSkills,
-          } as UserProfile;
+            id: profile.id || '',
+            name: profile.name || '',
+            email: profile.email || '',
+            location: profile.location || '',
+            skills: userSkillsMap.get(profile.id) || []
+          };
         });
         
-        console.log(`Processed ${usersWithSkills.length} profiles with skills`);
+        console.log(`Processed ${usersWithSkills.length} profiles with skills:`, usersWithSkills);
+        
         setMatchedUsers(usersWithSkills);
         setFilteredUsers(usersWithSkills);
+        
+        if (usersWithSkills.length === 0) {
+          console.warn("No profiles with skills found");
+          toast({
+            title: "No profiles found",
+            description: "Try refreshing the page or adding sample users manually.",
+            variant: "destructive"
+          });
+        }
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({
