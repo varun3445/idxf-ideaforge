@@ -1,42 +1,32 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/button';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { generateMultipleUsers } from '../utils/auth.utils';
 
 const Login = () => {
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [userInitiatedLogin, setUserInitiatedLogin] = useState(false);
+  const [generatingUsers, setGeneratingUsers] = useState(false);
 
-  // Only redirect if user has explicitly logged in via form submission
-  useEffect(() => {
-    if (isAuthenticated && !authLoading && userInitiatedLogin) {
-      navigate('/explore', { replace: true });
-    }
-  }, [isAuthenticated, authLoading, navigate, userInitiatedLogin]);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword(prev => !prev);
-  }, []);
-
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading || authLoading) return; // Prevent duplicate submissions
-    
     setLoading(true);
     setError('');
-    setUserInitiatedLogin(true); // Track that login was user-initiated
     
     try {
       const { error } = await login(email, password);
@@ -48,37 +38,47 @@ const Login = () => {
           description: error.message,
           variant: "destructive"
         });
-        setUserInitiatedLogin(false); // Reset since login failed
       } else {
         toast({
           title: "Login successful",
-          description: "Redirecting you to the app...",
+          description: "Welcome back to Idea Forge!",
         });
-        // Let the useEffect handle the redirect
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Error during login:', error);
       setError('An unexpected error occurred');
-      toast({
-        title: "Login error",
-        description: "An unexpected error occurred during login",
-        variant: "destructive"
-      });
-      setUserInitiatedLogin(false); // Reset since login failed
     } finally {
       setLoading(false);
     }
-  }, [loading, authLoading, login, email, password, toast]);
+  };
 
-  // Update email handler
-  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  }, []);
-
-  // Update password handler
-  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  }, []);
+  const handleGenerateUsers = async () => {
+    setGeneratingUsers(true);
+    try {
+      const success = await generateMultipleUsers(25);
+      if (success) {
+        toast({
+          title: "Users generated successfully",
+          description: "25 users have been created in the database",
+        });
+      } else {
+        toast({
+          title: "Error generating users",
+          description: "There was a problem creating the users",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error generating users:', error);
+      toast({
+        title: "Error generating users",
+        description: "There was a problem creating the users",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingUsers(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6">
@@ -86,10 +86,10 @@ const Login = () => {
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Welcome back</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Log in to your Idea Forge account
+            Log in to your account to continue
           </p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {error && (
             <div className="p-3 bg-destructive/20 border border-destructive text-destructive text-sm rounded-md">
@@ -103,37 +103,29 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                value={email}
-                onChange={handleEmailChange}
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={loading || authLoading}
               />
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="#" className="text-xs text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={handlePasswordChange}
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="pr-10"
-                  disabled={loading || authLoading}
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
-                  disabled={loading || authLoading}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -143,16 +135,16 @@ const Login = () => {
           
           <Button 
             type="submit" 
-            className="w-full" 
-            disabled={loading || authLoading}
+            className="w-full"
+            disabled={loading}
           >
-            {loading || authLoading ? (
+            {loading ? (
               <>
-                <Loader2 size={16} className="mr-1 animate-spin" />
-                Signing in...
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Logging in...
               </>
             ) : (
-              "Sign in"
+              "Log in"
             )}
           </Button>
         </form>
@@ -163,6 +155,27 @@ const Login = () => {
             <Link to="/signup" className="text-primary hover:underline font-medium">
               Sign up
             </Link>
+          </p>
+        </div>
+        
+        <div className="mt-8 pt-6 border-t border-border">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={handleGenerateUsers}
+            disabled={generatingUsers}
+          >
+            {generatingUsers ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Generating 25 Users...
+              </>
+            ) : (
+              "Generate 25 Sample Users"
+            )}
+          </Button>
+          <p className="mt-2 text-xs text-muted-foreground text-center">
+            This will create 25 random user profiles for testing purposes
           </p>
         </div>
       </div>
