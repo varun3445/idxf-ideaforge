@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
-import { Search, Loader2, Sparkles, Info } from 'lucide-react';
+import Footer from '../components/Footer';
+import { Search, Loader2, Sparkles, Info, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { Input } from '../components/ui/input';
 import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import crypto from 'crypto';
 
 interface Skill {
@@ -47,7 +50,6 @@ const deg2rad = (deg: number): number => {
 };
 
 // Function to extract coordinates from a location string using a simple heuristic
-// This is a simplified version - in a production app, you would use a geocoding API
 const extractCoordinates = (location: string): { lat: number, lon: number } | null => {
   // Default coordinates for well-known cities (very simplified example)
   const cityCoordinates: {[key: string]: {lat: number, lon: number}} = {
@@ -104,6 +106,7 @@ const Matches = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [dbConnectionChecked, setDbConnectionChecked] = useState(false);
   const [userCoordinates, setUserCoordinates] = useState<{lat: number, lon: number} | null>(null);
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
   
   // Function to check if two locations are within 250km or have a direct match
   const isLocationNearby = (userLocation: string, searchLocation: string): boolean => {
@@ -137,15 +140,34 @@ const Matches = () => {
     return false;
   };
 
-  // Enhanced function to check for location matching
+  // Enhanced function to check for location matching with improved natural language understanding
   const checkLocationMatch = (profileLocation: string, searchTerms: string[]): boolean => {
     if (!profileLocation || !searchTerms.length) return false;
     
     const locationParts = profileLocation.toLowerCase().split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
     
-    for (const term of searchTerms) {
+    // Check for direct country/city matches
+    const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
+    
+    for (let i = 0; i < searchTerms.length; i++) {
+      const term = searchTerms[i];
+      
+      // Check if this term is preceded by a location keyword
+      const isPrecededByLocationKeyword = i > 0 && locationKeywords.includes(searchTerms[i-1]);
+      
+      if (isPrecededByLocationKeyword) {
+        for (const part of locationParts) {
+          if (part.includes(term) || term.includes(part)) {
+            return true;
+          }
+        }
+      }
+      
+      // Direct location match without keyword
       for (const part of locationParts) {
-        if (part.includes(term) || term.includes(part)) {
+        // Check for common country/city names
+        if ((part.length > 3 && (part.includes(term) || term.includes(part))) ||
+            (part === term)) {
           return true;
         }
       }
@@ -160,6 +182,7 @@ const Matches = () => {
     }
   }, [user]);
   
+  // Database connection and skills fetching
   useEffect(() => {
     const checkConnection = async () => {
       const { count, error } = await checkDatabaseConnection();
@@ -205,6 +228,19 @@ const Matches = () => {
     fetchSkills();
   }, []);
 
+  const scrollResults = (direction: 'left' | 'right') => {
+    if (resultsContainerRef.current) {
+      const container = resultsContainerRef.current;
+      const scrollAmount = container.clientWidth * 0.8;
+      
+      if (direction === 'left') {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      } else {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
+
   const performSearch = async (query: string) => {
     if (!matchedUsers.length) {
       return;
@@ -225,11 +261,29 @@ const Matches = () => {
         return;
       }
 
+      // Improved search params with natural language understanding
+      // Extract location keywords and skill keywords
+      const queryWords = query.toLowerCase().split(/\s+/);
+      const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
+      let potentialLocations: string[] = [];
+      
+      // Look for location patterns like "in India" or "from New York"
+      for (let i = 0; i < queryWords.length - 1; i++) {
+        if (locationKeywords.includes(queryWords[i])) {
+          potentialLocations.push(queryWords[i+1]);
+          // Handle multi-word locations like "New York"
+          if (i < queryWords.length - 2) {
+            potentialLocations.push(`${queryWords[i+1]} ${queryWords[i+2]}`);
+          }
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('search-with-ai', {
         body: {
           query,
           profiles: matchedUsers,
-          userLocation: user?.location || null
+          userLocation: user?.location || null,
+          potentialLocations
         },
       });
 
@@ -251,7 +305,7 @@ const Matches = () => {
             const isNearby = user && user.location ? 
               isLocationNearby(user.location, profile.location) : false;
             
-            // Check if the profile location matches any search terms
+            // Improved location matching
             const locationMatch = checkLocationMatch(profile.location, queryTerms);
             
             // Check if any skills directly match query terms
@@ -261,8 +315,20 @@ const Matches = () => {
             
             // Boost score for location matches
             let finalScore = match ? match.matchScore : 0;
+            
+            // Prioritize exact location matches with extra boost
+            if (potentialLocations.length > 0) {
+              const locationLower = profile.location.toLowerCase();
+              for (const loc of potentialLocations) {
+                if (locationLower.includes(loc)) {
+                  finalScore = Math.min(100, finalScore + 30);
+                  break;
+                }
+              }
+            }
+            
+            // Add regular location match boost
             if (locationMatch && finalScore > 0) {
-              // Prioritize profiles that match both skill and location
               finalScore = Math.min(100, finalScore + 20);
             }
             
@@ -298,6 +364,7 @@ const Matches = () => {
     } catch (error) {
       console.error('Error using AI search:', error);
       
+      // Custom matching logic as fallback with improved location matching
       const query = searchQuery.toLowerCase().trim();
       
       if (!query) {
@@ -305,8 +372,22 @@ const Matches = () => {
         return;
       }
       
-      // Custom matching logic as fallback
+      // More sophisticated query parsing
       const queryTerms = query.split(/\s+/).filter(word => word.length > 1);
+      
+      // Extract location patterns like "in India"
+      const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
+      let potentialLocations: string[] = [];
+      
+      for (let i = 0; i < queryTerms.length - 1; i++) {
+        if (locationKeywords.includes(queryTerms[i])) {
+          potentialLocations.push(queryTerms[i+1]);
+          // Handle multi-word locations
+          if (i < queryTerms.length - 2) {
+            potentialLocations.push(`${queryTerms[i+1]} ${queryTerms[i+2]}`);
+          }
+        }
+      }
       
       const filtered = matchedUsers.map(profile => {
         // Calculate match score based on skills match
@@ -320,11 +401,21 @@ const Matches = () => {
           matchScore = Math.min(100, Math.round((matchingSkills.length / queryTerms.length) * 100));
         }
         
-        // Check if location matches search terms
-        const locationMatch = checkLocationMatch(profile.location, queryTerms);
+        // Check if location matches search terms with improved matching
+        const locationLower = profile.location.toLowerCase();
+        let locationMatch = checkLocationMatch(profile.location, queryTerms);
         
-        if (locationMatch) {
-          matchScore = Math.max(matchScore, 50); // Boost score for location match
+        // Exact location matching for location patterns
+        if (potentialLocations.length > 0) {
+          for (const loc of potentialLocations) {
+            if (locationLower.includes(loc)) {
+              locationMatch = true;
+              matchScore = Math.max(matchScore, 80); // Higher boost for explicit location match
+              break;
+            }
+          }
+        } else if (locationMatch) {
+          matchScore = Math.max(matchScore, 50); // Regular boost for location match
         }
         
         // Check if location is nearby to user's location
@@ -382,6 +473,7 @@ const Matches = () => {
     return () => clearTimeout(delaySearch);
   }, [searchQuery, matchedUsers]);
   
+  // Sample users generation (for demo)
   useEffect(() => {
     const addSampleUsers = async () => {
       if (!user) return;
@@ -657,6 +749,7 @@ const Matches = () => {
     }
   }, [user, dbConnectionChecked]);
   
+  // User profile fetching
   useEffect(() => {
     const fetchUsers = async () => {
       if (!user) return;
@@ -757,7 +850,7 @@ const Matches = () => {
   
   return (
     <AnimatedTransition>
-      <div className="page-container pt-24">
+      <div className="page-container pt-24 flex flex-col min-h-screen">
         <div className="mb-8">
           <h1 className="page-header">Find Your Match</h1>
           <p className="page-subheader">
@@ -770,7 +863,7 @@ const Matches = () => {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by skill or location (e.g., 'UI Design' or 'New York')..."
+              placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
               className="pl-10 py-6 pr-12"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -807,7 +900,7 @@ const Matches = () => {
             <h2 className="text-xl font-medium">Creative Profiles</h2>
             <p className="text-sm text-muted-foreground">
               {filteredUsers.length} creative{filteredUsers.length !== 1 ? 's' : ''} found
-              {filteredUsers.length > 0 && matchedUsers.length > 10 ? ' (showing top 10)' : ''}
+              {filteredUsers.length > 0 && filteredUsers.length === 10 ? ' (showing top 10)' : ''}
             </p>
           </div>
         </div>
@@ -822,27 +915,55 @@ const Matches = () => {
             <p className="text-lg text-muted-foreground animate-pulse">Searching...</p>
           </div>
         ) : filteredUsers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUsers.map((profile) => (
-              <CreativeCard 
-                key={profile.id} 
-                creative={{
-                  id: profile.id,
-                  name: profile.name,
-                  role: profile.skills[0] || "Creative Professional",
-                  bio: `Based in ${profile.location}`,
-                  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
-                  skills: profile.skills,
-                  location: profile.location,
-                  isNearby: profile.isNearby,
-                  matchScore: profile.matchScore,
-                  locationMatch: profile.locationMatch,
-                  skillMatch: profile.skillMatch,
-                  portfolio: []
-                }}
-                showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined && profile.matchScore > 0}
-              />
-            ))}
+          <div className="relative">
+            {filteredUsers.length > 3 && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-8 h-8 p-0 shadow-md"
+                  onClick={() => scrollResults('left')}
+                >
+                  <ArrowLeft size={18} />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-8 h-8 p-0 shadow-md"
+                  onClick={() => scrollResults('right')}
+                >
+                  <ArrowRight size={18} />
+                </Button>
+              </>
+            )}
+            
+            <div 
+              ref={resultsContainerRef}
+              className="flex gap-6 overflow-x-auto pb-6 px-2 snap-x snap-mandatory scrollbar-hide"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {filteredUsers.map((profile) => (
+                <div key={profile.id} className="snap-start">
+                  <CreativeCard 
+                    creative={{
+                      id: profile.id,
+                      name: profile.name,
+                      role: profile.skills[0] || "Creative Professional",
+                      bio: `Based in ${profile.location}`,
+                      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
+                      skills: profile.skills,
+                      location: profile.location,
+                      isNearby: profile.isNearby,
+                      matchScore: profile.matchScore,
+                      locationMatch: profile.locationMatch,
+                      skillMatch: profile.skillMatch,
+                      portfolio: []
+                    }}
+                    showMatchScore={!!searchQuery.trim() && profile.matchScore !== undefined && profile.matchScore > 0}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="glassmorphic-card text-center py-12">
@@ -852,6 +973,14 @@ const Matches = () => {
             </p>
           </div>
         )}
+        
+        <style jsx>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        
+        <Footer />
       </div>
     </AnimatedTransition>
   );

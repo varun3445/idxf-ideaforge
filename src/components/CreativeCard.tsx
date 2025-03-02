@@ -47,7 +47,7 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
 
   return (
     <GlassmorphicCard
-      className="h-full flex flex-col relative overflow-hidden"
+      className="h-full flex flex-col relative overflow-hidden min-w-[280px] max-w-[320px]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -74,6 +74,12 @@ const CreativeCard = ({ creative, showMatchScore = false }: CreativeCardProps) =
         <div className="flex flex-col">
           <span className="font-medium">{creative.name}</span>
           <span className="text-sm text-muted-foreground">{creative.role}</span>
+          {creative.locationMatch && (
+            <span className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+              <MapPin size={10} />
+              {creative.location}
+            </span>
+          )}
         </div>
       </div>
       

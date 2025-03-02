@@ -1,129 +1,120 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 142 100% 54%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 70%;
-
-    --accent: 142 100% 54%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 142 100% 54%;
-
-    --radius: 0.75rem;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  h1 {
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+  }
+
+  h2 {
+    @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+  }
+
+  h3 {
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  }
+
+  p {
+    @apply leading-7;
+  }
 }
 
-@layer utilities {
-  .glassmorphism {
-    @apply bg-card/80 backdrop-blur-sm border border-white/5 shadow-sm;
-  }
-  
-  .text-balance {
-    text-wrap: balance;
-  }
+.page-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-8;
 }
 
-@layer components {
-  .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in;
-  }
-  
-  .page-header {
-    @apply text-4xl font-bold tracking-tight mb-8;
-  }
-  
-  .page-subheader {
-    @apply text-xl text-muted-foreground mb-12 max-w-3xl;
-  }
+.page-header {
+  @apply text-3xl font-bold mb-2;
+}
 
-  .grid-card {
-    @apply relative overflow-hidden transition-all duration-300 hover:shadow-md;
-    transform: translateZ(0);
-  }
+.page-subheader {
+  @apply text-muted-foreground mb-8;
+}
 
-  .grid-card img {
-    @apply object-cover transition-transform duration-700 ease-in-out;
-  }
-  
-  .grid-card:hover img {
-    transform: scale(1.03);
-  }
-  
-  .glassmorphic-card {
-    @apply bg-card border border-border/50 rounded-lg p-6 shadow-sm transition-all duration-300;
-  }
-  
-  .button-primary {
-    @apply px-6 py-3 rounded-md bg-neon text-black font-medium 
-           transition-all duration-300 hover:brightness-110 active:scale-[0.98] 
-           focus:outline-none focus:ring-2 focus:ring-neon/20 focus:ring-offset-2;
-  }
-  
-  .button-secondary {
-    @apply px-6 py-3 rounded-md bg-secondary text-white font-medium 
-           transition-all duration-300 hover:bg-secondary/80 active:scale-[0.98] 
-           focus:outline-none focus:ring-2 focus:ring-neon/20 focus:ring-offset-2;
-  }
-  
-  .button-ghost {
-    @apply px-6 py-3 rounded-md bg-transparent text-foreground font-medium 
-           transition-all duration-300 hover:bg-secondary active:scale-[0.98] 
-           focus:outline-none focus:ring-2 focus:ring-neon/20 focus:ring-offset-2;
-  }
-  
-  .chip {
-    @apply inline-flex items-center px-3 py-1 rounded-md text-xs font-medium 
-           bg-secondary text-white transition-colors;
-  }
-  
-  .chip-active {
-    @apply bg-neon/10 text-neon;
-  }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out forwards;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+.glassmorphic-card {
+  @apply rounded-xl border border-border bg-background/80 shadow-sm backdrop-blur-sm p-6;
+}
+
+.glassmorphism {
+  @apply bg-background/80 backdrop-blur-sm border-b border-border;
+}
+
+.chip {
+  @apply text-xs px-2 py-0.5 rounded-full border border-border bg-secondary/50 inline-block;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.grid-card {
+  @apply relative overflow-hidden rounded-md border border-border;
 }

@@ -1,167 +1,199 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-// Set up CORS headers
+// Search with AI edge function - Enhanced with better location matching
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+
+// CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Initialize Supabase client
-const supabaseClient = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
-
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  location: string;
-  skills: string[];
 }
 
-interface SearchBody {
-  query: string;
-  profiles: UserProfile[];
-  userLocation?: string | null;
+// Function to identify location keywords in a search query
+function extractLocationKeywords(query: string) {
+  const words = query.toLowerCase().split(/\s+/);
+  const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
+  let locations = [];
+  
+  for (let i = 0; i < words.length - 1; i++) {
+    if (locationKeywords.includes(words[i])) {
+      locations.push(words[i+1]);
+      // Include potential multi-word location
+      if (i < words.length - 2) {
+        locations.push(`${words[i+1]} ${words[i+2]}`);
+      }
+    }
+  }
+  
+  // Common large countries/locations that might be mentioned
+  const commonLocations = [
+    'india', 'usa', 'uk', 'china', 'japan', 'australia', 'canada', 
+    'brazil', 'russia', 'germany', 'france', 'spain', 'italy', 
+    'london', 'tokyo', 'delhi', 'mumbai', 'new york', 'singapore'
+  ];
+  
+  for (const location of commonLocations) {
+    if (query.toLowerCase().includes(location)) {
+      locations.push(location);
+    }
+  }
+  
+  return [...new Set(locations)]; // remove duplicates
 }
 
-interface ProfileMatch {
-  id: string;
-  matchScore: number;
-  reasons: string[];
+function locationMatchScore(profile: any, locations: string[]) {
+  if (!profile.location || !locations.length) return 0;
+
+  const profileLocation = profile.location.toLowerCase();
+  
+  for (const loc of locations) {
+    if (profileLocation.includes(loc.toLowerCase())) {
+      return 100; // Perfect location match
+    }
+  }
+  
+  // Partial matches
+  for (const loc of locations) {
+    const parts = loc.split(/\s+/);
+    for (const part of parts) {
+      if (part.length > 2 && profileLocation.includes(part.toLowerCase())) {
+        return 70; // Partial location match
+      }
+    }
+  }
+  
+  return 0;
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Extract request data
-    const requestData: SearchBody = await req.json();
-    const { query, profiles, userLocation } = requestData;
+    const { query, profiles, userLocation, potentialLocations } = await req.json()
     
-    if (!query || !profiles || !Array.isArray(profiles)) {
+    if (!query) {
       return new Response(
-        JSON.stringify({ error: 'Invalid request data' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+        JSON.stringify({
+          matchingProfiles: [],
+          searchExplanation: "Please enter a search query to find matching creatives."
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
+
+    if (!Array.isArray(profiles) || profiles.length === 0) {
+      return new Response(
+        JSON.stringify({
+          matchingProfiles: [],
+          searchExplanation: "No creative profiles are available to search."
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log(`Search query: "${query}" with ${profiles.length} profiles`)
     
-    console.log(`Search query: "${query}" with ${profiles.length} profiles`);
+    // Extract any location mentions from the query
+    let locations = potentialLocations || [];
+    if (!locations.length) {
+      locations = extractLocationKeywords(query);
+    }
+    console.log("Detected locations:", locations);
     
-    // Process the search query to identify key terms
+    // Simple scoring algorithm with natural language understanding
     const queryTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 2);
-    const locationTerms: string[] = [];
-    const skillTerms: string[] = [];
     
-    // Try to separate location terms from skill terms
-    queryTerms.forEach(term => {
-      const isLocationIndicator = ['in', 'at', 'near', 'from'].includes(term);
-      const nextTermIndex = queryTerms.indexOf(term) + 1;
+    const results = profiles.map(profile => {
+      let score = 0;
+      let matchReasons = [];
       
-      if (isLocationIndicator && nextTermIndex < queryTerms.length) {
-        // The term after a location indicator is likely a location
-        locationTerms.push(queryTerms[nextTermIndex]);
-      } else if (!isLocationIndicator) {
-        // Filter out common words and keep potential skill terms
-        if (!['the', 'and', 'with', 'for', 'any', 'anyone', 'someone'].includes(term)) {
-          skillTerms.push(term);
+      // Skill matching
+      for (const skill of (profile.skills || [])) {
+        for (const term of queryTerms) {
+          if (term.length > 2 && skill.toLowerCase().includes(term)) {
+            score += 30;
+            matchReasons.push(`Has skill matching "${term}"`);
+            break;
+          }
         }
       }
-    });
-    
-    console.log(`Identified terms - Locations: ${locationTerms.join(', ')} | Skills: ${skillTerms.join(', ')}`);
-    
-    // If "anyone" or similar generic terms are used with a location, prioritize location matching
-    const isGenericPersonSearch = query.toLowerCase().includes('anyone') || 
-                                query.toLowerCase().includes('someone') ||
-                                query.toLowerCase().includes('people');
-    
-    // Match profiles using our own algorithm instead of calling an external API
-    const matchingProfiles: ProfileMatch[] = profiles.map(profile => {
-      let matchScore = 0;
-      const reasons: string[] = [];
       
-      // Location matching
-      const profileLocation = profile.location.toLowerCase();
-      const hasLocationMatch = locationTerms.some(term => 
-        profileLocation.includes(term) || 
-        (userLocation && profileLocation.includes(userLocation.toLowerCase()))
-      );
-      
-      // Check for location match to prioritize profiles from that location
-      if (hasLocationMatch) {
-        matchScore += 60; // Significant boost for location match
-        reasons.push(`Location matches "${locationTerms.join(', ')}"`);
-      }
-      
-      // Skills matching - only if we have skill terms or it's not just a generic search
-      if (skillTerms.length > 0 || !isGenericPersonSearch) {
-        const lowerSkills = profile.skills.map(s => s.toLowerCase());
-        const matchingSkills = skillTerms.filter(term => 
-          lowerSkills.some(skill => skill.includes(term) || term.includes(skill))
-        );
-        
-        if (matchingSkills.length > 0) {
-          // Calculate skill match percentage
-          const skillMatchPercentage = (matchingSkills.length / skillTerms.length) * 100;
-          matchScore += skillMatchPercentage;
-          reasons.push(`Skills match: ${matchingSkills.join(', ')}`);
+      // Check for direct role/profession mentions
+      if (profile.skills && profile.skills.length > 0) {
+        const mainSkill = profile.skills[0].toLowerCase();
+        if (query.toLowerCase().includes(mainSkill)) {
+          score += 40;
+          matchReasons.push(`Primary skill "${mainSkill}" matches query`);
         }
-      } else if (isGenericPersonSearch && hasLocationMatch) {
-        // For generic searches like "anyone in India", give them a full 100% if location matches
-        matchScore = 100;
-        reasons.push('Matches location search for any creative');
       }
+      
+      // Special handling for "anyone" or "everyone" queries
+      if (query.toLowerCase().includes("anyone") || query.toLowerCase().includes("everyone")) {
+        score = Math.max(score, 20); // Give some base score
+        matchReasons.push("Matched general search for anyone");
+      }
+      
+      // Location matching (boosted priority)
+      if (locations.length > 0) {
+        const locationScore = locationMatchScore(profile, locations);
+        if (locationScore > 0) {
+          score += locationScore;
+          matchReasons.push(`Location "${profile.location}" matches search location`);
+        }
+      }
+      
+      // Normalize score to 0-100 range
+      score = Math.min(100, score);
       
       return {
         id: profile.id,
-        matchScore: Math.min(100, matchScore), // Cap at 100%
-        reasons
+        matchScore: score,
+        matchReasons
       };
-    }).filter(profile => profile.matchScore > 0);
+    });
     
-    // Sort by matchScore (highest first) and limit to 10 results
-    matchingProfiles.sort((a, b) => b.matchScore - a.matchScore);
+    // Filter out low-scoring results and sort by score
+    const matchingProfiles = results
+      .filter(result => result.matchScore > 0)
+      .sort((a, b) => b.matchScore - a.matchScore);
     
-    let searchExplanation = '';
-    if (matchingProfiles.length > 0) {
-      if (locationTerms.length > 0 && skillTerms.length > 0) {
-        searchExplanation = `Found ${matchingProfiles.length} creatives matching your search for ${skillTerms.join(', ')} in ${locationTerms.join(', ')}`;
-      } else if (locationTerms.length > 0) {
-        searchExplanation = `Found ${matchingProfiles.length} creatives in ${locationTerms.join(', ')}`;
-      } else if (skillTerms.length > 0) {
-        searchExplanation = `Found ${matchingProfiles.length} creatives with skills in ${skillTerms.join(', ')}`;
-      } else {
-        searchExplanation = `Found ${matchingProfiles.length} creatives matching "${query}"`;
-      }
+    // Generate an explanation based on the query
+    let searchExplanation = "";
+    
+    if (matchingProfiles.length === 0) {
+      searchExplanation = `No creatives found matching "${query}". Try different keywords or skills.`;
+    } else if (locations.length > 0) {
+      searchExplanation = `Showing creatives matching "${query}" with priority on location${locations.length > 1 ? 's' : ''}: ${locations.join(", ")}`;
+    } else if (query.toLowerCase().includes("anyone") || query.toLowerCase().includes("everyone")) {
+      searchExplanation = `Showing all available creatives${locations.length > 0 ? ' with priority on location matches' : ''}.`;
     } else {
-      searchExplanation = `No creatives found matching "${query}"`;
+      searchExplanation = `Showing creatives matching "${query}" based on skills and expertise.`;
     }
     
-    console.log(`Returning ${matchingProfiles.length} matches with explanation: ${searchExplanation}`);
-    
+    console.log(`Found ${matchingProfiles.length} matching profiles`);
+
+    // Return the sorted and filtered profiles along with an explanation
     return new Response(
-      JSON.stringify({ 
-        matchingProfiles, 
-        searchExplanation 
+      JSON.stringify({
+        matchingProfiles,
+        searchExplanation
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-    
+    )
   } catch (error) {
-    console.error('Error processing search request:', error);
-    
+    console.error('Error in search-with-ai function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Failed to process search request', 
-        details: error.message 
+      JSON.stringify({
+        error: 'An error occurred while processing your search',
+        details: error.message
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   }
-});
+})
