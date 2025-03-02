@@ -50,7 +50,7 @@ const ProjectDetail = () => {
         ],
         challenges: [
           'Training ML models to understand subjective design qualities',
-          'Creating feedback that's helpful without being intrusive',
+          'Creating feedback that\'s helpful without being intrusive',
           'Balancing automation with designer creative control',
           'Building a system that learns without requiring excessive data'
         ]
@@ -83,7 +83,7 @@ const ProjectDetail = () => {
         id: '3',
         title: 'Immersive Learning Environment',
         description: 'A VR-based educational platform that creates interactive, spatial learning experiences for complex subjects.',
-        longDescription: 'Our Immersive Learning Environment transforms abstract and complex educational content into spatial, interactive experiences. Using virtual reality technology, we've created a platform where students can physically interact with mathematical concepts, explore historical events from within, and manipulate scientific models at any scale. The system adapts to different learning styles, tracks comprehension through interaction patterns, and allows educators to collaboratively build new learning modules without requiring programming expertise.',
+        longDescription: 'Our Immersive Learning Environment transforms abstract and complex educational content into spatial, interactive experiences. Using virtual reality technology, we\'ve created a platform where students can physically interact with mathematical concepts, explore historical events from within, and manipulate scientific models at any scale. The system adapts to different learning styles, tracks comprehension through interaction patterns, and allows educators to collaboratively build new learning modules without requiring programming expertise.',
         imageUrl: 'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?q=80&w=1170&auto=format&fit=crop',
         creator: 'Charlie Chen',
         collaborators: 8,
@@ -131,7 +131,7 @@ const ProjectDetail = () => {
         id: '5',
         title: 'Collaborative Audio Workspace',
         description: 'A platform for remote music production and audio engineering teams to work together in real-time.',
-        longDescription: 'Our Collaborative Audio Workspace enables dispersed audio professionals to work together as if they were in the same studio. The platform synchronizes multi-track audio editing in real-time with ultra-low latency, supports spatial audio mixing where each participant can hear changes as they're made, and includes specialized tools for different audio disciplines from music production to podcast editing to game sound design. The system manages complex version control for audio projects and integrates with industry-standard digital audio workstations.',
+        longDescription: 'Our Collaborative Audio Workspace enables dispersed audio professionals to work together as if they were in the same studio. The platform synchronizes multi-track audio editing in real-time with ultra-low latency, supports spatial audio mixing where each participant can hear changes as they\'re made, and includes specialized tools for different audio disciplines from music production to podcast editing to game sound design. The system manages complex version control for audio projects and integrates with industry-standard digital audio workstations.',
         imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1170&auto=format&fit=crop',
         creator: 'Eddie Evans',
         collaborators: 6,
