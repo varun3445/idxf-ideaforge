@@ -303,7 +303,7 @@ const Matches = () => {
           
           // Check if any search terms appear in skills
           const skillMatch = profile.skills.some(skill => 
-            searchTerms.some(term => skill.toLowerCase().includes(term))
+            searchTerms.some(term => skill.name.toLowerCase().includes(term))
           );
           
           // Higher match for skill matches
@@ -316,7 +316,7 @@ const Matches = () => {
           
           // UX designers get 100% match for UX searches
           if (search.toLowerCase().includes('ux') && 
-              profile.skills.some(s => s.toLowerCase().includes('design'))) {
+              profile.skills.some(s => s.name.toLowerCase().includes('design'))) {
             matchScore = 100;
           }
           

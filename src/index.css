@@ -1,51 +1,50 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 96%; /* #F5F5F5 */
+    --background: 36 33% 97%; /* #F8F6F1 - light bone color that resembles paper */
     --foreground: 0 0% 0%; /* #000000 */
-    --card: 0 0% 100%; /* White */
+    --card: 36 33% 99%; /* Very light bone color for cards */
     --card-foreground: 0 0% 0%; /* Black */
-    --popover: 0 0% 100%; /* White */
+    --popover: 36 33% 99%; /* Very light bone color for popovers */
     --popover-foreground: 0 0% 0%; /* Black */
     --primary: 114 100% 54%; /* Lime Green (#39FF14) */
     --primary-foreground: 0 0% 0%; /* Black */
     --secondary: 0 0% 10%; /* Very dark gray, almost black */
     --secondary-foreground: 0 0% 100%; /* White */
-    --muted: 0 0% 96%; /* #F5F5F5 */
+    --muted: 36 33% 94%; /* Lighter bone for muted areas */
     --muted-foreground: 0 0% 45%; /* Gray */
     --accent: 114 100% 54%; /* Lime Green (#39FF14) */
     --accent-foreground: 0 0% 0%; /* Black */
     --destructive: 0 100% 50%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 85%; /* Darker gray for thicker-looking borders */
-    --input: 0 0% 85%; /* Darker gray */
+    --border: 36 20% 85%; /* Darker bone color for borders */
+    --input: 36 20% 85%; /* Darker bone color */
     --ring: 114 100% 54%; /* Lime Green (#39FF14) */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 96%; /* #F5F5F5 */
+    --background: 36 33% 97%; /* #F8F6F1 - light bone color */
     --foreground: 0 0% 0%; /* #000000 */
-    --card: 0 0% 100%; /* White */
+    --card: 36 33% 99%; /* Very light bone color */
     --card-foreground: 0 0% 0%; /* Black */
-    --popover: 0 0% 100%; /* White */
+    --popover: 36 33% 99%; /* Very light bone color */
     --popover-foreground: 0 0% 0%; /* Black */
     --primary: 114 100% 54%; /* Lime Green (#39FF14) */
     --primary-foreground: 0 0% 0%; /* Black */
     --secondary: 0 0% 10%; /* Very dark gray, almost black */
     --secondary-foreground: 0 0% 100%; /* White */
-    --muted: 0 0% 96%; /* #F5F5F5 */
+    --muted: 36 33% 94%; /* Lighter bone */
     --muted-foreground: 0 0% 45%; /* Gray */
     --accent: 114 100% 54%; /* Lime Green (#39FF14) */
     --accent-foreground: 0 0% 0%; /* Black */
     --destructive: 0 100% 50%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 85%; /* Darker gray for thicker-looking borders */
-    --input: 0 0% 85%; /* Darker gray */
+    --border: 36 20% 85%; /* Darker bone for borders */
+    --input: 36 20% 85%; /* Darker bone */
     --ring: 114 100% 54%; /* Lime Green (#39FF14) */
   }
 }
@@ -88,7 +87,6 @@
   @apply pt-0 pl-64;
 }
 
-/* Updated styles for content with fixed navbar */
 .fixed-nav-content {
   @apply pl-64 min-h-screen pb-24;
 }
@@ -117,12 +115,10 @@
   @apply bg-primary text-primary-foreground border-2 border-primary;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
@@ -172,7 +168,6 @@
   @apply text-primary font-medium text-sm mb-4;
 }
 
-/* Profile grid styles based on reference image */
 .profile-grid {
   @apply grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6;
 }
@@ -201,28 +196,24 @@
   @apply mt-auto pt-3 text-xs text-muted-foreground flex justify-between items-center border-t border-border/50;
 }
 
-/* Make sure the page has proper side padding like the reference */
 .minimal-container {
   @apply max-w-full px-8 py-12 pl-64;
 }
 
-/* Add letter spacing for search text */
 .letter-spacing-wide {
   letter-spacing: 0.05em;
 }
 
-/* Add smooth scrolling for profile container */
 .scroll-smooth {
   scroll-behavior: smooth;
 }
 
-/* New styles for the modern UI based on reference image */
 .modern-search {
-  @apply bg-white pl-10 pr-4 py-3 rounded-full shadow-md border-0 w-full focus:ring-2 focus:ring-primary focus:outline-none;
+  @apply bg-card pl-10 pr-4 py-3 rounded-full shadow-md border-0 w-full focus:ring-2 focus:ring-primary focus:outline-none;
 }
 
 .modern-card {
-  @apply bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg border border-border/30;
+  @apply bg-card rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg border border-border/30;
 }
 
 .feature-icon {
