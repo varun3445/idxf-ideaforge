@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code } from 'lucide-react';
@@ -171,7 +172,7 @@ const ProjectDetail = () => {
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{project.title}</h1>
             
             <div className="flex flex-wrap gap-3 mb-8">
-              <span className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-sm bg-primary/10 text-black px-3 py-1.5 rounded-full">
                 <Tag size={14} />
                 {project.category}
               </span>
