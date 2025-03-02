@@ -8,6 +8,7 @@ import ExperimentLab from './pages/ExperimentLab';
 import NotFound from './pages/NotFound';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useLocation } from 'react-router-dom';
 
@@ -36,6 +37,11 @@ function App() {
           <Route path="/lab" element={
             <ProtectedRoute>
               <ExperimentLab />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />

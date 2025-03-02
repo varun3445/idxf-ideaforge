@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import SkillsetSelector from '../components/SkillsetSelector';
 import CreativeCard from '../components/CreativeCard';
-import { Sliders, Loader2 } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
+import { Input } from '../components/ui/input';
 import crypto from 'crypto';
 
 interface Skill {
@@ -27,11 +28,11 @@ interface UserProfile {
 const Matches = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [allSkills, setAllSkills] = useState<Skill[]>([]);
   const [matchedUsers, setMatchedUsers] = useState<UserProfile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filtersOpen, setFiltersOpen] = useState(true);
   
   const calculateLocationSimilarity = (location1: string, location2: string) => {
     const location1Parts = location1.toLowerCase().split(',').map(p => p.trim());
@@ -73,6 +74,32 @@ const Matches = () => {
     
     fetchSkills();
   }, []);
+  
+  // Filter users based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredUsers(matchedUsers);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = matchedUsers.filter(profile => {
+      // Search in skills
+      const hasMatchingSkill = profile.skills.some(skill => 
+        skill.toLowerCase().includes(query)
+      );
+      
+      // Search in name
+      const nameMatch = profile.name.toLowerCase().includes(query);
+      
+      // Search in location
+      const locationMatch = profile.location.toLowerCase().includes(query);
+      
+      return hasMatchingSkill || nameMatch || locationMatch;
+    });
+    
+    setFilteredUsers(filtered);
+  }, [searchQuery, matchedUsers]);
   
   useEffect(() => {
     const addSampleUsers = async () => {
@@ -128,6 +155,36 @@ const Matches = () => {
             email: 'aisha.n@example.com',
             location: 'Tokyo, Japan',
             skills: ['Video Editing', 'Sound Design', 'Animation']
+          },
+          {
+            name: 'Alex Petrov',
+            email: 'alex.petrov@example.com',
+            location: 'Berlin, Germany',
+            skills: ['Machine Learning', 'Python', 'Data Visualization']
+          },
+          {
+            name: 'Maya Cortez',
+            email: 'maya.c@example.com',
+            location: 'Mexico City, Mexico',
+            skills: ['Content Marketing', 'SEO', 'Social Media Management']
+          },
+          {
+            name: 'David Kim',
+            email: 'david.kim@example.com',
+            location: 'Seoul, South Korea',
+            skills: ['Mobile Development', 'React Native', 'Swift']
+          },
+          {
+            name: 'Olivia Brown',
+            email: 'olivia.brown@example.com',
+            location: 'Toronto, Canada',
+            skills: ['Project Management', 'Agile', 'Technical Writing']
+          },
+          {
+            name: 'Lucas Silva',
+            email: 'lucas.silva@example.com',
+            location: 'São Paulo, Brazil',
+            skills: ['Full Stack Development', 'Node.js', 'React']
           }
         ];
         
@@ -243,26 +300,8 @@ const Matches = () => {
           };
         });
         
-        let matchedProfiles = [...usersWithSkills];
-        
-        if (selectedSkills.length > 0) {
-          matchedProfiles = usersWithSkills.map(profile => {
-            const matchingSkills = profile.skills.filter(skill => 
-              selectedSkills.includes(skill)
-            );
-            
-            const score = Math.round((matchingSkills.length / selectedSkills.length) * 100);
-            
-            return {
-              ...profile,
-              matchScore: score
-            };
-          });
-          
-          matchedProfiles.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
-        }
-        
-        matchedProfiles = matchedProfiles.map(profile => {
+        // Add distance info
+        const withDistance = usersWithSkills.map(profile => {
           const isNearby = calculateLocationSimilarity(user.location, profile.location);
           
           return {
@@ -271,11 +310,11 @@ const Matches = () => {
           };
         });
         
-        if (selectedSkills.length === 0) {
-          matchedProfiles.sort((a, b) => (b.distance || 0) - (a.distance || 0));
-        }
+        // Sort by distance by default
+        withDistance.sort((a, b) => (b.distance || 0) - (a.distance || 0));
         
-        setMatchedUsers(matchedProfiles);
+        setMatchedUsers(withDistance);
+        setFilteredUsers(withDistance);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast({
@@ -289,98 +328,71 @@ const Matches = () => {
     };
     
     fetchUsers();
-  }, [user, selectedSkills]);
+  }, [user]);
   
   return (
     <AnimatedTransition>
-      <div className="page-container">
+      <div className="page-container pt-24">
         <div className="mb-8">
           <h1 className="page-header">Find Your Match</h1>
           <p className="page-subheader">
-            Select the skills you're looking for and discover creatives with matching abilities
+            Search for skilled creatives to collaborate with on your next project
           </p>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className={`lg:w-1/3 transition-all duration-300 ${
-            filtersOpen ? 'opacity-100' : 'opacity-0 lg:opacity-100'
-          }`}>
-            <div className="sticky top-28">
-              <div className="flex items-center justify-between mb-6 lg:hidden">
-                <h2 className="text-lg font-medium">Filters</h2>
-                <button 
-                  onClick={() => setFiltersOpen(!filtersOpen)}
-                  className="p-2 rounded-full hover:bg-secondary transition-colors"
-                >
-                  <Sliders size={20} />
-                </button>
-              </div>
-              
-              {filtersOpen && (
-                <SkillsetSelector 
-                  selectedSkills={selectedSkills}
-                  onChange={setSelectedSkills}
-                  availableSkills={allSkills.map(skill => ({ 
-                    name: skill.name, 
-                    color: skill.color 
-                  }))}
-                />
-              )}
-            </div>
-          </div>
-          
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-medium">Matches</h2>
-                <p className="text-sm text-muted-foreground">
-                  {matchedUsers.length} creative{matchedUsers.length !== 1 ? 's' : ''} found
-                </p>
-              </div>
-              
-              <button 
-                onClick={() => setFiltersOpen(!filtersOpen)}
-                className="p-2 rounded-full hover:bg-secondary transition-colors hidden lg:flex"
-              >
-                <Sliders size={20} />
-              </button>
-            </div>
-            
-            {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 size={32} className="animate-spin text-primary" />
-              </div>
-            ) : matchedUsers.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {matchedUsers.map((profile) => (
-                  <CreativeCard 
-                    key={profile.id} 
-                    creative={{
-                      id: profile.id,
-                      name: profile.name,
-                      role: profile.skills[0] || "Creative Professional",
-                      bio: `Based in ${profile.location}`,
-                      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
-                      skills: profile.skills,
-                      location: profile.location,
-                      matchScore: profile.matchScore,
-                      isNearby: !!profile.distance,
-                      portfolio: []
-                    }}
-                    showMatchScore={selectedSkills.length > 0}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="glassmorphic-card text-center py-12">
-                <h3 className="text-lg font-medium mb-2">No matches found</h3>
-                <p className="text-muted-foreground">
-                  Try selecting different skills or broadening your search criteria
-                </p>
-              </div>
-            )}
+        <div className="mb-8 max-w-xl mx-auto">
+          <div className="relative">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by skill, name, or location..."
+              className="pl-10 py-6"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           </div>
         </div>
+        
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-medium">Creative Profiles</h2>
+            <p className="text-sm text-muted-foreground">
+              {filteredUsers.length} creative{filteredUsers.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
+        </div>
+        
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 size={32} className="animate-spin text-primary" />
+          </div>
+        ) : filteredUsers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredUsers.map((profile) => (
+              <CreativeCard 
+                key={profile.id} 
+                creative={{
+                  id: profile.id,
+                  name: profile.name,
+                  role: profile.skills[0] || "Creative Professional",
+                  bio: `Based in ${profile.location}`,
+                  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`,
+                  skills: profile.skills,
+                  location: profile.location,
+                  isNearby: !!profile.distance,
+                  portfolio: []
+                }}
+                showMatchScore={false}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="glassmorphic-card text-center py-12">
+            <h3 className="text-lg font-medium mb-2">No matches found</h3>
+            <p className="text-muted-foreground">
+              Try searching for different skills or locations
+            </p>
+          </div>
+        )}
       </div>
     </AnimatedTransition>
   );
