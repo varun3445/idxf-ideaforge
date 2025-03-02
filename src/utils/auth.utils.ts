@@ -4,6 +4,7 @@ import { User } from '../types/auth.types';
 
 export async function fetchUserProfile(userId: string): Promise<User | null> {
   try {
+    console.log(`Fetching profile for user ${userId}`);
     // Get user profile data
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
@@ -16,6 +17,8 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
       return null;
     }
     
+    console.log('Profile data retrieved:', profileData);
+    
     // Get user skills
     const { data: skillsData, error: skillsError } = await supabase
       .from('user_skills')
@@ -27,6 +30,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
     }
     
     const skills = skillsData?.map(item => item.skills.name) || [];
+    console.log(`Retrieved ${skills.length} skills for user`);
     
     return {
       id: userId,
@@ -44,6 +48,7 @@ export async function fetchUserProfile(userId: string): Promise<User | null> {
 
 export async function createUserSkill(userId: string, skillName: string): Promise<boolean> {
   try {
+    console.log(`Creating skill "${skillName}" for user ${userId}`);
     // First check if the skill exists
     const { data: existingSkill, error: skillFetchError } = await supabase
       .from('skills')
@@ -59,9 +64,10 @@ export async function createUserSkill(userId: string, skillName: string): Promis
     let skillId;
     if (existingSkill) {
       skillId = existingSkill.id;
+      console.log(`Skill "${skillName}" already exists with ID ${skillId}`);
     } else {
       // If the skill doesn't exist, we need to create it with a default color
-      const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+      const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
       const { data: newSkill, error: newSkillError } = await supabase
         .from('skills')
         .insert({
@@ -77,6 +83,24 @@ export async function createUserSkill(userId: string, skillName: string): Promis
       }
       
       skillId = newSkill.id;
+      console.log(`Created new skill "${skillName}" with ID ${skillId}`);
+    }
+    
+    // Check if this user-skill association already exists
+    const { data: existingUserSkill, error: checkUserSkillError } = await supabase
+      .from('user_skills')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('skill_id', skillId)
+      .maybeSingle();
+      
+    if (checkUserSkillError) {
+      console.error(`Error checking if user skill already exists:`, checkUserSkillError);
+    }
+    
+    if (existingUserSkill) {
+      console.log(`User already has skill "${skillName}"`);
+      return true;
     }
     
     // Now insert the user-skill association
@@ -92,6 +116,7 @@ export async function createUserSkill(userId: string, skillName: string): Promis
       return false;
     }
     
+    console.log(`Successfully added skill "${skillName}" to user ${userId}`);
     return true;
   } catch (error) {
     console.error('Error in createUserSkill:', error);

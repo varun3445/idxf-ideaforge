@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import CreativeCard from '../components/CreativeCard';
 import { Search, Loader2, Sparkles, Info } from 'lucide-react';
-import { supabase } from '../integrations/supabase/client';
+import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { Input } from '../components/ui/input';
@@ -37,6 +37,7 @@ const Matches = () => {
   const [searching, setSearching] = useState(false);
   const [searchExplanation, setSearchExplanation] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [dbConnectionChecked, setDbConnectionChecked] = useState(false);
   
   const calculateLocationSimilarity = (location1: string, location2: string) => {
     if (!location1 || !location2) return false;
@@ -56,6 +57,23 @@ const Matches = () => {
   };
   
   useEffect(() => {
+    const checkConnection = async () => {
+      const { count, error } = await checkDatabaseConnection();
+      if (error) {
+        console.error("Database connection error:", error);
+        toast({
+          title: "Database connection issue",
+          description: "There was a problem connecting to the database. Please try again later.",
+          variant: "destructive"
+        });
+      } else {
+        console.log(`Database connected successfully. Found ${count} profiles.`);
+        setDbConnectionChecked(true);
+      }
+    };
+    
+    checkConnection();
+    
     const fetchSkills = async () => {
       try {
         const { data, error } = await supabase
@@ -211,8 +229,9 @@ const Matches = () => {
         }
         
         const userCount = existingProfiles[0]?.count || 0;
+        console.log(`Found ${userCount} existing profiles in the database`);
         
-        if (userCount > 0) {
+        if (userCount > 5) {
           console.log('Sample users already exist, skipping sample data creation');
           return;
         }
@@ -372,6 +391,7 @@ const Matches = () => {
           }
         ];
         
+        let successCount = 0;
         for (const sampleUser of sampleUsers) {
           const uniqueId = crypto.randomUUID();
           
@@ -389,6 +409,7 @@ const Matches = () => {
             continue;
           }
           
+          let skillSuccessCount = 0;
           for (const skillName of sampleUser.skills) {
             const { data: existingSkill, error: skillFetchError } = await supabase
               .from('skills')
@@ -432,22 +453,33 @@ const Matches = () => {
               
             if (userSkillError) {
               console.error(`Error adding skill ${skillName} for ${sampleUser.name}:`, userSkillError);
+            } else {
+              skillSuccessCount++;
             }
+          }
+          
+          if (skillSuccessCount > 0) {
+            successCount++;
+            console.log(`Added profile for ${sampleUser.name} with ${skillSuccessCount} skills`);
           }
         }
         
-        toast({
-          title: "Sample users added",
-          description: "Example creative profiles are now available for matching"
-        });
+        if (successCount > 0) {
+          toast({
+            title: `${successCount} sample users added`,
+            description: "Example creative profiles are now available for matching"
+          });
+        }
         
       } catch (error) {
         console.error('Error adding sample users:', error);
       }
     };
     
-    addSampleUsers();
-  }, [user]);
+    if (dbConnectionChecked) {
+      addSampleUsers();
+    }
+  }, [user, dbConnectionChecked]);
   
   useEffect(() => {
     const fetchUsers = async () => {
@@ -456,6 +488,7 @@ const Matches = () => {
       setLoading(true);
       
       try {
+        console.log("Fetching profiles from database...");
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, name, email, location')
@@ -465,6 +498,9 @@ const Matches = () => {
           throw profilesError;
         }
         
+        console.log(`Found ${profiles.length} profiles in the database`);
+        
+        console.log("Fetching user skills...");
         const { data: userSkills, error: skillsError } = await supabase
           .from('user_skills')
           .select('user_id, skills(id, name)');
@@ -472,6 +508,8 @@ const Matches = () => {
         if (skillsError) {
           throw skillsError;
         }
+        
+        console.log(`Found ${userSkills.length} user skills in the database`);
         
         const usersWithSkills: UserProfile[] = profiles.map((profile) => {
           const profileSkills = userSkills
@@ -484,6 +522,7 @@ const Matches = () => {
           };
         });
         
+        console.log(`Processed ${usersWithSkills.length} profiles with skills`);
         setMatchedUsers(usersWithSkills);
         setFilteredUsers(usersWithSkills);
       } catch (error) {
@@ -498,8 +537,10 @@ const Matches = () => {
       }
     };
     
-    fetchUsers();
-  }, [user]);
+    if (dbConnectionChecked) {
+      fetchUsers();
+    }
+  }, [user, dbConnectionChecked]);
   
   return (
     <AnimatedTransition>
