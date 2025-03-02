@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code } from 'lucide-react';
@@ -182,7 +183,7 @@ const ProjectDetail = () => {
                 <Users size={14} />
                 {project.collaborators} collaborators
               </span>
-              <span className="inline-flex items-center gap-1 text-sm bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-sm bg-[#39FF14] text-black px-3 py-1.5 rounded-full text-left">
                 <Calendar size={14} />
                 {formattedDate}
               </span>
