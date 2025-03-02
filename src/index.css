@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -85,6 +86,11 @@
 
 .with-sidebar {
   @apply pt-0 pl-64;
+}
+
+/* Updated styles for content with fixed navbar */
+.fixed-nav-content {
+  @apply pl-64 min-h-screen pb-24;
 }
 
 .page-header {
@@ -205,3 +211,4 @@
 .scroll-smooth {
   scroll-behavior: smooth;
 }
+
