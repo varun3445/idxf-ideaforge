@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, ArrowRight, ArrowUpRight } from 'lucide-react';
@@ -43,7 +44,7 @@ const Index = () => {
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div 
-                className={`transition-all duration-1000 delay-100 ${
+                className={`text-left transition-all duration-1000 delay-100 ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
@@ -64,9 +65,6 @@ const Index = () => {
                   <Link to="/signup" className="button-primary flex items-center justify-center">
                     <span>Get Started</span>
                     <ArrowRight size={18} className="ml-2" />
-                  </Link>
-                  <Link to="/login" className="button-secondary flex items-center justify-center">
-                    Log In
                   </Link>
                 </div>
               </div>
@@ -91,9 +89,9 @@ const Index = () => {
         {/* Features Section */}
         <section className="py-20 bg-white">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-16">
+            <div className="text-left mb-16">
               <h2 className="text-3xl font-bold">How It Works</h2>
-              <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
+              <p className="text-muted-foreground mt-4 max-w-2xl">
                 Our platform makes it easy to bring your creative ideas to life through collaboration
               </p>
             </div>
@@ -132,9 +130,9 @@ const Index = () => {
         
         {/* CTA Section */}
         <section className="py-20 bg-black text-white">
-          <div className="container mx-auto px-4 md:px-6 text-center">
+          <div className="container mx-auto px-4 md:px-6 text-left">
             <h2 className="text-3xl font-bold mb-4">Ready to start your creative journey?</h2>
-            <p className="text-white/70 mb-8 max-w-2xl mx-auto">
+            <p className="text-white/70 mb-8 max-w-2xl">
               Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
             <Link to="/signup" className="button-primary inline-flex items-center">

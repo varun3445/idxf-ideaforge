@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Plus, X, Check, Circle, CircleCheck } from 'lucide-react';
+import { Plus, X, Circle } from 'lucide-react';
 
 interface Skill {
   name: string;
@@ -81,7 +81,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   };
   
   return (
-    <div className="glassmorphic-card">
+    <div className="glassmorphic-card w-full max-w-xl">
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-3">Selected Skills</h3>
         
@@ -123,7 +123,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         </button>
         
         {isExpanded && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-50 w-full">
             <div className="flex gap-2 mb-4 overflow-x-auto py-2 pb-3 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button
@@ -151,13 +151,9 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                     `}
                   >
                     <div className="flex-shrink-0">
-                      {isSelected ? (
-                        <CircleCheck size={20} className="text-primary" />
-                      ) : (
-                        <Circle size={20} className="text-muted-foreground" />
-                      )}
+                      <Circle size={20} className={isSelected ? "text-primary" : "text-muted-foreground"} />
                     </div>
-                    <span className="font-medium">{skill.name}</span>
+                    <span className="font-medium truncate">{skill.name}</span>
                   </button>
                 );
               })}
