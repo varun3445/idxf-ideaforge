@@ -84,7 +84,7 @@
 }
 
 .with-sidebar {
-  @apply pt-0 pl-0 md:pl-24;
+  @apply pt-0 pl-64;
 }
 
 .page-header {

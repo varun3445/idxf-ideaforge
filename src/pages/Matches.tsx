@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -799,7 +798,7 @@ const Matches = () => {
   
   return (
     <AnimatedTransition>
-      <div className="minimal-container flex flex-col min-h-screen">
+      <div className="minimal-container flex flex-col min-h-screen pl-64"> {/* Added pl-64 to accommodate the fixed navbar */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold">find and</h1>
           <h1 className="text-4xl font-bold mb-8">be found.</h1>
@@ -880,46 +879,4 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="px-10 py-8 minimal-search text-lg tracking-wider rounded-full"
-                  style={{ paddingLeft: '20px' }}
-                />
-                
-                {(searching || isTyping) && (
-                  <Loader2 className="absolute right-6 top-1/2 transform -translate-y-1/2 animate-spin text-primary" size={24} />
-                )}
-                
-                {!searching && !isTyping && searchQuery.trim() && (
-                  <Sparkles className="absolute right-6 top-1/2 transform -translate-y-1/2 text-primary" size={24} />
-                )}
-              </div>
-              
-              {searchExplanation && !isTyping && !searching && (
-                <div className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
-                  <Info size={14} className="flex-shrink-0" />
-                  <span>{searchExplanation}</span>
-                </div>
-              )}
-            </div>
-            
-            {filteredUsers.length === 0 && !loading && (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">No matches found for your search criteria.</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSearchQuery('')}
-                  className="border-primary text-primary hover:bg-primary/10"
-                >
-                  Clear search
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-        
-        <Footer />
-      </div>
-    </AnimatedTransition>
-  );
-};
-
-export default Matches;
+                  className="px-10 py-8
