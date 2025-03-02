@@ -50,7 +50,7 @@ const Index = () => {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
                 Connect, Collaborate, Create
               </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-xl">
+              <p className="text-xl text-muted-foreground mb-8 max-w-xl">
                 Find the perfect creative partners with complementary skillsets and bring your ideas to life.
               </p>
             </div>
@@ -69,14 +69,14 @@ const Index = () => {
           </div>
           
           <div className={`
-            relative w-full max-w-md aspect-square transition-all duration-1000 delay-300
+            relative w-full max-w-md transition-all duration-1000 delay-300
             ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
           `}>
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-full flex items-center justify-center">
               <img 
-                src="/lovable-uploads/9484ae90-ca94-4226-8d3f-b46add98f1fc.png" 
+                src="/lovable-uploads/3a8bca34-e0db-482d-8ecc-9aed0ea2913e.png" 
                 alt="Idea Forge Logo" 
-                className="w-3/4 aspect-auto"
+                className="w-full max-w-[280px]"
               />
             </div>
           </div>
@@ -99,7 +99,7 @@ const Index = () => {
                   </div>
                   
                   <h3 className="text-xl font-medium mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm mb-6">
+                  <p className="text-muted-foreground text-sm mb-6">
                     {feature.description}
                   </p>
                   
