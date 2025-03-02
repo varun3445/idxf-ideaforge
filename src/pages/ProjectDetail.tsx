@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
+
 interface ProjectDetails {
   id: string;
   title: string;
@@ -19,6 +20,7 @@ interface ProjectDetails {
   goals: string[];
   challenges: string[];
 }
+
 const ProjectDetail = () => {
   const {
     id
@@ -30,8 +32,8 @@ const ProjectDetail = () => {
   const {
     toast
   } = useToast();
+
   useEffect(() => {
-    // In a real app, this would fetch from an API
     const mockProjects: Record<string, ProjectDetails> = {
       '1': {
         id: '1',
@@ -125,6 +127,7 @@ const ProjectDetail = () => {
       setIsLoading(false);
     }, 500);
   }, [id]);
+
   const handleCollaborate = () => {
     if (project) {
       toast({
@@ -133,11 +136,13 @@ const ProjectDetail = () => {
       });
     }
   };
+
   if (isLoading) {
     return <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
       </div>;
   }
+
   if (!project) {
     return <div className="page-container">
         <div className="text-center py-20">
@@ -149,12 +154,15 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
+
   return <AnimatedTransition>
       <div className="page-container">
-        <Link to="/explore" className="inline-flex items-left gap-2 text-primary hover:underline mb-8 px-0 py-0 mx-0">
-          <ArrowLeft size={18} />
-          <span className="text-left px-[2px] mx-0">Back to Explore</span>
-        </Link>
+        <div className="w-full flex justify-start mb-8">
+          <Link to="/explore" className="inline-flex items-center gap-2 text-primary hover:underline px-0 py-0">
+            <ArrowLeft size={18} />
+            <span className="text-left px-[2px] mx-0">Back to Explore</span>
+          </Link>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -228,4 +236,5 @@ const ProjectDetail = () => {
       </div>
     </AnimatedTransition>;
 };
+
 export default ProjectDetail;
