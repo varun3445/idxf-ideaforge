@@ -113,11 +113,11 @@ const Explore = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <GlassmorphicCard className="h-full flex flex-col p-8 space-y-8">
-                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full object-cover rounded-lg mb-8 shadow-md" />
+                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-8 shadow-md object-cover" />
                   
                   <div className="flex flex-col items-start mb-6">
-                    <h3 className="text-2xl font-semibold leading-tight mb-2">{item.title}</h3>
-                    {item.category && <span className="text-sm text-muted-foreground">
+                    <h3 className="text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
+                    {item.category && <span className="text-sm text-muted-foreground py-[5px]">
                         {item.category}
                       </span>}
                   </div>
@@ -136,12 +136,12 @@ const Explore = () => {
                   
                   <div className="mt-auto flex justify-between items-center pt-6 border-t border-border">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users size={18} />
-                      <span>{item.collaborators || 0}</span>
+                      <Users size={18} className="bg-transparent" />
+                      <span className="text-center">{item.collaborators || 0}</span>
                     </div>
                     
                     <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-2 group">
-                      <span>Learn More</span>
+                      <span>Explore</span>
                       <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                     </Link>
                   </div>
