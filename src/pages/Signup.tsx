@@ -1,12 +1,12 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
-import { Loader2, Camera, Upload, X } from 'lucide-react';
+import { Loader2, Camera, Upload, X, MapPin } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { supabase } from '../integrations/supabase/client';
 import SkillsetSelector from '../components/SkillsetSelector';
@@ -25,6 +25,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -145,17 +146,109 @@ const Signup = () => {
     }
   };
 
+  const detectLocation = async () => {
+    setDetectingLocation(true);
+    
+    try {
+      if (!navigator.geolocation) {
+        toast({
+          title: "Geolocation not supported",
+          description: "Your browser doesn't support geolocation",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          
+          // Use reverse geocoding to get location name
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+          );
+          
+          if (!response.ok) throw new Error("Failed to fetch location data");
+          
+          const data = await response.json();
+          
+          // Extract city and country if available
+          const city = data.address.city || 
+                       data.address.town || 
+                       data.address.village || 
+                       data.address.hamlet ||
+                       "";
+          const country = data.address.country || "";
+          
+          const locationString = [city, country].filter(Boolean).join(", ");
+          
+          if (locationString) {
+            setLocation(locationString);
+            toast({
+              title: "Location detected",
+              description: `Your location: ${locationString}`
+            });
+          } else {
+            toast({
+              title: "Location detection partial",
+              description: "Could not determine your full location"
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching location name:", error);
+          toast({
+            title: "Location detection failed",
+            description: "Could not determine your location name",
+            variant: "destructive"
+          });
+        } finally {
+          setDetectingLocation(false);
+        }
+      }, (error) => {
+        console.error("Geolocation error:", error);
+        let errorMessage = "Could not detect your location";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location permission denied";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out";
+            break;
+        }
+        
+        toast({
+          title: "Location detection failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        setDetectingLocation(false);
+      });
+    } catch (error) {
+      console.error("Location detection error:", error);
+      toast({
+        title: "Location detection failed",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+      setDetectingLocation(false);
+    }
+  };
+
   return (
     <AnimatedTransition>
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
         <div className="w-full max-w-md">
-          <div className="text-center mb-10">
+          <div className="text-left mb-10">
             <h1 className="text-4xl font-extrabold mb-2">Idea Forge</h1>
             <p className="text-muted-foreground">Join our community of innovators</p>
           </div>
           
           <div className="bg-card border border-border rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">Create an Account</h2>
+            <h2 className="text-2xl font-bold mb-6 text-left">Create an Account</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="mb-6 flex flex-col items-center">
@@ -263,13 +356,32 @@ const Signup = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, Country"
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="City, Country"
+                    required
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={detectLocation}
+                    disabled={detectingLocation}
+                    className="flex items-center"
+                  >
+                    {detectingLocation ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <MapPin size={16} />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Click the location pin to auto-detect your location
+                </p>
               </div>
               
               <div className="space-y-2">
@@ -293,7 +405,7 @@ const Signup = () => {
                 ) : 'Sign up'}
               </Button>
               
-              <div className="text-center text-sm mt-4">
+              <div className="text-left text-sm mt-4">
                 <span className="text-muted-foreground">
                   Already have an account?{' '}
                   <Link 
