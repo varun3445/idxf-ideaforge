@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import Footer from '../components/Footer';
@@ -879,4 +880,37 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="px-10 py-8
+                  className="px-10 py-8 text-xl"
+                  style={{ paddingLeft: '20px' }}
+                />
+                {(searching || isTyping) && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <Loader2 className="animate-spin text-muted-foreground" size={20} />
+                  </div>
+                )}
+                {!searching && !isTyping && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <Sparkles className="text-primary" size={20} />
+                  </div>
+                )}
+              </div>
+              
+              {searchExplanation && (
+                <Card className="mt-4">
+                  <CardContent className="pt-4 flex items-start gap-2">
+                    <Info size={16} className="text-muted-foreground mt-1 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">{searchExplanation}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </>
+        )}
+        
+        <Footer />
+      </div>
+    </AnimatedTransition>
+  );
+};
+
+export default Matches;
