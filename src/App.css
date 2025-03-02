@@ -51,5 +51,5 @@
 }
 
 .button-secondary {
-  @apply bg-white text-black border-2 border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-background text-black border-2 border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
 }
