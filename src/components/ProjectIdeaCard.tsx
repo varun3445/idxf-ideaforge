@@ -43,13 +43,13 @@ const ProjectIdeaCard = ({
       </p>
       
       {expanded && <div className="mt-4 border-t border-border pt-4">
-          <h4 className="text-sm font-medium mb-2">Process Steps:</h4>
+          <h4 className="text-sm font-medium mb-2 text-center">Process Steps:</h4>
           <ol className="space-y-2">
             {idea.steps.map((step, index) => <li key={index} className="flex items-baseline gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex-shrink-0 flex items-center justify-center text-xs">
                   {index + 1}
                 </span>
-                <span className="text-sm">{step}</span>
+                <span className="text-sm text-left">{step}</span>
               </li>)}
           </ol>
         </div>}
