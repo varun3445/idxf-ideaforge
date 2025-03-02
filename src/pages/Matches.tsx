@@ -232,9 +232,9 @@ const Matches = () => {
       profile.skills.some(skill => {
         // Enhanced search for UX terms - if UX is searched, match with design skills
         if (searchLower === 'ux') {
-          return skill.toLowerCase().includes('design');
+          return skill.name.toLowerCase().includes('design');
         }
-        return skill.toLowerCase().includes(searchLower);
+        return skill.name.toLowerCase().includes(searchLower);
       })
     );
     
@@ -243,13 +243,13 @@ const Matches = () => {
       .map(profile => {
         // For searches, calculate match score based on how many skills match the search term
         const matchingSkills = profile.skills.filter(skill => 
-          skill.toLowerCase().includes(searchLower) || 
-          (searchLower === 'ux' && skill.toLowerCase().includes('design'))
+          skill.name.toLowerCase().includes(searchLower) || 
+          (searchLower === 'ux' && skill.name.toLowerCase().includes('design'))
         );
         
         // If searching for UX and has design skill, give 100% match
         const matchScore = searchLower === 'ux' && profile.skills.some(s => 
-          s.toLowerCase().includes('design')
+          s.name.toLowerCase().includes('design')
         ) ? 100 : Math.min(
           Math.round((matchingSkills.length / profile.skills.length) * 100), 
           100
