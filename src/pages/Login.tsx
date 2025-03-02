@@ -32,7 +32,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Prevent duplicate submissions
+    if (loading || authLoading) return; // Prevent duplicate submissions
     
     setLoading(true);
     setError('');
@@ -48,6 +48,7 @@ const Login = () => {
           description: error.message,
           variant: "destructive"
         });
+        setUserInitiatedLogin(false); // Reset since login failed
       } else {
         toast({
           title: "Login successful",
@@ -63,6 +64,7 @@ const Login = () => {
         description: "An unexpected error occurred during login",
         variant: "destructive"
       });
+      setUserInitiatedLogin(false); // Reset since login failed
     } finally {
       setLoading(false);
     }

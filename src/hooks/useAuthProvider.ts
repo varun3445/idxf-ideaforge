@@ -6,31 +6,11 @@ import { fetchUserProfile, createUserSkill } from '../utils/auth.utils';
 
 export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check for active session on component mount
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (userProfile) {
-            setUser(userProfile);
-          }
-        }
-      } catch (error) {
-        console.error('Session check error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkSession();
-    
-    // Set up listener for auth changes
+    // Only set up listener for auth changes, don't auto-check session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event);
