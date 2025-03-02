@@ -34,6 +34,7 @@ export const fetchProfiles = async (): Promise<ProfileData[]> => {
           console.error(`Error fetching skills for profile ${profile.id}:`, skillsError);
           return {
             ...profile,
+            sex: profile.sex || 'male', // Ensure sex field has a default value
             skills: []
           };
         }
@@ -42,6 +43,7 @@ export const fetchProfiles = async (): Promise<ProfileData[]> => {
 
         return {
           ...profile,
+          sex: profile.sex || 'male', // Ensure sex field has a default value
           skills
         };
       })

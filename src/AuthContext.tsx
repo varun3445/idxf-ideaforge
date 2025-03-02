@@ -179,6 +179,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             name,
             email,
             location,
+            sex: 'male' // Default to 'male' for new users
           });
           
         if (profileError) {
