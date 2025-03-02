@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -105,22 +104,6 @@ const Explore = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleCollaborate = async (projectId: string, projectTitle: string) => {
-    try {
-      toast({
-        title: "Collaboration Request Sent",
-        description: `Your request to collaborate on "${projectTitle}" has been sent to the project owner.`,
-      });
-    } catch (error) {
-      console.error("Error sending collaboration request:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send collaboration request. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const filteredPortfolioItems = portfolioItems.filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,7 +142,7 @@ const Explore = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {filteredPortfolioItems.map((item) => (
               <div
                 key={item.id}
@@ -201,24 +184,13 @@ const Explore = () => {
                       <span>{item.collaborators || 0} collaborators</span>
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleCollaborate(item.id, item.title)}
-                        className="px-4 py-2"
-                      >
-                        Collaborate
-                      </Button>
-                      
-                      <Link
-                        to={`/project/${item.id}`}
-                        className="flex items-center font-medium text-primary hover:underline gap-2 group"
-                      >
-                        <span>Learn More</span>
-                        <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    </div>
+                    <Link
+                      to={`/project/${item.id}`}
+                      className="flex items-center font-medium text-primary hover:underline gap-2 group"
+                    >
+                      <span>Learn More</span>
+                      <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                    </Link>
                   </div>
                 </GlassmorphicCard>
               </div>
