@@ -30,7 +30,8 @@ export function useAuthProvider() {
         const userProfile = await fetchUserProfile(data.user.id);
         if (userProfile) {
           setUser(userProfile);
-          navigate('/explore');
+          // Force navigate to explore page
+          navigate('/explore', { replace: true });
         }
       }
       
@@ -110,17 +111,36 @@ export function useAuthProvider() {
     const checkSession = async () => {
       setLoading(true);
       try {
+        console.log('Checking current session...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && session.user) {
           console.log('Found existing session for user:', session.user.id);
           const userProfile = await fetchUserProfile(session.user.id);
           if (userProfile) {
+            console.log('Setting user profile from session check:', userProfile);
             setUser(userProfile);
+            
+            // If on login page but authenticated, redirect to explore
+            if (window.location.pathname === '/login') {
+              console.log('Redirecting from login to explore page because user is already authenticated');
+              navigate('/explore', { replace: true });
+            }
+          }
+        } else {
+          console.log('No active session found');
+          setUser(null);
+          
+          // If on a protected route but not authenticated, redirect to login
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/signup' && currentPath !== '/') {
+            console.log('No active session, redirecting to login');
+            navigate('/login', { replace: true });
           }
         }
       } catch (error) {
         console.error('Error checking session:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -140,7 +160,8 @@ export function useAuthProvider() {
             const userProfile = await fetchUserProfile(session.user.id);
             if (userProfile) {
               setUser(userProfile);
-              navigate('/explore');
+              console.log('User profile set, navigating to explore');
+              navigate('/explore', { replace: true });
             }
           } catch (error) {
             console.error('Error fetching user profile:', error);
@@ -151,7 +172,7 @@ export function useAuthProvider() {
           console.log('User signed out');
           setUser(null);
           setLoading(false);
-          navigate('/');
+          navigate('/', { replace: true });
         }
       }
     );

@@ -10,7 +10,7 @@ import { useToast } from '../hooks/use-toast';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +21,13 @@ const Login = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  // Check if already authenticated, redirect to explore page
+  if (isAuthenticated) {
+    console.log('User is already authenticated, redirecting to explore');
+    navigate('/explore');
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +52,8 @@ const Login = () => {
           title: "Login successful",
           description: "Welcome back to Idea Forge!",
         });
-        // Explicitly navigate to explore page after successful login
-        navigate('/explore');
+        // Force navigate to explore page after successful login
+        navigate('/explore', { replace: true });
       }
     } catch (error) {
       console.error('Error during login:', error);
