@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, User, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useMobile } from '../hooks/use-mobile';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const Navbar = () => {
   const location = useLocation();
@@ -15,7 +14,7 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [navbarExpanded, setNavbarExpanded] = useState(true);
   const profileRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,7 +30,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // Close mobile menu when navigating to a new page
   useEffect(() => {
     if (isMobile) {
       setNavbarExpanded(false);
@@ -66,7 +64,6 @@ const Navbar = () => {
     }
   };
 
-  // Gets the avatar source based on user information
   const getAvatarSrc = () => {
     if (user?.avatar) {
       return user.avatar;
@@ -82,7 +79,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Mobile Toggle Button - Fixed position */}
       <button
         onClick={toggleNavbar}
         className="fixed top-4 left-4 z-50 p-2 rounded-md bg-primary/10 md:hidden"
@@ -91,14 +87,12 @@ const Navbar = () => {
         {navbarExpanded ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Left Side Navbar */}
       <nav
         className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-background border-r border-border transition-all duration-300 ${
           navbarExpanded ? 'w-64' : 'w-20'
         } ${isMobile && !navbarExpanded ? '-translate-x-full' : 'translate-x-0'}`}
       >
         <div className="flex flex-col h-full p-4">
-          {/* Logo/Brand */}
           <Link 
             to="/explore" 
             className={`text-xl font-bold tracking-tight transition-all mb-8 ${
@@ -112,7 +106,6 @@ const Navbar = () => {
             )}
           </Link>
           
-          {/* Navigation Links */}
           <div className="flex flex-col space-y-2">
             {navItems.map((item) => (
               <Link
@@ -132,7 +125,6 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Profile Section - At the bottom */}
           <div className="mt-auto">
             <div className="relative" ref={profileRef}>
               <button
@@ -191,7 +183,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Collapse/Expand Button - Desktop Only */}
           <button
             onClick={toggleNavbar}
             className="mt-4 p-2 rounded-md border border-border hidden md:flex items-center justify-center"
