@@ -880,7 +880,8 @@ const Matches = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Try queries like 'UX designer in India' or 'Video editors near London'..."
-                  className="px-8 py-8 minimal-search text-lg tracking-wider rounded-full"
+                  className="px-10 py-8 minimal-search text-lg tracking-wider rounded-full"
+                  style={{ paddingLeft: '20px' }}
                 />
                 
                 {(searching || isTyping) && (
