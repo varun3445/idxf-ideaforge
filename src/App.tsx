@@ -17,9 +17,9 @@ function App() {
   const showNavbar = !['/', '/login', '/signup'].includes(location.pathname);
   
   return (
-    <>
+    <div className="min-h-screen flex">
       {showNavbar && <Navbar />}
-      <main>
+      <main className={`flex-1 ${showNavbar ? 'md:ml-20' : ''}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<Signup />} />
@@ -47,7 +47,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-    </>
+    </div>
   );
 }
 

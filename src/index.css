@@ -83,6 +83,10 @@
   @apply max-w-7xl mx-auto px-4 sm:px-6 py-8;
 }
 
+.with-sidebar {
+  @apply pt-0 pl-0 md:pl-24;
+}
+
 .page-header {
   @apply text-3xl font-bold mb-2;
 }

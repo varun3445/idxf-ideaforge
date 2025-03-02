@@ -1,39 +1,42 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Grid, Heart, Lightbulb, User, Settings, LogOut } from 'lucide-react';
+import { Grid, Heart, Lightbulb, User, Settings, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useMobile } from '../hooks/use-mobile';
 
 const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [navbarExpanded, setNavbarExpanded] = useState(true);
   const profileRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMobile();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
     const handleClickOutside = (event: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
     document.addEventListener('mousedown', handleClickOutside);
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Close mobile menu when navigating to a new page
+  useEffect(() => {
+    if (isMobile) {
+      setNavbarExpanded(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const navItems = [
     { path: '/explore', label: 'Explore', icon: Grid },
@@ -73,116 +76,140 @@ const Navbar = () => {
     return '';
   };
 
+  const toggleNavbar = () => {
+    setNavbarExpanded(!navbarExpanded);
+  };
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-4 sm:px-6 ${
-        scrolled ? 'py-3 glassmorphism' : 'py-5 bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <Link 
-          to="/explore" 
-          className="text-xl font-bold tracking-tight transition-opacity hover:opacity-80"
-        >
-          <span>Idea Forge</span>
-        </Link>
-        
-        <div className="hidden md:flex space-x-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`px-4 py-2 rounded-full transition-all duration-300 flex items-center space-x-2 ${
-                isActive(item.path)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary'
-              }`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
+    <>
+      {/* Mobile Toggle Button - Fixed position */}
+      <button
+        onClick={toggleNavbar}
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-primary/10 md:hidden"
+        aria-label={navbarExpanded ? "Close menu" : "Open menu"}
+      >
+        {navbarExpanded ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-          {/* Profile Picture and Dropdown */}
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors overflow-hidden"
-            >
-              {user ? (
-                <img 
-                  src={getAvatarSrc()}
-                  alt={user.name || 'User'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={18} />
-              )}
-            </button>
-
-            {profileOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-background border border-border">
-                <div className="py-2 px-4 border-b border-border">
-                  <p className="font-medium">{user?.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <div className="py-1">
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center px-4 py-2 text-sm hover:bg-secondary/50 transition-colors"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    <Settings size={16} className="mr-2" />
-                    Edit Profile
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      setProfileOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                  >
-                    <LogOut size={16} className="mr-2" />
-                    Logout
-                  </button>
-                </div>
-              </div>
+      {/* Left Side Navbar */}
+      <nav
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-background border-r border-border transition-all duration-300 ${
+          navbarExpanded ? 'w-64' : 'w-20'
+        } ${isMobile && !navbarExpanded ? '-translate-x-full' : 'translate-x-0'}`}
+      >
+        <div className="flex flex-col h-full p-4">
+          {/* Logo/Brand */}
+          <Link 
+            to="/explore" 
+            className={`text-xl font-bold tracking-tight transition-all mb-8 ${
+              navbarExpanded ? 'text-left' : 'text-center'
+            }`}
+          >
+            {navbarExpanded ? (
+              <span>Idea Forge</span>
+            ) : (
+              <span className="text-2xl">IF</span>
             )}
-          </div>
-        </div>
-        
-        <div className="flex md:hidden">
-          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-3 px-2">
+          </Link>
+          
+          {/* Navigation Links */}
+          <div className="flex flex-col space-y-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
+                className={`px-4 py-3 rounded-lg transition-all duration-300 flex items-center ${
+                  navbarExpanded ? 'justify-start space-x-3' : 'justify-center'
+                } ${
                   isActive(item.path)
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-secondary'
                 }`}
               >
                 <item.icon size={20} />
-                <span className="text-xs mt-1">{item.label}</span>
+                {navbarExpanded && <span>{item.label}</span>}
               </Link>
             ))}
-            
-            <Link
-              to="/profile"
-              className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
-                isActive('/profile')
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <User size={20} />
-              <span className="text-xs mt-1">Profile</span>
-            </Link>
           </div>
+
+          {/* Profile Section - At the bottom */}
+          <div className="mt-auto">
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className={`flex items-center ${
+                  navbarExpanded ? 'justify-start space-x-3 w-full' : 'justify-center w-full'
+                } p-3 rounded-lg hover:bg-secondary transition-colors overflow-hidden`}
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-secondary flex items-center justify-center">
+                  {user ? (
+                    <img 
+                      src={getAvatarSrc()}
+                      alt={user.name || 'User'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User size={18} />
+                  )}
+                </div>
+                {navbarExpanded && (
+                  <div className="text-left overflow-hidden text-ellipsis">
+                    <p className="font-medium truncate">{user?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                  </div>
+                )}
+              </button>
+
+              {profileOpen && (
+                <div 
+                  className={`absolute ${
+                    navbarExpanded ? 'right-0 left-0' : 'left-full ml-2'
+                  } bottom-full mb-2 rounded-md shadow-lg bg-background border border-border`}
+                >
+                  <div className="py-1">
+                    <Link 
+                      to="/profile" 
+                      className="flex items-center px-4 py-2 text-sm hover:bg-secondary/50 transition-colors"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <Settings size={16} className="mr-2" />
+                      Edit Profile
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        setProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Collapse/Expand Button - Desktop Only */}
+          <button
+            onClick={toggleNavbar}
+            className="mt-4 p-2 rounded-md border border-border hidden md:flex items-center justify-center"
+            aria-label={navbarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {navbarExpanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            )}
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
