@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
-import { AnimatedTransition } from '../components/AnimatedTransition';
+import AnimatedTransition from '../components/AnimatedTransition';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -25,6 +25,7 @@ interface Person {
   skills: string[];
   bio: string;
   match_percentage?: number;
+  distance?: number;
 }
 
 const Matches = () => {
@@ -95,16 +96,15 @@ const Matches = () => {
     
     setIsLoading(true);
     try {
-      // First get the current user's skills
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('skills')
-        .eq('id', user.id)
-        .single();
+      // We can't directly query skills from profiles, we need to get them from user_skills
+      const { data: userSkillsData, error: userSkillsError } = await supabase
+        .from('user_skills')
+        .select('skills(name)')
+        .eq('user_id', user.id);
 
-      if (profileError) throw profileError;
+      if (userSkillsError) throw userSkillsError;
       
-      const userSkills = profileData.skills || [];
+      const userSkills = userSkillsData.map(item => item.skills?.name).filter(Boolean) as string[];
       
       // Search functionality with OpenAI integration
       if (searchQuery.trim() !== '') {
@@ -132,13 +132,32 @@ const Matches = () => {
         // Fetch other users with similar skills
         const { data: peopleData, error: peopleError } = await supabase
           .from('profiles')
-          .select('id, name, avatar, skills, bio, location')
+          .select('id, name, avatar, bio, location')
           .neq('id', user.id);
           
         if (peopleError) throw peopleError;
         
+        // For each person, get their skills
+        const peopleWithSkills = await Promise.all(
+          peopleData.map(async (person) => {
+            const { data: personSkillsData } = await supabase
+              .from('user_skills')
+              .select('skills(name)')
+              .eq('user_id', person.id);
+              
+            const skills = (personSkillsData || [])
+              .map(item => item.skills?.name)
+              .filter(Boolean) as string[];
+              
+            return {
+              ...person,
+              skills
+            };
+          })
+        );
+        
         // Calculate match percentage and sort by it
-        const peopleWithMatches = peopleData.map((person) => {
+        const peopleWithMatches = peopleWithSkills.map((person) => {
           const personSkills = person.skills || [];
           const matchCount = personSkills.filter(skill => userSkills.includes(skill)).length;
           const maxSkills = Math.max(userSkills.length, personSkills.length);
@@ -147,18 +166,25 @@ const Matches = () => {
           // Calculate distance if near me is selected and both locations are available
           let distance = Infinity;
           if (isNearMe && userLocation && person.location) {
-            distance = calculateDistance(
-              userLocation.latitude, 
-              userLocation.longitude, 
-              person.location.latitude, 
-              person.location.longitude
-            );
+            try {
+              const personLocation = JSON.parse(person.location);
+              if (personLocation.latitude && personLocation.longitude) {
+                distance = calculateDistance(
+                  userLocation.latitude, 
+                  userLocation.longitude, 
+                  personLocation.latitude, 
+                  personLocation.longitude
+                );
+              }
+            } catch (error) {
+              console.error("Error parsing location", error);
+            }
           }
           
           return {
             ...person,
             match_percentage: matchPercentage,
-            distance: distance
+            distance
           };
         });
         
@@ -173,22 +199,38 @@ const Matches = () => {
             if (!aIsNear && bIsNear) return 1;
             if (aIsNear && bIsNear) {
               // Both nearby, use match percentage as secondary sort
-              return b.match_percentage - a.match_percentage;
+              return (b.match_percentage || 0) - (a.match_percentage || 0);
             }
           }
           // Default to sorting by match percentage
-          return b.match_percentage - a.match_percentage;
+          return (b.match_percentage || 0) - (a.match_percentage || 0);
         });
         
-        // Fetch projects with similar skill requirements
-        const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('id, title, description, skills_required');
-          
-        if (projectsError) throw projectsError;
+        // Since Supabase doesn't have a projects table yet, we'll mock some project data
+        // This would normally be replaced with a real query to the projects table
+        const mockProjects = [
+          {
+            id: "1",
+            title: "Web Development Project",
+            description: "A project to build a modern web application using React and Node.js",
+            skills_required: ["React", "Node.js", "JavaScript"]
+          },
+          {
+            id: "2",
+            title: "Mobile App Development",
+            description: "Developing a cross-platform mobile app using React Native",
+            skills_required: ["React Native", "JavaScript", "Mobile Development"]
+          },
+          {
+            id: "3",
+            title: "Machine Learning Research",
+            description: "Research project focused on natural language processing",
+            skills_required: ["Python", "Machine Learning", "NLP"]
+          }
+        ];
         
         // Calculate project match percentages
-        const projectsWithMatches = projectsData.map((project) => {
+        const projectsWithMatches = mockProjects.map((project) => {
           const projectSkills = project.skills_required || [];
           const matchCount = projectSkills.filter(skill => userSkills.includes(skill)).length;
           const maxSkills = Math.max(userSkills.length, projectSkills.length);
@@ -201,7 +243,7 @@ const Matches = () => {
         });
         
         const sortedProjects = [...projectsWithMatches].sort((a, b) => 
-          b.match_percentage - a.match_percentage
+          (b.match_percentage || 0) - (a.match_percentage || 0)
         );
         
         setMatches({
@@ -236,7 +278,7 @@ const Matches = () => {
       toast({
         title: "Location not available",
         description: "Please allow location access to use this feature.",
-        variant: "warning"
+        variant: "destructive"
       });
       return;
     }
@@ -313,7 +355,7 @@ const Matches = () => {
                       </div>
                       
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {person.bio}
+                        {person.bio || "No bio available"}
                       </p>
                       
                       <div className="flex flex-wrap gap-1 mt-2">
