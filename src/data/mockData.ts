@@ -1,4 +1,3 @@
-
 export interface Creative {
   id: string;
   name: string;
@@ -60,7 +59,7 @@ export const creatives: Creative[] = [
     id: '1',
     name: 'Alex Morgan',
     role: 'UI/UX Designer',
-    avatar: 'https://source.unsplash.com/random/100x100/?portrait',
+    avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
     skills: ['UI Design', 'UX Design', 'Prototyping', 'Figma', 'User Research'],
     portfolio: [
       {
@@ -82,7 +81,7 @@ export const creatives: Creative[] = [
     id: '2',
     name: 'Jordan Lee',
     role: 'Frontend Developer',
-    avatar: 'https://source.unsplash.com/random/100x100/?portrait',
+    avatar: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d',
     skills: ['React', 'JavaScript', 'TypeScript', 'CSS', 'Frontend'],
     portfolio: [
       {
@@ -104,7 +103,7 @@ export const creatives: Creative[] = [
     id: '3',
     name: 'Taylor Chen',
     role: 'Product Designer',
-    avatar: 'https://source.unsplash.com/random/100x100/?portrait',
+    avatar: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952',
     skills: ['Product Design', 'UI Design', 'Design Systems', 'User Research'],
     portfolio: [
       {
@@ -126,7 +125,7 @@ export const creatives: Creative[] = [
     id: '4',
     name: 'Casey Rivera',
     role: 'Full Stack Developer',
-    avatar: 'https://source.unsplash.com/random/100x100/?portrait',
+    avatar: 'https://images.unsplash.com/photo-1501286353178-1ec871214838',
     skills: ['JavaScript', 'Python', 'React', 'Node.js', 'Full Stack'],
     portfolio: [
       {
