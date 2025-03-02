@@ -21,7 +21,7 @@ export const useAuthProvider = (): AuthContextType => {
 
       const { data: skillsData, error: skillsError } = await supabase
         .from('user_skills')
-        .select('skills(name)')
+        .select('skills(name, color)')
         .eq('user_id', userId);
 
       if (skillsError) throw skillsError;

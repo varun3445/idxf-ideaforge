@@ -21,8 +21,8 @@ const GlassmorphicCard = ({
   return (
     <div
       className={`
-        modern-card
-        ${hoverEffect ? 'hover:shadow-lg hover:translate-y-[-2px] border-2 border-border/30' : ''}
+        modern-card shadow-md
+        ${hoverEffect ? 'hover:shadow-xl hover:translate-y-[-3px] border-3 border-border/40 transition-all duration-300' : ''}
         ${onClick ? 'cursor-pointer' : ''}
         ${className}
       `}

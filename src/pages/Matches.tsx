@@ -28,7 +28,7 @@ interface Profile {
   id: string;
   name: string;
   location: string;
-  skills: string[];
+  skills: {name: string, color: string}[];
   avatar: string | null;
   matchScore?: number;
   isNearby?: boolean;
@@ -39,7 +39,7 @@ interface ProjectIdea {
   title: string;
   description: string;
   image: string;
-  skills: string[];
+  skills: {name: string, color: string}[];
   contributors: string[];
 }
 
@@ -104,7 +104,7 @@ const Matches = () => {
           
           const { data: userSkillsData, error: userSkillsError } = await supabase
             .from('user_skills')
-            .select('skills(name)')
+            .select('skills(id, name, color)')
             .eq('user_id', profile.id);
             
           if (userSkillsError) {
@@ -112,7 +112,10 @@ const Matches = () => {
             continue;
           }
           
-          const skills = userSkillsData.map(item => item.skills.name);
+          const skills = userSkillsData.map(item => ({
+            name: item.skills.name,
+            color: item.skills.color
+          }));
           
           profilesWithSkills.push({
             id: profile.id,
@@ -125,18 +128,19 @@ const Matches = () => {
         
         setProfiles(profilesWithSkills);
         
-        // Generate mock project ideas
+        // Generate mock project ideas with colored skills
         const generatedProjects: ProjectIdea[] = [];
         for (let i = 0; i < 8; i++) {
           const randomProfiles = profilesWithSkills
             .sort(() => 0.5 - Math.random())
             .slice(0, Math.floor(Math.random() * 3) + 1);
           
+          // Flatten all skills and get unique ones with their colors
           const allSkills = randomProfiles.flatMap(p => p.skills);
-          const uniqueSkills = [...new Set(allSkills)];
-          const projectSkills = uniqueSkills
-            .sort(() => 0.5 - Math.random())
-            .slice(0, Math.min(uniqueSkills.length, 3));
+          const uniqueSkillNames = [...new Set(allSkills.map(s => s.name))];
+          const projectSkills = uniqueSkillNames
+            .map(name => allSkills.find(s => s.name === name)!)
+            .slice(0, Math.min(uniqueSkillNames.length, 3));
             
           generatedProjects.push({
             id: `project-${i}`,
@@ -162,7 +166,8 @@ const Matches = () => {
         if (user?.skills && user.skills.length > 0) {
           const withSimilarSkills = profilesWithSkills
             .map(profile => {
-              const commonSkills = profile.skills.filter(skill => 
+              const profileSkillNames = profile.skills.map(s => s.name);
+              const commonSkills = profileSkillNames.filter(skill => 
                 user.skills.includes(skill)
               );
               
@@ -406,7 +411,7 @@ const Matches = () => {
   
   return (
     <AnimatedTransition>
-      <div className="minimal-container flex flex-col min-h-screen pb-16 mt-4">
+      <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4">
         <div className="mb-6 mt-2">
           <h1 className="text-4xl font-bold">find and</h1>
           <h1 className="text-4xl font-bold mb-6">be found.</h1>
@@ -418,7 +423,7 @@ const Matches = () => {
         <div className={`w-full transition-all duration-300 ${searchFocused ? 'max-w-full' : 'max-w-xl'}`}>
           <div className="relative">
             <Input
-              className={`minimal-search letter-spacing-wide transition-all duration-300 pl-4 ${
+              className={`minimal-search letter-spacing-wide transition-all duration-300 pl-4 shadow-lg ${
                 searchFocused ? 'text-lg' : 'text-base'
               }`}
               placeholder="Search for skills, people, locations..."
@@ -443,10 +448,10 @@ const Matches = () => {
           <>
             {search ? (
               <div className="mt-8">
-                <h2 className="minimal-header">Search Results</h2>
+                <h2 className="text-2xl font-bold mb-4">Search Results</h2>
                 
                 {usingAI && (
-                  <div className="flex items-center mb-4 p-2 border border-primary/20 rounded-md bg-primary/5">
+                  <div className="flex items-center mb-4 p-2 border-3 border-primary/20 rounded-md bg-primary/5 shadow-md">
                     <Sparkles size={16} className="text-primary mr-2" />
                     <span className="text-sm">
                       {loadingAI ? 'Searching with AI...' : 'AI-enhanced search results'}
@@ -460,12 +465,12 @@ const Matches = () => {
                     <p className="text-sm text-muted-foreground">Finding the best matches...</p>
                   </div>
                 ) : (
-                  <div className="profile-grid">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {usingAI ? (
                       aiResults.length > 0 ? (
                         aiResults.map(({ profile, matchScore }) => (
-                          <div key={profile.id} className="profile-card">
-                            <div className="profile-image">
+                          <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                            <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
                               {profile.avatar ? (
                                 <img 
                                   src={profile.avatar} 
@@ -473,25 +478,24 @@ const Matches = () => {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <span>{profile.name[0]}</span>
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                                  {profile.name[0]}
+                                </div>
                               )}
                             </div>
-                            <h3 className="profile-name">{profile.name}</h3>
-                            <p className="profile-location">{profile.location}</p>
-                            <div className="flex items-center mb-2">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
+                            <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
+                            <div className="flex items-center justify-center mb-2">
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
                                 {matchScore}% match
                               </Badge>
                             </div>
-                            <div className="profile-skills">
+                            <div className="flex flex-wrap gap-2 justify-center">
                               {profile.skills.map((skill, index) => (
-                                <Badge key={index} variant="secondary" className="chip">
-                                  {skill}
+                                <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                  {skill.name}
                                 </Badge>
                               ))}
-                            </div>
-                            <div className="profile-metadata">
-                              <span>Compatible with your projects</span>
                             </div>
                           </div>
                         ))
@@ -502,8 +506,8 @@ const Matches = () => {
                       )
                     ) : filteredProfiles.length > 0 ? (
                       filteredProfiles.map(profile => (
-                        <div key={profile.id} className="profile-card">
-                          <div className="profile-image">
+                        <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
                             {profile.avatar ? (
                               <img 
                                 src={profile.avatar} 
@@ -511,27 +515,26 @@ const Matches = () => {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span>{profile.name[0]}</span>
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                                {profile.name[0]}
+                              </div>
                             )}
                           </div>
-                          <h3 className="profile-name">{profile.name}</h3>
-                          <p className="profile-location">{profile.location}</p>
+                          <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
+                          <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
                           {profile.matchScore && (
-                            <div className="flex items-center mb-2">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            <div className="flex items-center justify-center mb-2">
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
                                 {profile.matchScore}% match
                               </Badge>
                             </div>
                           )}
-                          <div className="profile-skills">
+                          <div className="flex flex-wrap gap-2 justify-center">
                             {profile.skills.map((skill, index) => (
-                              <Badge key={index} variant="secondary" className="chip">
-                                {skill}
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
                               </Badge>
                             ))}
-                          </div>
-                          <div className="profile-metadata">
-                            <span>Available for new projects</span>
                           </div>
                         </div>
                       ))
@@ -550,7 +553,7 @@ const Matches = () => {
                   <div className="mt-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h2 className="minimal-header mb-0">People with similar skills</h2>
+                        <h2 className="text-2xl font-bold mb-0">People with similar skills</h2>
                         <p className="text-sm text-muted-foreground">Users who share your expertise</p>
                       </div>
                       
@@ -559,6 +562,7 @@ const Matches = () => {
                           variant="outline"
                           size="icon"
                           onClick={() => handleProfilesScroll('left')}
+                          className="shadow-md"
                         >
                           <ArrowLeft size={18} />
                         </Button>
@@ -566,6 +570,7 @@ const Matches = () => {
                           variant="outline"
                           size="icon"
                           onClick={() => handleProfilesScroll('right')}
+                          className="shadow-md"
                         >
                           <ArrowRight size={18} />
                         </Button>
@@ -579,9 +584,9 @@ const Matches = () => {
                       {similarSkillsUsers.map(profile => (
                         <div 
                           key={profile.id} 
-                          className="flex-shrink-0 w-64 border-b border-border pb-4 hover:border-primary transition-all duration-300"
+                          className="flex-shrink-0 w-64 border-b-3 border-border p-4 hover:border-primary transition-all duration-300 bg-white rounded-lg shadow-md"
                         >
-                          <div className="w-full aspect-square mb-4 bg-secondary flex items-center justify-center">
+                          <div className="w-full aspect-square mb-4 bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden shadow-md">
                             {profile.avatar ? (
                               <img 
                                 src={profile.avatar} 
@@ -596,11 +601,11 @@ const Matches = () => {
                           <p className="text-sm text-muted-foreground mb-3">{profile.location}</p>
                           {profile.matchScore && (
                             <div className="mb-2">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
                                 {profile.matchScore}% match
                               </Badge>
                               {profile.isNearby && (
-                                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200">
+                                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200 shadow-sm">
                                   Nearby
                                 </Badge>
                               )}
@@ -608,12 +613,12 @@ const Matches = () => {
                           )}
                           <div className="flex flex-wrap gap-2 mt-2">
                             {profile.skills.slice(0, 3).map((skill, index) => (
-                              <Badge key={index} variant="secondary" className="chip">
-                                {skill}
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
                               </Badge>
                             ))}
                             {profile.skills.length > 3 && (
-                              <Badge variant="outline" className="chip">
+                              <Badge variant="outline" className="shadow-sm">
                                 +{profile.skills.length - 3} more
                               </Badge>
                             )}
@@ -629,15 +634,15 @@ const Matches = () => {
                   <div className="mt-10">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h2 className="minimal-header mb-0">People near you</h2>
+                        <h2 className="text-2xl font-bold mb-0">People near you</h2>
                         <p className="text-sm text-muted-foreground">Connections in your area</p>
                       </div>
                     </div>
                     
-                    <div className="profile-grid">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                       {nearbyUsers.slice(0, 5).map(profile => (
-                        <div key={profile.id} className="profile-card">
-                          <div className="profile-image">
+                        <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
                             {profile.avatar ? (
                               <img 
                                 src={profile.avatar} 
@@ -645,20 +650,19 @@ const Matches = () => {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span>{profile.name[0]}</span>
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                                {profile.name[0]}
+                              </div>
                             )}
                           </div>
-                          <h3 className="profile-name">{profile.name}</h3>
-                          <p className="profile-location">{profile.location}</p>
-                          <div className="profile-skills">
+                          <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
+                          <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
                             {profile.skills.slice(0, 3).map((skill, index) => (
-                              <Badge key={index} variant="secondary" className="chip">
-                                {skill}
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
                               </Badge>
                             ))}
-                          </div>
-                          <div className="profile-metadata">
-                            <span>Local connection</span>
                           </div>
                         </div>
                       ))}
@@ -670,7 +674,7 @@ const Matches = () => {
                 <div className="mt-10">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="minimal-header mb-0">Trending Projects</h2>
+                      <h2 className="text-2xl font-bold mb-0">Trending Projects</h2>
                       <p className="text-sm text-muted-foreground">Projects that might interest you</p>
                     </div>
                     
@@ -679,6 +683,7 @@ const Matches = () => {
                         variant="outline"
                         size="icon"
                         onClick={() => handleProjectsScroll('left')}
+                        className="shadow-md"
                       >
                         <ArrowLeft size={18} />
                       </Button>
@@ -686,6 +691,7 @@ const Matches = () => {
                         variant="outline"
                         size="icon"
                         onClick={() => handleProjectsScroll('right')}
+                        className="shadow-md"
                       >
                         <ArrowRight size={18} />
                       </Button>
@@ -699,7 +705,7 @@ const Matches = () => {
                     {projectIdeas.map(project => (
                       <div 
                         key={project.id} 
-                        className="flex-shrink-0 w-80 border border-border rounded-md overflow-hidden hover:border-primary transition-all duration-300 cursor-pointer"
+                        className="flex-shrink-0 w-80 border-3 border-border/40 rounded-lg overflow-hidden hover:border-primary transition-all duration-300 cursor-pointer bg-white shadow-lg"
                         onClick={() => openProjectDetails(project)}
                       >
                         <div className="w-full h-40 bg-muted">
@@ -711,11 +717,11 @@ const Matches = () => {
                         </div>
                         <div className="p-4">
                           <h3 className="font-bold text-base mb-1">{project.title}</h3>
-                          <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{project.description}</p>
                           <div className="flex flex-wrap gap-2 mb-4">
                             {project.skills.map((skill, index) => (
-                              <Badge key={index} variant="secondary" className="chip">
-                                {skill}
+                              <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                                {skill.name}
                               </Badge>
                             ))}
                           </div>
@@ -724,11 +730,11 @@ const Matches = () => {
                               {project.contributors.length} contributor{project.contributors.length !== 1 ? 's' : ''}
                             </span>
                             {project.contributors.length >= 10 ? (
-                              <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
+                              <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200 shadow-sm">
                                 <Check size={12} className="mr-1" /> Full
                               </Badge>
                             ) : (
-                              <Button variant="outline" size="sm">
+                              <Button variant="outline" size="sm" className="shadow-sm">
                                 View Details
                               </Button>
                             )}
@@ -743,9 +749,9 @@ const Matches = () => {
           </>
         )}
         
-        {/* Project Details Dialog */}
+        {/* Project Details Dialog - improved with thicker borders and shadows */}
         <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] border-3 shadow-xl">
             <DialogHeader>
               <DialogTitle className="text-2xl">{selectedProject?.title}</DialogTitle>
               <DialogDescription>
@@ -754,7 +760,7 @@ const Matches = () => {
             </DialogHeader>
             
             <div className="mt-2">
-              <div className="w-full h-64 rounded-md overflow-hidden mb-4">
+              <div className="w-full h-64 rounded-lg overflow-hidden mb-4 shadow-md">
                 {selectedProject?.image && (
                   <img 
                     src={selectedProject.image} 
@@ -769,8 +775,8 @@ const Matches = () => {
                   <h4 className="text-sm font-medium mb-2">Required Skills</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedProject?.skills.map((skill, index) => (
-                      <Badge key={index} variant="secondary">
-                        {skill}
+                      <Badge key={index} style={{backgroundColor: skill.color, color: '#000000'}} className="shadow-sm">
+                        {skill.name}
                       </Badge>
                     ))}
                   </div>
@@ -791,14 +797,14 @@ const Matches = () => {
             
             <DialogFooter className="flex justify-between items-center">
               <DialogClose asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="shadow-md">
                   <X size={16} className="mr-2" />
                   Close
                 </Button>
               </DialogClose>
               
               {selectedProject && selectedProject.contributors.length < 10 && (
-                <Button>
+                <Button className="shadow-md">
                   <UserPlus size={16} className="mr-2" />
                   Collaborate
                 </Button>

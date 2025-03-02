@@ -105,31 +105,34 @@ const Profile = () => {
       const fileName = `${user.id}-avatar-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
       
+      // Create a File object with the file data
+      const fileData = new File([file], fileName, { type: file.type });
+      
       // Upload the image to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data, error: uploadError } = await supabase.storage
         .from('user_avatars')
-        .upload(filePath, file);
+        .upload(filePath, fileData);
         
       if (uploadError) throw uploadError;
       
       // Get the public URL
-      const { data } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from('user_avatars')
         .getPublicUrl(filePath);
         
-      if (data && data.publicUrl) {
+      if (publicUrlData && publicUrlData.publicUrl) {
         // Update the user's profile with the avatar URL
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
-            avatar: data.publicUrl
+            avatar: publicUrlData.publicUrl
           })
           .eq('id', user.id);
           
         if (updateError) throw updateError;
         
         // Update local state
-        setCustomAvatar(data.publicUrl);
+        setCustomAvatar(publicUrlData.publicUrl);
         
         toast({
           title: "Profile picture updated",
@@ -322,21 +325,21 @@ const Profile = () => {
   
   return (
     <AnimatedTransition>
-      <div className="page-container pt-24">
+      <div className="container mx-auto pt-24 px-4">
         <div className="max-w-3xl mx-auto">
-          <h1 className="page-header">Your Profile</h1>
-          <p className="page-subheader mb-8">
+          <h1 className="text-3xl font-bold mb-2">Your Profile</h1>
+          <p className="text-muted-foreground mb-8">
             Manage your personal information and skills
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1">
-              <Card>
+              <Card className="border-3 border-border/40 shadow-lg">
                 <CardHeader>
                   <CardTitle>Profile Picture</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-background relative">
+                  <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-background relative shadow-lg">
                     {customAvatar ? (
                       <img 
                         src={customAvatar} 
@@ -381,7 +384,7 @@ const Profile = () => {
                       type="button" 
                       onClick={triggerFileInput}
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 shadow-md"
                       disabled={uploadingImage}
                     >
                       {uploadingImage ? (
@@ -397,7 +400,7 @@ const Profile = () => {
                         type="button" 
                         onClick={handleRemoveCustomAvatar}
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 shadow-md"
                         disabled={uploadingImage}
                       >
                         <X size={16} className="mr-2" />
@@ -408,7 +411,7 @@ const Profile = () => {
                   
                   <Button 
                     variant="destructive" 
-                    className="mt-4 w-full"
+                    className="mt-4 w-full shadow-md"
                     onClick={handleLogout}
                   >
                     <LogOut size={16} className="mr-2" />
@@ -419,7 +422,7 @@ const Profile = () => {
             </div>
             
             <div className="md:col-span-2">
-              <Card>
+              <Card className="border-3 border-border/40 shadow-lg">
                 <CardHeader>
                   <CardTitle>Personal Information</CardTitle>
                   <CardDescription>
@@ -436,6 +439,7 @@ const Profile = () => {
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your full name"
                         required
+                        className="shadow-md"
                       />
                     </div>
                     
@@ -445,7 +449,7 @@ const Profile = () => {
                         id="email"
                         value={user?.email || ''}
                         disabled
-                        className="bg-muted"
+                        className="bg-muted shadow-sm"
                       />
                       <p className="text-xs text-muted-foreground">
                         Email cannot be changed
@@ -460,6 +464,7 @@ const Profile = () => {
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="City, Country"
                         required
+                        className="shadow-md"
                       />
                     </div>
                     
@@ -470,7 +475,7 @@ const Profile = () => {
                           value={newSkill}
                           onChange={(e) => setNewSkill(e.target.value)}
                           placeholder="Add a skill..."
-                          className="flex-grow"
+                          className="flex-grow shadow-md"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
@@ -482,27 +487,35 @@ const Profile = () => {
                           type="button" 
                           onClick={handleAddSkill}
                           variant="secondary"
+                          className="shadow-md"
                         >
                           <Plus size={16} />
                         </Button>
                       </div>
                       
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {userSkills.map((skill, index) => (
-                          <span 
-                            key={index} 
-                            className="inline-flex items-center gap-1 bg-secondary rounded-full px-3 py-1 text-sm"
-                          >
-                            {skill}
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveSkill(skill)}
-                              className="text-muted-foreground hover:text-foreground"
+                        {userSkills.map((skill, index) => {
+                          // Find the color for this skill
+                          const skillInfo = availableSkills.find(s => s.name === skill);
+                          const bgColor = skillInfo?.color || '#9b87f5';
+                          
+                          return (
+                            <span 
+                              key={index} 
+                              className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm shadow-sm"
+                              style={{ backgroundColor: bgColor, color: '#000000' }}
                             >
-                              <X size={14} />
-                            </button>
-                          </span>
-                        ))}
+                              {skill}
+                              <button 
+                                type="button" 
+                                onClick={() => handleRemoveSkill(skill)}
+                                className="text-black/70 hover:text-black/90"
+                              >
+                                <X size={14} />
+                              </button>
+                            </span>
+                          );
+                        })}
                         {userSkills.length === 0 && (
                           <p className="text-sm text-muted-foreground">
                             No skills added yet
@@ -513,7 +526,7 @@ const Profile = () => {
                     
                     <Button 
                       type="submit" 
-                      className="w-full"
+                      className="w-full shadow-md"
                       disabled={loading}
                     >
                       {loading ? (
