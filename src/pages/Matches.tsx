@@ -1,3 +1,4 @@
+<lov-code>
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X, MapPin } from 'lucide-react';
@@ -439,7 +440,8 @@ const Matches = () => {
     const descriptions = ["A platform to optimize urban planning and resource allocation", "Real-time health data tracking and analysis for personalized care", "Connecting renewable energy producers with consumers", "Immersive educational experiences for remote learning", "Using AI to assist with content creation and editing", "Secure and transparent voting using blockchain technology", "A marketplace for digital artists to sell their creations", "Tools for effective team collaboration in remote settings", "Advanced fitness tracking with personalized recommendations", "AR-based navigation with real-time information overlay"];
     return descriptions[Math.floor(Math.random() * descriptions.length)];
   };
-  return <AnimatedTransition>
+  return (
+    <AnimatedTransition>
       <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4">
         <div className="mb-6 mt-2">
           <h1 className="text-4xl font-bold text-left px-0 py-0 mx-0">Find and be found.</h1>
@@ -455,39 +457,56 @@ const Matches = () => {
           </div>
         </div>
         
-        {loading ? <div className="flex flex-col items-center justify-center min-h-[200px]">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px]">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Loading connections...</p>
-          </div> : error ? <div className="flex flex-col items-center justify-center min-h-[200px] text-destructive">
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px] text-destructive">
             <p>Error: {error}</p>
-          </div> : <>
-            {search ? <div className="mt-8">
+          </div>
+        ) : (
+          <>
+            {search ? (
+              <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">Search Results</h2>
                 
-                {locationError && search.toLowerCase().includes('near') && <div className="flex items-center mb-4 p-2 border-3 border-destructive/20 rounded-md bg-destructive/5 shadow-md">
+                {locationError && search.toLowerCase().includes('near') && (
+                  <div className="flex items-center mb-4 p-2 border-3 border-destructive/20 rounded-md bg-destructive/5 shadow-md">
                     <Info size={16} className="text-destructive mr-2" />
                     <span className="text-sm">{locationError}</span>
-                  </div>}
+                  </div>
+                )}
                 
-                {usingAI && <div className="flex items-center mb-4 p-2 border-3 border-primary/20 rounded-md bg-primary/5 shadow-md">
+                {usingAI && (
+                  <div className="flex items-center mb-4 p-2 border-3 border-primary/20 rounded-md bg-primary/5 shadow-md">
                     <Sparkles size={16} className="text-primary mr-2" />
                     <span className="text-sm">
                       {loadingAI ? 'Searching with AI...' : 'AI-enhanced search results'}
                     </span>
-                  </div>}
+                  </div>
+                )}
                 
-                {loadingAI ? <div className="flex flex-col items-center justify-center h-40">
+                {loadingAI ? (
+                  <div className="flex flex-col items-center justify-center h-40">
                     <Loader2 className="h-6 w-6 animate-spin text-primary mb-2" />
                     <p className="text-sm text-muted-foreground">Finding the best matches...</p>
-                  </div> : <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {usingAI ? aiResults.length > 0 ? aiResults.map(({
-              profile,
-              matchScore
-            }) => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {usingAI ? (
+                      aiResults.length > 0 ? (
+                        aiResults.map(({profile, matchScore}) => (
+                          <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
                             <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
-                              {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                              {profile.avatar ? (
+                                <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
                                   {profile.name[0]}
-                                </div>}
+                                </div>
+                              )}
                             </div>
                             <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
                             <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
@@ -497,42 +516,69 @@ const Matches = () => {
                               </Badge>
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center">
-                              {profile.skills.map((skill, index) => <Badge key={index} style={{
-                  backgroundColor: skill.color,
-                  color: '#000000'
-                }} className="shadow-sm">
+                              {profile.skills.map((skill, index) => (
+                                <Badge key={index} style={{
+                                  backgroundColor: skill.color,
+                                  color: '#000000'
+                                }} className="shadow-sm">
                                   {skill.name}
-                                </Badge>)}
+                                </Badge>
+                              ))}
                             </div>
-                          </div>) : <div className="col-span-full text-center py-8">
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-8">
                           <p className="text-muted-foreground">No AI matches found</p>
-                        </div> : filteredProfiles.length > 0 ? filteredProfiles.map(profile => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
-                          <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
-                            {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
-                                {profile.name[0]}
-                              </div>}
+                        </div>
+                      )
+                    ) : (
+                      filteredProfiles.length > 0 ? (
+                        filteredProfiles.map(profile => (
+                          <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                            <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
+                              {profile.avatar ? (
+                                <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                                  {profile.name[0]}
+                                </div>
+                              )}
+                            </div>
+                            <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
+                            <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
+                            {profile.matchScore && (
+                              <div className="flex items-center justify-center mb-2">
+                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
+                                  {profile.matchScore}% match
+                                </Badge>
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-2 justify-center">
+                              {profile.skills.map((skill, index) => (
+                                <Badge key={index} style={{
+                                  backgroundColor: skill.color,
+                                  color: '#000000'
+                                }} className="shadow-sm">
+                                  {skill.name}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                          <h3 className="text-center font-bold text-lg mb-1">{profile.name}</h3>
-                          <p className="text-center text-muted-foreground mb-2">{profile.location}</p>
-                          {profile.matchScore && <div className="flex items-center justify-center mb-2">
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
-                                {profile.matchScore}% match
-                              </Badge>
-                            </div>}
-                          <div className="flex flex-wrap gap-2 justify-center">
-                            {profile.skills.map((skill, index) => <Badge key={index} style={{
-                  backgroundColor: skill.color,
-                  color: '#000000'
-                }} className="shadow-sm">
-                                {skill.name}
-                              </Badge>)}
-                          </div>
-                        </div>) : <div className="col-span-full text-center py-8">
-                        <p className="text-muted-foreground">No results found</p>
-                      </div>}
-                  </div>}
-              </div> : <>
-                {similarSkillsUsers.length > 0 && <div className="mt-8">
+                        ))
+                      ) : (
+                        <div className="col-span-full text-center py-8">
+                          <p className="text-muted-foreground">No results found</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                {similarSkillsUsers.length > 0 && (
+                  <div className="mt-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-0">People with similar skills</h2>
@@ -550,36 +596,52 @@ const Matches = () => {
                     </div>
                     
                     <div ref={profilesScrollRef} className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide scroll-smooth">
-                      {similarSkillsUsers.map(profile => <div key={profile.id} className="flex-shrink-0 w-64 border-b-3 border-border p-4 hover:border-primary transition-all duration-300 bg-white rounded-lg shadow-md">
+                      {similarSkillsUsers.map(profile => (
+                        <div key={profile.id} className="flex-shrink-0 w-64 border-b-3 border-border p-4 hover:border-primary transition-all duration-300 bg-white rounded-lg shadow-md">
                           <div className="w-full aspect-square mb-4 bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden shadow-md">
-                            {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <span className="text-3xl font-bold text-primary">{profile.name[0]}</span>}
+                            {profile.avatar ? (
+                              <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-3xl font-bold text-primary">{profile.name[0]}</span>
+                            )}
                           </div>
                           <h3 className="font-bold text-base">{profile.name}</h3>
                           <p className="text-sm text-muted-foreground mb-3">{profile.location}</p>
-                          {profile.matchScore && <div className="mb-2">
+                          {profile.matchScore && (
+                            <div className="mb-2">
                               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 shadow-sm">
                                 {profile.matchScore}% match
                               </Badge>
-                              {profile.isNearby && <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200 shadow-sm">
+                              {profile.isNearby && (
+                                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-green-200 shadow-sm">
                                   Nearby
-                                </Badge>}
-                            </div>}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {profile.skills.slice(0, 3).map((skill, index) => <Badge key={index} style={{
-                    backgroundColor: skill.color,
-                    color: '#000000'
-                  }} className="shadow-sm">
+                            {profile.skills.slice(0, 3).map((skill, index) => (
+                              <Badge key={index} style={{
+                                backgroundColor: skill.color,
+                                color: '#000000'
+                              }} className="shadow-sm">
                                 {skill.name}
-                              </Badge>)}
-                            {profile.skills.length > 3 && <Badge variant="outline" className="shadow-sm">
+                              </Badge>
+                            ))}
+                            {profile.skills.length > 3 && (
+                              <Badge variant="outline" className="shadow-sm">
                                 +{profile.skills.length - 3} more
-                              </Badge>}
+                              </Badge>
+                            )}
                           </div>
-                        </div>)}
+                        </div>
+                      ))}
                     </div>
-                  </div>}
+                  </div>
+                )}
                 
-                {nearbyUsers.length > 0 && <div className="mt-10">
+                {nearbyUsers.length > 0 && (
+                  <div className="mt-10">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-2xl font-bold mb-0">People near you</h2>
@@ -588,12 +650,17 @@ const Matches = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                      {nearbyUsers.slice(0, 4).map(profile => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                      {nearbyUsers.slice(0, 4).map(profile => (
+                        <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
                           <div className="flex items-start gap-4">
                             <div className="w-14 h-14 rounded-full overflow-hidden shadow-md">
-                              {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                              {profile.avatar ? (
+                                <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
                                   {profile.name[0]}
-                                </div>}
+                                </div>
+                              )}
                             </div>
                             <div className="flex-1">
                               <h3 className="font-bold text-base">{profile.name}</h3>
@@ -601,39 +668,23 @@ const Matches = () => {
                                 <MapPin size={14} className="mr-1" />
                                 {profile.location}
                               </div>
-                              {profile.distance && <div className="text-xs text-muted-foreground">
+                              {profile.distance && (
+                                <div className="text-xs text-muted-foreground">
                                   {profile.distance < 1 ? 'Less than 1 km away' : `${Math.round(profile.distance)} km away`}
-                                </div>}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
-                            {profile.skills.slice(0, 2).map((skill, index) => <Badge key={index} style={{
-                    backgroundColor: skill.color,
-                    color: '#000000'
-                  }} className="shadow-sm">
+                            {profile.skills.slice(0, 2).map((skill, index) => (
+                              <Badge key={index} style={{
+                                backgroundColor: skill.color,
+                                color: '#000000'
+                              }} className="shadow-sm">
                                 {skill.name}
-                              </Badge>)}
-                            {profile.skills.length > 2 && <Badge variant="outline" className="shadow-sm">
+                              </Badge>
+                            ))}
+                            {profile.skills.length > 2 && (
+                              <Badge variant="outline" className="shadow-sm">
                                 +{profile.skills.length - 2} more
-                              </Badge>}
-                          </div>
-                        </div>)}
-                    </div>
-                  </div>}
-                
-                <div className="mt-12">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold mb-0">Project opportunities</h2>
-                      <p className="text-sm text-muted-foreground">Collaborations that might interest you</p>
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="icon" onClick={() => handleProjectsScroll('left')} className="shadow-md">
-                        <ArrowLeft size={18} />
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={() => handleProjectsScroll('right')} className="shadow-md">
-                        <ArrowRight size={18} />
-                      </Button>
-                    </div>
-                  </div>
+                              </
