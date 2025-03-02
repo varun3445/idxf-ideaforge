@@ -132,14 +132,18 @@ const Matches = () => {
         // Fetch other users with similar skills
         const { data: peopleData, error: peopleError } = await supabase
           .from('profiles')
-          .select('id, name, avatar, bio, location')
+          .select('id, name, avatar, location')
           .neq('id', user.id);
           
         if (peopleError) throw peopleError;
         
         // For each person, get their skills
         const peopleWithSkills = await Promise.all(
-          peopleData.map(async (person) => {
+          (peopleData || []).map(async (person) => {
+            if (!person || typeof person !== 'object' || !('id' in person)) {
+              return null; // Skip invalid entries
+            }
+            
             const { data: personSkillsData } = await supabase
               .from('user_skills')
               .select('skills(name)')
@@ -149,15 +153,22 @@ const Matches = () => {
               .map(item => item.skills?.name)
               .filter(Boolean) as string[];
               
+            // Create a bio field if it doesn't exist in the profile
+            const bio = "Skilled professional"; // Default bio
+              
             return {
               ...person,
-              skills
+              skills,
+              bio
             };
           })
         );
         
+        // Filter out null values and cast to Person[]
+        const validPeople = peopleWithSkills.filter(Boolean) as Person[];
+        
         // Calculate match percentage and sort by it
-        const peopleWithMatches = peopleWithSkills.map((person) => {
+        const peopleWithMatches = validPeople.map((person) => {
           const personSkills = person.skills || [];
           const matchCount = personSkills.filter(skill => userSkills.includes(skill)).length;
           const maxSkills = Math.max(userSkills.length, personSkills.length);
