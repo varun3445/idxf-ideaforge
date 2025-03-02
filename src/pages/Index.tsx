@@ -1,54 +1,40 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, ArrowRight, ArrowUpRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
-
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
-  
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
-  const features = [
-    {
-      title: 'Explore',
-      description: 'Discover projects and connect with creative professionals from around the world.',
-      icon: Grid,
-      path: '/explore',
-      delay: 100,
-    },
-    {
-      title: 'Matches',
-      description: 'Find collaborators with complementary skills for your next project.',
-      icon: Heart,
-      path: '/matches',
-      delay: 200,
-    },
-    {
-      title: 'Experiment Lab',
-      description: 'Get inspired and develop your ideas through guided creative exercises.',
-      icon: Lightbulb,
-      path: '/lab',
-      delay: 300,
-    },
-  ];
-
-  return (
-    <AnimatedTransition>
+  const features = [{
+    title: 'Explore',
+    description: 'Discover projects and connect with creative professionals from around the world.',
+    icon: Grid,
+    path: '/explore',
+    delay: 100
+  }, {
+    title: 'Matches',
+    description: 'Find collaborators with complementary skills for your next project.',
+    icon: Heart,
+    path: '/matches',
+    delay: 200
+  }, {
+    title: 'Experiment Lab',
+    description: 'Get inspired and develop your ideas through guided creative exercises.',
+    icon: Lightbulb,
+    path: '/lab',
+    delay: 300
+  }];
+  return <AnimatedTransition>
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-20 md:py-32">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div 
-                className={`text-left transition-all duration-1000 delay-100 ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                }`}
-              >
-                <span className="inline-block px-4 py-1.5 mb-6 text-sm font-medium bg-primary/10 text-primary rounded-full">
+              <div className={`text-left transition-all duration-1000 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <span className="">
                   Idea Forge Platform
                 </span>
                 <h1 className="hero-headline mb-6">
@@ -77,11 +63,7 @@ const Index = () => {
                 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
               `}>
                 <div className="relative w-full flex items-center justify-center">
-                  <img 
-                    src="/lovable-uploads/dca4cf86-d17a-4f6a-b4bb-8748c5a74884.png" 
-                    alt="Idea Forge App" 
-                    className="w-full max-w-md mx-auto rounded-2xl shadow-lg border border-border/10"
-                  />
+                  <img src="/lovable-uploads/dca4cf86-d17a-4f6a-b4bb-8748c5a74884.png" alt="Idea Forge App" className="w-full max-w-md mx-auto rounded-2xl shadow-lg border border-border/10" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-2xl"></div>
                 </div>
               </div>
@@ -100,13 +82,7 @@ const Index = () => {
             </div>
             
             <div className="grid md:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className={`transition-all duration-700 delay-${feature.delay} ${
-                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                  }`}
-                >
+              {features.map((feature, index) => <div key={index} className={`transition-all duration-700 delay-${feature.delay} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                   <div className="flex flex-col h-full p-6 rounded-2xl bg-background border border-border/40 hover:border-primary/40 transition-all duration-300">
                     <div className="feature-icon w-14 h-14 flex items-center justify-center rounded-full mb-6">
                       <feature.icon size={24} />
@@ -117,16 +93,12 @@ const Index = () => {
                       {feature.description}
                     </p>
                     
-                    <Link
-                      to="/signup"
-                      className="mt-auto inline-flex items-center text-primary font-medium hover:underline gap-1 group"
-                    >
+                    <Link to="/signup" className="mt-auto inline-flex items-center text-primary font-medium hover:underline gap-1 group">
                       <span>Try {feature.title}</span>
                       <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </Link>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </section>
@@ -149,8 +121,6 @@ const Index = () => {
           </div>
         </section>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Index;
