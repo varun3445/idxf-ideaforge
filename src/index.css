@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -247,4 +246,17 @@
 
 .navbar-item-active {
   @apply text-primary;
+}
+
+.beta-indicator {
+  @apply fixed top-4 right-4 z-50 flex items-center bg-card/90 backdrop-blur-sm border border-border/40 rounded-full px-3 py-1.5 shadow-md;
+}
+
+.blink {
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
