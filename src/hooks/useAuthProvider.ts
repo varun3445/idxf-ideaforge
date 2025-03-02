@@ -1,116 +1,94 @@
-import { useState, useEffect } from 'react';
-import { AuthContextType, User } from '../types/auth.types';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { User, AuthContextType } from '../types/auth.types';
 
 export const useAuthProvider = (): AuthContextType => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const isAuthenticated = user !== null;
+  const fetchUserData = useCallback(async (userId: string) => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const { data: skillsData, error: skillsError } = await supabase
+        .from('user_skills')
+        .select('skills(name)')
+        .eq('user_id', userId);
+
+      if (skillsError) throw skillsError;
+
+      const skills = skillsData.map(item => item.skills.name);
+
+      const userData: User = {
+        id: profileData.id,
+        email: profileData.email,
+        name: profileData.name,
+        location: profileData.location,
+        sex: profileData.sex,
+        skills,
+        avatar: profileData.avatar,
+      };
+
+      setUser(userData);
+      setIsAuthenticated(true);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUser(null);
+      setIsAuthenticated(false);
+      setLoading(false);
+      setError('Failed to fetch user data');
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      setLoading(true);
-      
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await fetchUserData(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      }
+    );
+
+    const checkUser = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
         
         if (session?.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-          }
-          
-          // Get user skills
-          const { data: skillsData, error: skillsError } = await supabase
-            .from('user_skills')
-            .select('skills(name)')
-            .eq('user_id', session.user.id);
-            
-          if (skillsError) {
-            console.error('Error fetching skills:', skillsError);
-          }
-          
-          const skills = skillsData?.map(item => item.skills.name) || [];
-          
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || '',
-            location: profile?.location || '',
-            sex: profile?.sex || 'male',
-            skills,
-            avatar: profile?.avatar || null,
-          });
+          await fetchUserData(session.user.id);
         } else {
           setUser(null);
+          setIsAuthenticated(false);
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Session error:', err);
-        setError((err as Error).message);
+      } catch (error) {
+        console.error('Error checking user session:', error);
         setUser(null);
-      } finally {
+        setIsAuthenticated(false);
         setLoading(false);
       }
     };
-    
-    fetchSession();
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event);
-      
-      if (session?.user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        }
-        
-        // Get user skills
-        const { data: skillsData, error: skillsError } = await supabase
-          .from('user_skills')
-          .select('skills(name)')
-          .eq('user_id', session.user.id);
-          
-        if (skillsError) {
-          console.error('Error fetching skills:', skillsError);
-        }
-        
-        const skills = skillsData?.map(item => item.skills.name) || [];
-        
-        setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || '',
-            location: profile?.location || '',
-            sex: profile?.sex || 'male',
-            skills,
-            avatar: profile?.avatar || null,
-        });
-      } else {
-        setUser(null);
-      }
-    });
-    
+
+    checkUser();
+
     return () => {
-      authListener.subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
-  }, []);
-  
+  }, [fetchUserData]);
+
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     setError(null);
@@ -126,20 +104,36 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            id: data.user.id,
-            email,
-            name,
-            location: '',
-            sex: 'male',
-          });
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
           
         if (profileError) {
-          throw profileError;
+          console.error('Error fetching profile:', profileError);
         }
+        
+        const { data: skillsData, error: skillsError } = await supabase
+          .from('user_skills')
+          .select('skills(name)')
+          .eq('user_id', data.user.id);
+          
+        if (skillsError) {
+          console.error('Error fetching skills:', skillsError);
+        }
+        
+        const skills = skillsData?.map(item => item.skills.name) || [];
+        
+        setUser({
+          id: data.user.id,
+          email: data.user.email || '',
+          name: profile?.name || '',
+          location: profile?.location || '',
+          sex: profile?.sex || 'male',
+          skills,
+          avatar: profile?.avatar || null,
+        });
       }
     } catch (err) {
       console.error('Signup error:', err);
@@ -148,7 +142,7 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
     }
   };
-  
+
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -169,7 +163,7 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
     }
   };
-  
+
   const logout = async () => {
     setLoading(true);
     
@@ -188,7 +182,7 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
     }
   };
-  
+
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -213,7 +207,7 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
     }
   };
-  
+
   const signup = async (name: string, email: string, password: string, location: string, skills: string[] = []) => {
     setLoading(true);
     setError(null);
@@ -230,7 +224,6 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       if (data.user) {
-        // Create profile
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -247,9 +240,7 @@ export const useAuthProvider = (): AuthContextType => {
           return { error: profileError };
         }
         
-        // Add skills
         for (const skill of skills) {
-          // Check if skill exists
           let skillId;
           let { data: existingSkill } = await supabase
             .from('skills')
@@ -258,7 +249,6 @@ export const useAuthProvider = (): AuthContextType => {
             .single();
           
           if (!existingSkill) {
-            // Create skill
             const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
             const { data: newSkill, error: newSkillError } = await supabase
               .from('skills')
@@ -279,7 +269,6 @@ export const useAuthProvider = (): AuthContextType => {
             skillId = existingSkill.id;
           }
           
-          // Add user-skill association
           const { error: skillAssocError } = await supabase
             .from('user_skills')
             .insert({
@@ -302,16 +291,16 @@ export const useAuthProvider = (): AuthContextType => {
       setLoading(false);
     }
   };
-  
-  return { 
-    user, 
-    signUp, 
-    signIn, 
-    logout, 
-    loading, 
-    error, 
-    isAuthenticated, 
-    login, 
-    signup 
+
+  return {
+    user,
+    loading,
+    error,
+    signUp,
+    signIn,
+    logout,
+    isAuthenticated,
+    login,
+    signup
   };
 };
