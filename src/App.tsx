@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -14,6 +13,7 @@ import ExperimentLab from './pages/ExperimentLab';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
+import ProjectDetail from './pages/ProjectDetail';
 
 import './App.css';
 
@@ -34,6 +34,7 @@ const AppContent = () => {
           <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
           <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

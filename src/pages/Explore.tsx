@@ -107,26 +107,15 @@ const Explore = () => {
 
   const handleCollaborate = async (projectId: string, projectTitle: string) => {
     try {
-      // In a real implementation, this would call a Supabase function to add the user to project collaborators
-      // For now, we'll just show a toast
       toast({
         title: "Collaboration Request Sent",
-        description: `You've joined the collaboration on "${projectTitle}"`,
+        description: `Your request to collaborate on "${projectTitle}" has been sent to the project owner.`,
       });
-      
-      // Update the local state to show one more collaborator
-      setPortfolioItems(items => 
-        items.map(item => 
-          item.id === projectId 
-            ? { ...item, collaborators: (item.collaborators || 0) + 1 } 
-            : item
-        )
-      );
     } catch (error) {
-      console.error("Error joining collaboration:", error);
+      console.error("Error sending collaboration request:", error);
       toast({
         title: "Error",
-        description: "Failed to join collaboration. Please try again.",
+        description: "Failed to send collaboration request. Please try again.",
         variant: "destructive",
       });
     }
@@ -147,14 +136,14 @@ const Explore = () => {
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header">Explore Projects</h1>
-            <p className="page-subheader">
+            <h1 className="page-header text-4xl md:text-5xl mb-4">Explore Projects</h1>
+            <p className="page-subheader text-lg md:text-xl">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
 
           <div className={`
-            mb-8 transition-all duration-1000 delay-100
+            mb-12 transition-all duration-1000 delay-100
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
             <Label htmlFor="search" className="sr-only">
@@ -166,10 +155,11 @@ const Explore = () => {
               placeholder="Search for projects..."
               value={searchQuery}
               onChange={handleSearchChange}
+              className="text-lg py-6 px-6"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPortfolioItems.map((item) => (
               <div
                 key={item.id}
@@ -177,41 +167,41 @@ const Explore = () => {
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
               >
-                <GlassmorphicCard className="h-full flex flex-col">
+                <GlassmorphicCard className="h-full flex flex-col p-6 space-y-6">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="aspect-video w-full object-cover rounded-md mb-4"
+                    className="aspect-video w-full object-cover rounded-lg mb-6 shadow-md"
                   />
                   
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-medium">{item.title}</h3>
-                    <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-2xl font-semibold">{item.title}</h3>
+                    <span className="text-sm text-muted-foreground px-3 py-1.5 bg-muted rounded-full">
                       {item.category}
                     </span>
                   </div>
                   
-                  <p className="text-muted-foreground text-sm mb-4">{item.description}</p>
+                  <p className="text-muted-foreground text-base leading-relaxed mb-6">{item.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-6">
                     {item.techStack?.map((tech, index) => (
-                      <span key={index} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                      <span key={index} className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full">
                         {tech}
                       </span>
                     ))}
                   </div>
                   
-                  <p className="text-muted-foreground text-xs mb-4">
-                    By {item.creator}
+                  <p className="text-muted-foreground text-sm mb-6">
+                    Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
-                  <div className="mt-auto flex justify-between items-center">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users size={14} />
+                  <div className="mt-auto flex justify-between items-center pt-4 border-t border-border">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users size={18} />
                       <span>{item.collaborators || 0} collaborators</span>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -224,8 +214,8 @@ const Explore = () => {
                         to={`/project/${item.id}`}
                         className="flex items-center font-medium text-primary hover:underline gap-1 group"
                       >
-                        <span>Details</span>
-                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                        <span>Learn More</span>
+                        <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                       </Link>
                     </div>
                   </div>
