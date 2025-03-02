@@ -28,7 +28,7 @@ const ProjectIdeaCard = ({
             
             <span className="chip ml-2">{idea.category}</span>
           </div>
-          <h3 className="text-lg font-medium">{idea.title}</h3>
+          <h3 className="text-lg font-medium text-left">{idea.title}</h3>
         </div>
         <button className="p-1 rounded-full hover:bg-secondary transition-colors mt-1" onClick={e => {
         e.stopPropagation();
@@ -38,7 +38,7 @@ const ProjectIdeaCard = ({
         </button>
       </div>
       
-      <p className="text-muted-foreground text-sm mb-4">
+      <p className="text-muted-foreground text-sm mb-4 text-left">
         {idea.description}
       </p>
       
