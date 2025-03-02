@@ -6,13 +6,17 @@ interface GlassmorphicCardProps {
   className?: string;
   hoverEffect?: boolean;
   onClick?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const GlassmorphicCard = ({ 
   children, 
   className = "", 
   hoverEffect = true,
-  onClick
+  onClick,
+  onMouseEnter,
+  onMouseLeave
 }: GlassmorphicCardProps) => {
   return (
     <div
@@ -23,6 +27,8 @@ const GlassmorphicCard = ({
         ${className}
       `}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {children}
     </div>

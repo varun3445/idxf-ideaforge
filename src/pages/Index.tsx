@@ -46,7 +46,7 @@ const Index = () => {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
               }`}
             >
-              <span className="chip bg-primary/10 text-primary mb-4">Creative Hub Lab</span>
+              <span className="chip bg-primary/10 text-primary mb-4">Idea Forge</span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
                 Connect, Collaborate, Create
               </h1>
@@ -74,11 +74,11 @@ const Index = () => {
           `}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/5 rounded-full blur-3xl opacity-50 animate-pulse-soft" />
             <div className="relative w-full h-full flex items-center justify-center">
-              <div className="w-3/4 aspect-square bg-gradient-to-br from-primary to-[#818cf8] rounded-full flex items-center justify-center">
-                <div className="w-3/4 h-3/4 bg-white rounded-full animate-float flex items-center justify-center">
-                  <div className="text-4xl">👋</div>
-                </div>
-              </div>
+              <img 
+                src="/lovable-uploads/9484ae90-ca94-4226-8d3f-b46add98f1fc.png" 
+                alt="Idea Forge Logo" 
+                className="w-3/4 aspect-auto"
+              />
             </div>
           </div>
         </section>
