@@ -58,13 +58,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed inset-y-0 left-0 z-40 flex flex-col bg-background border-r border-border w-64">
+    <nav className="fixed inset-y-0 left-0 z-40 flex flex-col bg-black text-white border-r border-border/10 w-64">
       <div className="flex flex-col h-full p-4">
         <Link 
           to="/explore" 
           className="text-xl font-bold tracking-tight transition-all mb-8 text-left"
         >
-          <span>Idea Forge</span>
+          <span className="text-white">Idea <span className="text-primary">Forge</span></span>
         </Link>
         
         <div className="flex flex-col space-y-2">
@@ -74,8 +74,8 @@ const Navbar = () => {
               to={item.path}
               className={`px-4 py-3 rounded-lg transition-all duration-300 flex items-center justify-start space-x-3 ${
                 isActive(item.path)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-secondary'
+                  ? 'bg-primary text-black font-medium'
+                  : 'hover:bg-white/10'
               }`}
             >
               <item.icon size={20} />
@@ -88,9 +88,9 @@ const Navbar = () => {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-start space-x-3 w-full p-3 rounded-lg hover:bg-secondary transition-colors overflow-hidden"
+              className="flex items-center justify-start space-x-3 w-full p-3 rounded-lg hover:bg-white/10 transition-colors overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-secondary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center">
                 {user && user.avatar ? (
                   <img 
                     src={user.avatar}
@@ -98,23 +98,23 @@ const Navbar = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={18} />
+                  <User size={18} className="text-white" />
                 )}
               </div>
               <div className="text-left overflow-hidden text-ellipsis">
                 <p className="font-medium truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+                <p className="text-xs text-white/60 truncate">{user?.email || ''}</p>
               </div>
             </button>
 
             {profileOpen && (
               <div 
-                className="absolute right-0 left-0 bottom-full mb-2 rounded-md shadow-lg bg-background border border-border"
+                className="absolute right-0 left-0 bottom-full mb-2 rounded-md shadow-lg bg-black border border-white/10"
               >
                 <div className="py-1">
                   <Link 
                     to="/profile" 
-                    className="flex items-center px-4 py-2 text-sm hover:bg-secondary/50 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm hover:bg-white/10 transition-colors"
                     onClick={() => setProfileOpen(false)}
                   >
                     <Settings size={16} className="mr-2" />
@@ -125,7 +125,7 @@ const Navbar = () => {
                       setProfileOpen(false);
                       handleLogout();
                     }}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 transition-colors"
                   >
                     <LogOut size={16} className="mr-2" />
                     Logout

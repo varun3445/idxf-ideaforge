@@ -39,14 +39,14 @@
 }
 
 .read-the-docs {
-  color: #fff; /* Changed to white */
+  color: #000; /* Changed to black */
 }
 
 /* Add button styles to ensure they use the correct colors */
 .button-primary {
-  @apply bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 font-medium;
+  @apply bg-primary text-black px-6 py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300;
 }
 
 .button-secondary {
-  @apply bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 font-medium;
+  @apply bg-white text-black border border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-sm font-medium transition-all duration-300;
 }

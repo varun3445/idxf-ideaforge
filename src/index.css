@@ -5,48 +5,48 @@
 
 @layer base {
   :root {
-    --background: 0 0% 0%; /* Black */
-    --foreground: 0 0% 100%; /* White */
-    --card: 0 0% 0%; /* Black */
-    --card-foreground: 0 0% 100%; /* White */
-    --popover: 0 0% 0%; /* Black */
-    --popover-foreground: 0 0% 100%; /* White */
+    --background: 0 0% 96%; /* #F5F5F5 */
+    --foreground: 0 0% 0%; /* #000000 */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 0%; /* Black */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 0%; /* Black */
     --primary: 114 100% 54%; /* Lime Green (#39FF14) */
     --primary-foreground: 0 0% 0%; /* Black */
     --secondary: 0 0% 10%; /* Very dark gray, almost black */
     --secondary-foreground: 0 0% 100%; /* White */
-    --muted: 0 0% 10%; /* Very dark gray, almost black */
-    --muted-foreground: 0 0% 70%; /* Light gray */
-    --accent: 0 0% 10%; /* Very dark gray, almost black */
-    --accent-foreground: 0 0% 100%; /* White */
+    --muted: 0 0% 96%; /* #F5F5F5 */
+    --muted-foreground: 0 0% 45%; /* Gray */
+    --accent: 114 100% 54%; /* Lime Green (#39FF14) */
+    --accent-foreground: 0 0% 0%; /* Black */
     --destructive: 0 100% 50%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 20%; /* Dark gray */
-    --input: 0 0% 20%; /* Dark gray */
+    --border: 0 0% 90%; /* Light gray */
+    --input: 0 0% 90%; /* Light gray */
     --ring: 114 100% 54%; /* Lime Green (#39FF14) */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 114 100% 54%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 114 100% 54%;
+    --background: 0 0% 96%; /* #F5F5F5 */
+    --foreground: 0 0% 0%; /* #000000 */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 0%; /* Black */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 0%; /* Black */
+    --primary: 114 100% 54%; /* Lime Green (#39FF14) */
+    --primary-foreground: 0 0% 0%; /* Black */
+    --secondary: 0 0% 10%; /* Very dark gray, almost black */
+    --secondary-foreground: 0 0% 100%; /* White */
+    --muted: 0 0% 96%; /* #F5F5F5 */
+    --muted-foreground: 0 0% 45%; /* Gray */
+    --accent: 114 100% 54%; /* Lime Green (#39FF14) */
+    --accent-foreground: 0 0% 0%; /* Black */
+    --destructive: 0 100% 50%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* White */
+    --border: 0 0% 90%; /* Light gray */
+    --input: 0 0% 90%; /* Light gray */
+    --ring: 114 100% 54%; /* Lime Green (#39FF14) */
   }
 }
 
@@ -102,7 +102,7 @@
 }
 
 .glassmorphic-card {
-  @apply rounded-xl border border-border bg-background/80 shadow-sm backdrop-blur-sm p-6;
+  @apply rounded-xl border border-border bg-card/80 shadow-sm backdrop-blur-sm p-6;
 }
 
 .glassmorphism {
@@ -110,7 +110,11 @@
 }
 
 .chip {
-  @apply text-xs px-2 py-0.5 rounded-full border border-border bg-secondary/50 inline-block;
+  @apply text-xs px-2 py-0.5 rounded-full border border-border bg-muted/50 inline-block;
+}
+
+.chip-active {
+  @apply bg-primary text-primary-foreground border-primary;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -133,7 +137,7 @@
 }
 
 .match-card {
-  @apply bg-background border border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200;
+  @apply bg-card border border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200;
 }
 
 .match-card-image {
@@ -157,7 +161,7 @@
 }
 
 .minimal-search {
-  @apply bg-transparent border-b border-border rounded-full px-0 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
+  @apply bg-transparent border-b border-border rounded-full px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
 }
 
 .minimal-header {
@@ -168,7 +172,7 @@
   @apply text-primary font-medium text-sm mb-4;
 }
 
-/* New profile grid styles based on reference image */
+/* Profile grid styles based on reference image */
 .profile-grid {
   @apply grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6;
 }
@@ -210,4 +214,45 @@
 /* Add smooth scrolling for profile container */
 .scroll-smooth {
   scroll-behavior: smooth;
+}
+
+/* New styles for the modern UI based on reference image */
+.modern-search {
+  @apply bg-white pl-10 pr-4 py-3 rounded-full shadow-sm border-0 w-full focus:ring-1 focus:ring-primary focus:outline-none;
+}
+
+.modern-card {
+  @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md;
+}
+
+.feature-icon {
+  @apply bg-primary/10 text-primary rounded-full p-3 mb-4;
+}
+
+.action-button {
+  @apply bg-primary text-black font-medium px-6 py-3 rounded-full transition-all duration-300 hover:bg-primary/90 hover:shadow-md;
+}
+
+.secondary-button {
+  @apply bg-white text-black font-medium px-6 py-3 rounded-full border border-border transition-all duration-300 hover:border-primary;
+}
+
+.hero-headline {
+  @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+}
+
+.hero-subheadline {
+  @apply text-lg md:text-xl text-foreground/70 mt-4 mb-8;
+}
+
+.navbar-dark {
+  @apply bg-black text-white;
+}
+
+.navbar-item {
+  @apply text-white/80 hover:text-white transition-colors;
+}
+
+.navbar-item-active {
+  @apply text-primary;
 }
