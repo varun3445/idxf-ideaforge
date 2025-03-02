@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
@@ -7,7 +7,6 @@ import { Label } from '../components/ui/label';
 import { useAuth } from '../AuthContext';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { generateMultipleUsers } from '../utils/auth.utils';
 
 const Login = () => {
   const { login } = useAuth();
@@ -17,37 +16,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [generatingUsers, setGeneratingUsers] = useState(false);
-
-  // Generate users only once
-  useEffect(() => {
-    const hasGeneratedUsers = localStorage.getItem('hasGeneratedUsers') === 'true';
-    
-    if (!hasGeneratedUsers) {
-      const generateUsers = async () => {
-        setGeneratingUsers(true);
-        try {
-          console.log("Automatically generating 25 sample users...");
-          const success = await generateMultipleUsers(25);
-          if (success) {
-            localStorage.setItem('hasGeneratedUsers', 'true');
-            toast({
-              title: "Users generated successfully",
-              description: "25 users have been created in the database",
-            });
-          } else {
-            console.error("Failed to generate users automatically");
-          }
-        } catch (error) {
-          console.error('Error generating users automatically:', error);
-        } finally {
-          setGeneratingUsers(false);
-        }
-      };
-
-      generateUsers();
-    }
-  }, [toast]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -90,11 +58,6 @@ const Login = () => {
           <p className="mt-2 text-sm text-muted-foreground">
             Log in to your account to continue
           </p>
-          {generatingUsers && (
-            <p className="mt-2 text-sm text-amber-500">
-              Generating 25 sample users...
-            </p>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
