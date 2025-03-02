@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
           if (profileError) {
             console.error('Error fetching profile:', profileError);
+            setLoading(false);
             return;
           }
           
@@ -78,7 +79,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up listener for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event);
+        
         if (event === 'SIGNED_IN' && session) {
+          setLoading(true);
           // Get user profile after sign-in
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -88,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
           if (profileError) {
             console.error('Error fetching profile:', profileError);
+            setLoading(false);
             return;
           }
           
@@ -110,8 +115,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             location: profileData.location,
             skills: skills
           });
+          setLoading(false);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          setLoading(false);
         }
       }
     );
@@ -123,13 +130,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const login = async (email: string, password: string) => {
     try {
+      console.log('Login attempt for:', email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (!error) {
-        navigate('/explore');
+        // Navigation is handled by auth state change listener
+        console.log('Login successful, auth state change should trigger');
+      } else {
+        console.error('Login error:', error);
       }
       
       return { error };

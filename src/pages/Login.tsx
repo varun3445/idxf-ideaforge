@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -9,13 +9,29 @@ import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false);
+
+  useEffect(() => {
+    // Redirect authenticated users
+    if (isAuthenticated && !authLoading) {
+      navigate('/explore');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  // Handle redirect after login attempt when auth state changes
+  useEffect(() => {
+    if (loginAttempted && !loading && !error && isAuthenticated) {
+      navigate('/explore');
+    }
+  }, [loginAttempted, loading, error, isAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -25,8 +41,10 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setLoginAttempted(false);
     
     try {
+      console.log('Starting login process...');
       const { error } = await login(email, password);
       
       if (error) {
@@ -38,9 +56,10 @@ const Login = () => {
         });
       } else {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully logged in",
+          title: "Login successful",
+          description: "Redirecting you to the app...",
         });
+        setLoginAttempted(true);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -77,6 +96,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                disabled={loading || authLoading}
               />
             </div>
             
@@ -96,11 +116,13 @@ const Login = () => {
                   placeholder="••••••••"
                   required
                   className="pr-10"
+                  disabled={loading || authLoading}
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-500"
+                  disabled={loading || authLoading}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -111,12 +133,12 @@ const Login = () => {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={loading}
+            disabled={loading || authLoading}
           >
-            {loading ? (
+            {loading || authLoading ? (
               <>
                 <Loader2 size={16} className="mr-1 animate-spin" />
-                Logging in...
+                {loginAttempted ? 'Redirecting...' : 'Logging in...'}
               </>
             ) : (
               "Sign in"
