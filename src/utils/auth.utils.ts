@@ -1,3 +1,4 @@
+
 import { supabase } from '../integrations/supabase/client';
 
 export const createUser = async (email: string, password?: string) => {
@@ -50,18 +51,63 @@ export const createUserProfile = async (
   avatar: string | null
 ) => {
   try {
-    // Create user profile
+    // Create user profile - Remove the skills property as it's not in the profiles table
     const { error } = await supabase
       .from('profiles')
       .insert({
         id: userId,
         name,
         location,
-        skills,
+        email: '', // Adding this as it's required but will be updated later
         avatar
       });
 
     if (error) throw error;
+
+    // Handle skills separately
+    if (skills && skills.length > 0) {
+      for (const skill of skills) {
+        let skillId;
+        let { data: existingSkill } = await supabase
+          .from('skills')
+          .select('id')
+          .eq('name', skill)
+          .single();
+        
+        if (!existingSkill) {
+          const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+          const { data: newSkill, error: newSkillError } = await supabase
+            .from('skills')
+            .insert({
+              name: skill,
+              color: randomColor
+            })
+            .select('id')
+            .single();
+            
+          if (newSkillError) {
+            console.error(`Error creating skill ${skill}:`, newSkillError);
+            continue;
+          }
+          
+          skillId = newSkill.id;
+        } else {
+          skillId = existingSkill.id;
+        }
+        
+        const { error: skillAssocError } = await supabase
+          .from('user_skills')
+          .insert({
+            user_id: userId,
+            skill_id: skillId
+          });
+          
+        if (skillAssocError) {
+          console.error(`Error adding skill ${skill}:`, skillAssocError);
+        }
+      }
+    }
+    
     return { error: null };
   } catch (error: any) {
     console.error('Error creating user profile:', error);
@@ -76,17 +122,71 @@ export const updateUserProfile = async (
   skills: string[]
 ) => {
   try {
-    // Update user profile
+    // Update user profile - Remove skills property as it's not in the profiles table
     const { error } = await supabase
       .from('profiles')
       .update({
         name,
         location,
-        skills,
       })
       .eq('id', userId);
 
     if (error) throw error;
+
+    // Handle skills separately - first remove existing skills
+    const { error: deleteError } = await supabase
+      .from('user_skills')
+      .delete()
+      .eq('user_id', userId);
+
+    if (deleteError) {
+      console.error('Error deleting existing skills:', deleteError);
+    }
+
+    // Then add the new skills
+    if (skills && skills.length > 0) {
+      for (const skill of skills) {
+        let skillId;
+        let { data: existingSkill } = await supabase
+          .from('skills')
+          .select('id')
+          .eq('name', skill)
+          .single();
+        
+        if (!existingSkill) {
+          const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+          const { data: newSkill, error: newSkillError } = await supabase
+            .from('skills')
+            .insert({
+              name: skill,
+              color: randomColor
+            })
+            .select('id')
+            .single();
+            
+          if (newSkillError) {
+            console.error(`Error creating skill ${skill}:`, newSkillError);
+            continue;
+          }
+          
+          skillId = newSkill.id;
+        } else {
+          skillId = existingSkill.id;
+        }
+        
+        const { error: skillAssocError } = await supabase
+          .from('user_skills')
+          .insert({
+            user_id: userId,
+            skill_id: skillId
+          });
+          
+        if (skillAssocError) {
+          console.error(`Error adding skill ${skill}:`, skillAssocError);
+        }
+      }
+    }
+    
     return { error: null };
   } catch (error: any) {
     console.error('Error updating user profile:', error);
@@ -110,3 +210,4 @@ export const getUserProfile = async (userId: string) => {
     return { profile: null, error };
   }
 };
+
