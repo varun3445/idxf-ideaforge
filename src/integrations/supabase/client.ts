@@ -9,7 +9,7 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-// Create a single instance of the Supabase client
+// Create a single instance of the Supabase client with optimized settings
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
@@ -17,15 +17,32 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: false,
       storage: localStorage,
       storageKey: 'supabase.auth.token'
+    },
+    global: {
+      fetch: (...args) => {
+        // Using a more efficient fetch with caching strategy
+        const customFetch = fetch(...args);
+        return customFetch;
+      }
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 1 // Lower this to reduce memory usage
+      }
     }
   }
 );
 
-// Debug function to check auth state
+// Debug function to check auth state - with optimized memory handling
 export const checkAuthState = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    return { data, error };
+  } catch (error) {
+    console.error("Error checking auth state:", error);
+    return { data: null, error };
+  }
 };

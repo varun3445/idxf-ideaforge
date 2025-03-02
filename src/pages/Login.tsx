@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -26,11 +26,11 @@ const Login = () => {
     }
   }, [isAuthenticated, authLoading, navigate, userInitiatedLogin]);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || authLoading) return; // Prevent duplicate submissions
     
@@ -68,7 +68,17 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, authLoading, login, email, password, toast]);
+
+  // Update email handler
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  }, []);
+
+  // Update password handler
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 sm:p-6">
@@ -94,7 +104,7 @@ const Login = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 placeholder="you@example.com"
                 required
                 disabled={loading || authLoading}
@@ -113,7 +123,7 @@ const Login = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   placeholder="••••••••"
                   required
                   className="pr-10"
