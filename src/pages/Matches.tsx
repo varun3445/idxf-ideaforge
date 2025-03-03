@@ -442,7 +442,7 @@ const Matches = () => {
   return <AnimatedTransition>
       <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4">
         <div className="mb-6 mt-2">
-          <h1 className="page-header text-left">Find and be found.</h1>
+          <h1 className="page-header text-left">Find and be found</h1>
           
           <p className="page-subheader max-w-lg text-left">
             Connect with creative minds and innovative projects that match your skills and interests.
