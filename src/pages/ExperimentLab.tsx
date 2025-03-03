@@ -19,9 +19,7 @@ const ExperimentLab = () => {
       <div className="page-container">
         <div className="mb-6 sm:mb-8">
           <h1 className="page-header text-left">Experiment</h1>
-          <p className="page-subheader text-left">
-            Explore creative project ideas and find inspiration for your next endeavor
-          </p>
+          <p className="page-subheader text-left">Explore creative project ideas and find inspiration for your next endeavor.</p>
         </div>
         
         <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
