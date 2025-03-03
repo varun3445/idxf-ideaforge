@@ -34,7 +34,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/explore', label: 'Explore', icon: Grid },
     { path: '/matches', label: 'Matches', icon: Heart },
-    { path: '/lab', label: 'Experiment Lab', icon: Lightbulb },
+    { path: '/lab', label: 'Experiment', icon: Lightbulb },
   ];
 
   const isActive = (path: string) => {

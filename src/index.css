@@ -53,9 +53,31 @@
   * {
     @apply border-border;
   }
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50px;
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #000000;
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.7) transparent;
   }
   
   h1 {
@@ -83,7 +105,6 @@
   @apply max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 mb-8 md:mb-24;
 }
 
-/* Responsive adjustments for the sidebar layout */
 .with-sidebar {
   @apply pt-0 md:pl-64;
 }

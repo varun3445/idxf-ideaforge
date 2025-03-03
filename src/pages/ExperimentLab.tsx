@@ -29,7 +29,7 @@ const ExperimentLab = () => {
     <AnimatedTransition>
       <div className="page-container">
         <div className="mb-6 sm:mb-8">
-          <h1 className="page-header">Experiment Lab</h1>
+          <h1 className="page-header">Experiment</h1>
           <p className="page-subheader">
             Explore creative project ideas and find inspiration for your next endeavor
           </p>
