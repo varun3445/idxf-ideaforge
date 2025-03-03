@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMediaQuery } from '../hooks/useMediaQuery';
+
 interface PortfolioItem {
   id: string;
   title: string;
@@ -19,10 +19,13 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
+
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([{
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
+    {
     id: '1',
     title: 'AI-Powered Visual Design Assistant',
     description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
@@ -76,80 +79,111 @@ const Explore = () => {
     collaborators: 4,
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
-  }]);
-  const {
-    toast
-  } = useToast();
+  }
+  ]);
+  
+  const { toast } = useToast();
+  
   useEffect(() => {
     setIsVisible(true);
   }, []);
+  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
-  return <AnimatedTransition>
+  
+  const filteredPortfolioItems = portfolioItems.filter(item => 
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  return (
+    <AnimatedTransition>
       <div className="page-container">
-        <section className="py-16">
+        <section className="py-6 sm:py-10 md:py-16">
           <div className={`
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-4xl md:text-5xl mb-6">Explore Projects</h1>
-            <p className="page-subheader text-lg md:text-xl max-w-3xl text-center px-[32px] mx-[240px] py-[15px]">
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6">Explore Projects</h1>
+            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
 
           <div className={`
-            mb-16 transition-all duration-1000 delay-100 max-w-2xl mx-auto
+            mb-8 sm:mb-12 md:mb-16 transition-all duration-1000 delay-100 max-w-2xl mx-auto
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
             <Label htmlFor="search" className="sr-only">
               Search projects
             </Label>
-            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-lg py-6 rounded-full shadow-md px-[32px]" />
+            <Input 
+              type="search" 
+              id="search" 
+              placeholder="Search for projects..." 
+              value={searchQuery} 
+              onChange={handleSearchChange} 
+              className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" 
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-            {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                <GlassmorphicCard className="h-full flex flex-col p-8 space-y-8">
-                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-8 shadow-md object-cover" />
+          <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
+            {filteredPortfolioItems.map(item => (
+              <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
+                  <img 
+                    src={item.imageUrl} 
+                    alt={item.title} 
+                    className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" 
+                  />
                   
-                  <div className="flex flex-col items-start mb-6">
-                    <h3 className="text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
-                    {item.category && <span className="text-sm text-muted-foreground py-[5px]">
+                  <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
+                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
+                    {item.category && 
+                      <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
                         {item.category}
-                      </span>}
+                      </span>
+                    }
                   </div>
                   
-                  <p className="text-muted-foreground text-base leading-relaxed mb-8 text-left">{item.description}</p>
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
+                    {item.description}
+                  </p>
                   
-                  <div className="flex flex-wrap gap-3 mb-8">
-                    {item.techStack?.map((tech, index) => <span key={index} className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
+                    {item.techStack?.map((tech, index) => (
+                      <span key={index} className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                         {tech}
-                      </span>)}
+                      </span>
+                    ))}
                   </div>
                   
-                  <p className="text-muted-foreground text-sm mb-8 text-left">
+                  <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
                     Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
-                  <div className="mt-auto flex justify-between items-center pt-6 border-t border-border">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users size={18} className="bg-transparent" />
+                  <div className="mt-auto flex justify-between items-center pt-3 sm:pt-4 md:pt-6 border-t border-border">
+                    <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Users size={16} className="bg-transparent" />
                       <span className="text-center">{item.collaborators || 0}</span>
                     </div>
                     
-                    <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-2 group">
+                    <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
                       <span>Explore</span>
-                      <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                     </Link>
                   </div>
                 </GlassmorphicCard>
-              </div>)}
+              </div>
+            ))}
           </div>
         </section>
       </div>
-    </AnimatedTransition>;
+    </AnimatedTransition>
+  );
 };
+
 export default Explore;

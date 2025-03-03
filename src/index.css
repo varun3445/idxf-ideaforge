@@ -80,27 +80,28 @@
 }
 
 .page-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 py-8 mb-16 md:mb-24;
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 mb-8 md:mb-24;
 }
 
+/* Responsive adjustments for the sidebar layout */
 .with-sidebar {
-  @apply pt-0 pl-64;
+  @apply pt-0 md:pl-64;
 }
 
 .fixed-nav-content {
-  @apply pl-64 min-h-screen pb-24;
+  @apply md:pl-64 min-h-screen pb-24;
 }
 
 .page-header {
-  @apply text-3xl font-bold mb-2;
+  @apply text-2xl sm:text-3xl font-bold mb-2;
 }
 
 .page-subheader {
-  @apply text-muted-foreground mb-8;
+  @apply text-muted-foreground mb-4 sm:mb-8 text-sm sm:text-base;
 }
 
 .glassmorphic-card {
-  @apply rounded-xl border-2 border-border bg-card/80 shadow-md backdrop-blur-sm p-6;
+  @apply rounded-xl border-2 border-border bg-card/80 shadow-md backdrop-blur-sm p-4 sm:p-6;
 }
 
 .glassmorphism {
@@ -129,11 +130,11 @@
 }
 
 .matches-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4;
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4;
 }
 
 .match-card {
-  @apply bg-card border-2 border-border p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200 shadow-md;
+  @apply bg-card border-2 border-border p-3 sm:p-4 flex flex-col gap-2 hover:border-primary transition-colors duration-200 shadow-md;
 }
 
 .match-card-image {
@@ -153,27 +154,27 @@
 }
 
 .minimal-page-container {
-  @apply max-w-full px-6 py-8 mx-auto;
+  @apply max-w-full px-4 sm:px-6 py-4 sm:py-8 mx-auto;
 }
 
 .minimal-search {
-  @apply bg-transparent border-b-2 border-border rounded-full px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
+  @apply bg-transparent border-b-2 border-border rounded-full px-3 sm:px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider;
 }
 
 .minimal-header {
-  @apply text-xl md:text-2xl font-bold mb-8;
+  @apply text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-8;
 }
 
 .minimal-subheader {
-  @apply text-primary font-medium text-sm mb-4;
+  @apply text-primary font-medium text-xs sm:text-sm mb-2 sm:mb-4;
 }
 
 .profile-grid {
-  @apply grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6;
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6;
 }
 
 .profile-card {
-  @apply flex flex-col border-b-2 border-border pb-6 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-md;
+  @apply flex flex-col border-b-2 border-border pb-4 sm:pb-6 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-md;
 }
 
 .profile-image {
@@ -197,7 +198,7 @@
 }
 
 .minimal-container {
-  @apply max-w-full px-8 py-12 pl-64;
+  @apply max-w-full px-4 sm:px-8 py-6 sm:py-12 md:pl-64;
 }
 
 .letter-spacing-wide {
@@ -221,19 +222,19 @@
 }
 
 .action-button {
-  @apply bg-primary text-black font-medium px-6 py-3 rounded-full transition-all duration-300 hover:bg-primary/90 hover:shadow-lg border-2 border-primary/30;
+  @apply bg-primary text-black font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full transition-all duration-300 hover:bg-primary/90 hover:shadow-lg border-2 border-primary/30;
 }
 
 .secondary-button {
-  @apply bg-background text-black font-medium px-6 py-3 rounded-full border-2 border-border transition-all duration-300 hover:border-primary hover:shadow-md;
+  @apply bg-background text-black font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full border-2 border-border transition-all duration-300 hover:border-primary hover:shadow-md;
 }
 
 .hero-headline {
-  @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
+  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight;
 }
 
 .hero-subheadline {
-  @apply text-lg md:text-xl text-foreground/70 mt-4 mb-8;
+  @apply text-base sm:text-lg md:text-xl text-foreground/70 mt-3 sm:mt-4 mb-6 sm:mb-8;
 }
 
 .navbar-dark {
@@ -259,4 +260,27 @@
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+  .fixed-nav-content {
+    @apply pl-0 pb-16;
+  }
+  
+  .with-sidebar {
+    @apply pl-0;
+  }
+  
+  .minimal-container {
+    @apply pl-4;
+  }
+  
+  .hero-section {
+    @apply py-10;
+  }
+  
+  .page-container {
+    @apply px-3 py-3;
+  }
 }

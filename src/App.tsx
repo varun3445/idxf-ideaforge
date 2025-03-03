@@ -1,8 +1,10 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import { useMediaQuery } from './hooks/useMediaQuery';
 
 import Index from './pages/Index';
 import Login from './pages/Login';
@@ -20,12 +22,13 @@ import './App.css';
 // Inner component that uses the auth context
 const AppContent = () => {
   const { isAuthenticated } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
     <>
       {isAuthenticated && <Navbar />}
       <BetaIndicator />
-      <div className={isAuthenticated ? "fixed-nav-content" : ""}>
+      <div className={isAuthenticated ? (isMobile ? "pb-16" : "fixed-nav-content") : ""}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />

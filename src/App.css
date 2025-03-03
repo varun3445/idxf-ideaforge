@@ -1,17 +1,25 @@
 
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 4em;
+  padding: 1em;
   will-change: filter;
   transition: filter 300ms;
 }
+
+@media (min-width: 640px) {
+  .logo {
+    height: 6em;
+    padding: 1.5em;
+  }
+}
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #39FF14aa); /* Changed to lime green */
 }
@@ -35,7 +43,7 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 1.5em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -47,9 +55,16 @@
 
 /* Add button styles to ensure they use the correct colors */
 .button-primary {
-  @apply bg-primary text-black px-6 py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
+  @apply bg-primary text-black px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
 }
 
 .button-secondary {
-  @apply bg-background text-black border-2 border-border px-6 py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-background text-black border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  .button-primary, .button-secondary {
+    @apply px-3 py-2 text-sm;
+  }
 }
