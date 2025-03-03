@@ -59,42 +59,36 @@ const Navbar = () => {
     }
   };
 
-  // Mobile bottom navigation
+  // Mobile top profile button and bottom navigation
   if (isMobile) {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-black text-white border-t border-border/10">
-        <div className="flex justify-around items-center h-16">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex flex-col items-center justify-center px-2 py-1 ${
-                isActive(item.path)
-                  ? 'text-primary'
-                  : 'text-white/70 hover:text-white'
-              }`}
-            >
-              <item.icon size={20} />
-              <span className="text-xs mt-1">{item.label}</span>
-            </Link>
-          ))}
+      <>
+        {/* Mobile profile button (top right) */}
+        <div className="fixed top-4 right-4 z-40">
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex flex-col items-center justify-center px-2 py-1 text-white/70 hover:text-white"
+              className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden bg-black shadow-lg border border-white/10"
             >
-              <User size={20} />
-              <span className="text-xs mt-1">Profile</span>
+              {user && user.avatar ? (
+                <img 
+                  src={user.avatar}
+                  alt={user.name || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={20} className="text-white" />
+              )}
             </button>
 
             {profileOpen && (
               <div 
-                className="absolute right-0 bottom-full mb-2 rounded-md shadow-lg bg-black/95 border border-white/10 z-50 w-36"
+                className="absolute right-0 top-full mt-2 rounded-md shadow-lg bg-black/95 border border-white/10 z-50 w-36"
               >
                 <div className="py-1">
                   <Link 
                     to="/profile" 
-                    className="flex items-center px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                    className="flex items-center px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
                     onClick={() => setProfileOpen(false)}
                   >
                     <Settings size={16} className="mr-2" />
@@ -115,7 +109,27 @@ const Navbar = () => {
             )}
           </div>
         </div>
-      </nav>
+        
+        {/* Mobile bottom navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-black text-white border-t border-border/10">
+          <div className="flex justify-around items-center h-16">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center px-2 py-1 ${
+                  isActive(item.path)
+                    ? 'text-primary'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                <item.icon size={20} />
+                <span className="text-xs mt-1">{item.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
+      </>
     );
   }
 

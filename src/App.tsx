@@ -28,7 +28,7 @@ const AppContent = () => {
     <>
       {isAuthenticated && <Navbar />}
       <BetaIndicator />
-      <div className={isAuthenticated ? (isMobile ? "pb-16" : "fixed-nav-content") : ""}>
+      <div className={`${isAuthenticated ? (isMobile ? "pb-16 mobile-page-padding" : "fixed-nav-content") : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />

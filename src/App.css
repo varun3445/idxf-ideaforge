@@ -67,4 +67,9 @@
   .button-primary, .button-secondary {
     @apply px-3 py-2 text-sm;
   }
+  
+  /* Add top padding for mobile pages to account for the profile button */
+  .mobile-page-padding {
+    padding-top: 3.5rem;
+  }
 }

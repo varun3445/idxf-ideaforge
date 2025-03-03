@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { Circle } from 'lucide-react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const BetaIndicator = () => {
   const [isBlinking, setIsBlinking] = useState(true);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -14,7 +16,7 @@ const BetaIndicator = () => {
   }, []);
   
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center bg-card/90 backdrop-blur-sm border border-border/40 rounded-full px-3 py-1.5 shadow-md">
+    <div className={`fixed ${isMobile ? 'top-4 left-4' : 'top-4 right-4'} z-50 flex items-center bg-card/90 backdrop-blur-sm border border-border/40 rounded-full px-3 py-1.5 shadow-md`}>
       <span className="text-xs font-medium mr-2">Test version.</span>
       <Circle 
         size={10} 
