@@ -8,7 +8,6 @@ import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
-
 interface PortfolioItem {
   id: string;
   title: string;
@@ -19,13 +18,11 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
-
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([
-    {
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([{
     id: '1',
     title: 'AI-Powered Visual Design Assistant',
     description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
@@ -79,36 +76,26 @@ const Explore = () => {
     collaborators: 4,
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
-  }
-  ]);
-  
-  const { toast } = useToast();
-  
+  }]);
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
-  const filteredPortfolioItems = portfolioItems.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  return (
-    <AnimatedTransition>
+  const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
+  return <AnimatedTransition>
       <div className="page-container">
         <section className="py-6 sm:py-10 md:py-16">
           <div className={`
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6">Explore Projects</h1>
-            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto">
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore Projects</h1>
+            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto text-left py-0">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
@@ -120,33 +107,19 @@ const Explore = () => {
             <Label htmlFor="search" className="sr-only">
               Search projects
             </Label>
-            <Input 
-              type="search" 
-              id="search" 
-              placeholder="Search for projects..." 
-              value={searchQuery} 
-              onChange={handleSearchChange} 
-              className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" 
-            />
+            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" />
           </div>
 
           <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
-            {filteredPortfolioItems.map(item => (
-              <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
-                  <img 
-                    src={item.imageUrl} 
-                    alt={item.title} 
-                    className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" 
-                  />
+                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" />
                   
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
                     <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
-                    {item.category && 
-                      <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
+                    {item.category && <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
                         {item.category}
-                      </span>
-                    }
+                      </span>}
                   </div>
                   
                   <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
@@ -154,11 +127,9 @@ const Explore = () => {
                   </p>
                   
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
-                    {item.techStack?.map((tech, index) => (
-                      <span key={index} className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                         {tech}
-                      </span>
-                    ))}
+                      </span>)}
                   </div>
                   
                   <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
@@ -177,13 +148,10 @@ const Explore = () => {
                     </Link>
                   </div>
                 </GlassmorphicCard>
-              </div>
-            ))}
+              </div>)}
           </div>
         </section>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Explore;
