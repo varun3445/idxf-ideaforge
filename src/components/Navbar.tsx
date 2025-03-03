@@ -48,7 +48,7 @@ const Navbar = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate('/login');
+      navigate('/'); // Changed from '/login' to '/' to redirect to landing page
     } catch (error) {
       console.error('Logout error:', error);
       toast({
