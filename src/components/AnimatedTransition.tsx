@@ -1,3 +1,4 @@
+
 import { ReactNode, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 interface AnimatedTransitionProps {
@@ -28,7 +29,7 @@ const AnimatedTransition = ({
   }, [location.pathname]);
   return <div ref={elementRef} style={{
     transformOrigin: 'center'
-  }} className="min-h-screen pt-20 pb-16 md:pt-28 md:pb-10 animate-scale-in animate-slide-in py-0">
+  }} className="min-h-screen pt-6 md:pt-28 pb-16 animate-scale-in animate-slide-in">
       {children}
     </div>;
 };

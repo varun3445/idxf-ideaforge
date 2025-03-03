@@ -70,6 +70,6 @@
   
   /* Add top padding for mobile pages to account for the profile button */
   .mobile-page-padding {
-    padding-top: 3.5rem;
+    padding-top: 25px;
   }
 }
