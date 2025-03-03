@@ -114,11 +114,11 @@
 }
 
 .page-header {
-  @apply text-2xl sm:text-3xl font-bold mb-2;
+  @apply text-2xl font-bold mb-2;
 }
 
 .page-subheader {
-  @apply text-muted-foreground mb-4 sm:mb-8 text-sm sm:text-base;
+  @apply text-muted-foreground mb-4 text-sm;
 }
 
 .glassmorphic-card {
