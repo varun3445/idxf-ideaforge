@@ -95,7 +95,7 @@ const Explore = () => {
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
             <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-center">Explore Projects</h1>
-            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto text-left py-0">
+            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-center">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
