@@ -304,4 +304,9 @@
   .page-container {
     @apply px-3 py-3 pt-[25px];
   }
+  
+  /* Mobile navbar specific styles */
+  nav.fixed {
+    @apply scrollbar-hide;
+  }
 }

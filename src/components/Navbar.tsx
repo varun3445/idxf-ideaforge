@@ -110,21 +110,21 @@ const Navbar = () => {
           </div>
         </div>
         
-        {/* Mobile bottom navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-black text-white border-t border-border/10">
+        {/* Mobile bottom navigation - improved spacing */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-black text-white border-t border-border/10 overflow-hidden">
           <div className="flex justify-around items-center h-16">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center px-2 py-1 ${
+                className={`flex flex-col items-center justify-center w-full h-full ${
                   isActive(item.path)
                     ? 'text-primary'
                     : 'text-white/70 hover:text-white'
                 }`}
               >
-                <item.icon size={20} />
-                <span className="text-xs mt-1">{item.label}</span>
+                <item.icon size={20} className="mb-1" />
+                <span className="text-xs">{item.label}</span>
               </Link>
             ))}
           </div>
