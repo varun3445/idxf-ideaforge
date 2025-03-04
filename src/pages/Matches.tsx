@@ -516,10 +516,7 @@ const Matches = () => {
                               </Badge>
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center">
-                              {profile.skills.map((skill, index) => <Badge key={index} style={{
-                  backgroundColor: skill.color,
-                  color: '#000000'
-                }} className="shadow-sm">
+                              {profile.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                                   {skill.name}
                                 </Badge>)}
                             </div>
@@ -539,10 +536,7 @@ const Matches = () => {
                                 </Badge>
                               </div>}
                             <div className="flex flex-wrap gap-2 justify-center">
-                              {profile.skills.map((skill, index) => <Badge key={index} style={{
-                  backgroundColor: skill.color,
-                  color: '#000000'
-                }} className="shadow-sm">
+                              {profile.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                                   {skill.name}
                                 </Badge>)}
                             </div>
@@ -584,10 +578,7 @@ const Matches = () => {
                                 </Badge>}
                             </div>}
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {profile.skills.slice(0, 3).map((skill, index) => <Badge key={index} style={{
-                    backgroundColor: skill.color,
-                    color: '#000000'
-                  }} className="shadow-sm">
+                            {profile.skills.slice(0, 3).map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                                 {skill.name}
                               </Badge>)}
                             {profile.skills.length > 3 && <Badge variant="outline" className="shadow-sm">
@@ -626,10 +617,7 @@ const Matches = () => {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
-                            {profile.skills.slice(0, 2).map((skill, index) => <Badge key={index} style={{
-                    backgroundColor: skill.color,
-                    color: '#000000'
-                  }} className="shadow-sm">
+                            {profile.skills.slice(0, 2).map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                                 {skill.name}
                               </Badge>)}
                             {profile.skills.length > 2 && <Badge variant="outline" className="shadow-sm">
@@ -666,10 +654,7 @@ const Matches = () => {
                             <h3 className="font-bold text-lg mb-1">{project.title}</h3>
                             <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{project.description}</p>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              {project.skills.map((skill, index) => <Badge key={index} style={{
-                      backgroundColor: skill.color,
-                      color: '#000000'
-                    }} className="shadow-sm">
+                              {project.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                                   {skill.name}
                                 </Badge>)}
                             </div>
@@ -701,10 +686,7 @@ const Matches = () => {
               <div className="mb-4">
                 <h3 className="text-sm font-medium mb-2">Skills needed:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {selectedProject.skills.map((skill, index) => <Badge key={index} style={{
-                backgroundColor: skill.color,
-                color: '#000000'
-              }} className="shadow-sm">
+                  {selectedProject.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
                       {skill.name}
                     </Badge>)}
                 </div>

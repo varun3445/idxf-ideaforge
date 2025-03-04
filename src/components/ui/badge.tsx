@@ -16,6 +16,7 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground shadow-sm hover:shadow-md",
+        monochrome: "border-transparent bg-gray-200 text-gray-800 hover:bg-gray-300 shadow-sm",
       },
     },
     defaultVariants: {
@@ -26,11 +27,16 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  monochrome?: boolean;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, monochrome = false, ...props }: BadgeProps) {
+  // If monochrome is true, use the monochrome variant regardless of the provided variant
+  const effectiveVariant = monochrome ? "monochrome" : variant;
+  
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div className={cn(badgeVariants({ variant: effectiveVariant }), className)} {...props} />
   )
 }
 
