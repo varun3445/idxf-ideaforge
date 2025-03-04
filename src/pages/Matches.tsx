@@ -9,11 +9,13 @@ import { Button } from '../components/ui/button';
 import { useToast } from '../hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '../components/ui/dialog';
 import { User } from '../types/auth.types';
+
 interface Skill {
   id: string;
   name: string;
   color: string;
 }
+
 interface Profile {
   id: string;
   name: string;
@@ -29,6 +31,7 @@ interface Profile {
   latitude?: number;
   longitude?: number;
 }
+
 interface ProjectIdea {
   id: string;
   title: string;
@@ -40,11 +43,14 @@ interface ProjectIdea {
   }[];
   contributors: string[];
 }
+
 interface Coordinates {
   latitude: number;
   longitude: number;
 }
+
 const projectImages = ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80", "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80", "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80", "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"];
+
 const Matches = () => {
   const [search, setSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -71,6 +77,7 @@ const Matches = () => {
   const [locationError, setLocationError] = useState<string>('');
   const profilesScrollRef = useRef<HTMLDivElement>(null);
   const projectsScrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const getUserLocation = () => {
       if (navigator.geolocation) {
@@ -100,6 +107,7 @@ const Matches = () => {
     };
     getUserLocation();
   }, [toast]);
+
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Radius of the earth in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -109,6 +117,7 @@ const Matches = () => {
     const distance = R * c; // Distance in km
     return distance;
   };
+
   const extractCoordinates = (locationString: string): {
     latitude: number;
     longitude: number;
@@ -177,6 +186,7 @@ const Matches = () => {
     }
     return null;
   };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -284,6 +294,7 @@ const Matches = () => {
     };
     fetchInitialData();
   }, [user, userCoordinates]);
+
   useEffect(() => {
     if (!search) {
       if (similarSkillsUsers.length > 0) {
@@ -340,6 +351,7 @@ const Matches = () => {
       setUsingAI(false);
     }
   }, [search, profiles, similarSkillsUsers, userCoordinates, toast]);
+
   const handleAISearch = async () => {
     if (!search || search.length < 3) return;
     setLoadingAI(true);
@@ -394,6 +406,7 @@ const Matches = () => {
       setLoadingAI(false);
     }
   };
+
   const handleProfilesScroll = (direction: 'left' | 'right') => {
     if (profilesScrollRef.current) {
       const {
@@ -406,6 +419,7 @@ const Matches = () => {
       });
     }
   };
+
   const handleProjectsScroll = (direction: 'left' | 'right') => {
     if (projectsScrollRef.current) {
       const {
@@ -418,10 +432,12 @@ const Matches = () => {
       });
     }
   };
+
   const openProjectDetails = (project: ProjectIdea) => {
     setSelectedProject(project);
     setShowProjectDialog(true);
   };
+
   const handleJoinProject = () => {
     if (!selectedProject) return;
     toast({
@@ -431,14 +447,17 @@ const Matches = () => {
     });
     setShowProjectDialog(false);
   };
+
   const getRandomProjectTitle = () => {
     const titles = ["Smart City Planner", "Health Monitor App", "Sustainable Energy Platform", "Virtual Reality Classroom", "AI Writing Assistant", "Blockchain Voting System", "Digital Art Marketplace", "Remote Work Collaboration Tool", "Fitness Tracking Wearable", "Augmented Reality Navigation"];
     return titles[Math.floor(Math.random() * titles.length)];
   };
+
   const getRandomProjectDescription = () => {
     const descriptions = ["A platform to optimize urban planning and resource allocation", "Real-time health data tracking and analysis for personalized care", "Connecting renewable energy producers with consumers", "Immersive educational experiences for remote learning", "Using AI to assist with content creation and editing", "Secure and transparent voting using blockchain technology", "A marketplace for digital artists to sell their creations", "Tools for effective team collaboration in remote settings", "Advanced fitness tracking with personalized recommendations", "AR-based navigation with real-time information overlay"];
     return descriptions[Math.floor(Math.random() * descriptions.length)];
   };
+
   return <AnimatedTransition>
       <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4">
         <div className="mb-6 mt-2">
@@ -596,12 +615,12 @@ const Matches = () => {
                                 </div>}
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-bold text-base">{profile.name}</h3>
-                              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                              <h3 className="font-bold text-base text-left">{profile.name}</h3>
+                              <div className="flex items-center text-sm text-muted-foreground mb-1 text-left">
                                 <MapPin size={14} className="mr-1" />
                                 {profile.location}
                               </div>
-                              {profile.distance && <div className="text-xs text-muted-foreground">
+                              {profile.distance && <div className="text-xs text-muted-foreground text-left">
                                   {profile.distance < 1 ? 'Less than 1 km away' : `${Math.round(profile.distance)} km away`}
                                 </div>}
                             </div>
@@ -715,4 +734,5 @@ const Matches = () => {
       </Dialog>
     </AnimatedTransition>;
 };
+
 export default Matches;
