@@ -203,11 +203,11 @@
 }
 
 .profile-name {
-  @apply font-bold text-base;
+  @apply font-bold text-base text-left;
 }
 
 .profile-location {
-  @apply text-sm text-muted-foreground mb-3;
+  @apply text-sm text-muted-foreground mb-3 text-left;
 }
 
 .profile-skills {

@@ -21,7 +21,7 @@ import './App.css';
 
 // Inner component that uses the auth context
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
@@ -37,7 +37,7 @@ const AppContent = () => {
           <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
           <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
