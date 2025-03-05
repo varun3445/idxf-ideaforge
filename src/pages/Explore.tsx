@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Users } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { Button } from '@/components/ui/button';
-
 interface PortfolioItem {
   id: string;
   title: string;
@@ -20,13 +18,10 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
-
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([{
     id: '1',
     title: 'AI-Powered Visual Design Assistant',
@@ -82,38 +77,17 @@ const Explore = () => {
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
   }]);
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-
-  const handleProjectClick = (projectId: string) => {
-    // Log the navigation attempt for debugging
-    console.log('Navigating to project:', projectId);
-    
-    // Use the navigate function to go to the project detail page
-    navigate(`/project/${projectId}`);
-    
-    // Show a toast to confirm navigation
-    toast({
-      title: "Opening project details",
-      description: `Loading project ${projectId}`
-    });
-  };
-
-  const filteredPortfolioItems = portfolioItems.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  return (
-    <AnimatedTransition>
+  const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
+  return <AnimatedTransition>
       <div className="page-container">
         <section className="py-6 sm:py-10 md:py-16">
           <div className={`
@@ -133,36 +107,19 @@ const Explore = () => {
             <Label htmlFor="search" className="sr-only">
               Search projects
             </Label>
-            <Input 
-              type="search" 
-              id="search" 
-              placeholder="Search for projects..." 
-              value={searchQuery} 
-              onChange={handleSearchChange} 
-              className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" 
-            />
+            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" />
           </div>
 
           <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
-            {filteredPortfolioItems.map(item => (
-              <div 
-                key={item.id} 
-                className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-              >
+            {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
-                  <img 
-                    src={item.imageUrl} 
-                    alt={item.title} 
-                    className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" 
-                  />
+                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" />
                   
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
                     <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
-                    {item.category && (
-                      <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
+                    {item.category && <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
                         {item.category}
-                      </span>
-                    )}
+                      </span>}
                   </div>
                   
                   <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
@@ -170,14 +127,9 @@ const Explore = () => {
                   </p>
                   
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
-                    {item.techStack?.map((tech, index) => (
-                      <span 
-                        key={index} 
-                        className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full"
-                      >
+                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                         {tech}
-                      </span>
-                    ))}
+                      </span>)}
                   </div>
                   
                   <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
@@ -190,32 +142,16 @@ const Explore = () => {
                       <span className="text-center">{item.collaborators || 0}</span>
                     </div>
                     
-                    <Button
-                      variant="link"
-                      onClick={() => handleProjectClick(item.id)}
-                      className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group"
-                    >
+                    <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
                       <span>Explore</span>
                       <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                    </Button>
+                    </Link>
                   </div>
                 </GlassmorphicCard>
-              </div>
-            ))}
+              </div>)}
           </div>
-
-          {filteredPortfolioItems.length === 0 && (
-            <div className="text-center py-12 bg-muted/30 rounded-lg border border-border mt-8">
-              <h3 className="text-xl font-medium mb-2">No projects found</h3>
-              <p className="text-muted-foreground mb-4">
-                Try adjusting your search criteria
-              </p>
-            </div>
-          )}
         </section>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Explore;

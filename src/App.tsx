@@ -1,7 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './AuthContext';
+import { AuthProvider, useAuth } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import { useMediaQuery } from './hooks/useMediaQuery';
@@ -11,38 +11,33 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
+import ExperimentLab from './pages/ExperimentLab';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
 import ProjectDetail from './pages/ProjectDetail';
-import Forge from './pages/Forge';
-import JoinProject from './pages/JoinProject';
 
 import './App.css';
 
 // Inner component that uses the auth context
 const AppContent = () => {
-  // Temporarily consider all users as authenticated
-  const isAuthenticated = true;
-  const loading = false;
+  const { isAuthenticated, loading } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
     <>
       {isAuthenticated && <Navbar />}
       <BetaIndicator />
-      <div className={`${isAuthenticated ? (isMobile ? "pb-20 mobile-page-padding" : "fixed-nav-content") : ""}`}>
+      <div className={`${isAuthenticated ? (isMobile ? "pb-16 mobile-page-padding" : "fixed-nav-content") : ""}`}>
         <Routes>
-          {/* Redirect from login/signup straight to explore for now */}
-          <Route path="/" element={<Explore />} />
-          <Route path="/login" element={<Explore />} />
-          <Route path="/signup" element={<Explore />} />
-          <Route path="/explore" element={<Explore />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
           <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+          <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-          <Route path="/forge" element={<ProtectedRoute><Forge /></ProtectedRoute>} />
-          <Route path="/join/:code" element={<ProtectedRoute><JoinProject /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
