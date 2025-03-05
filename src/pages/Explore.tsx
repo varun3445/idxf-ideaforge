@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -5,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Users } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Button } from '@/components/ui/button';
@@ -92,8 +92,17 @@ const Explore = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
+    // Log the navigation attempt for debugging
     console.log('Navigating to project:', projectId);
+    
+    // Use the navigate function to go to the project detail page
     navigate(`/project/${projectId}`);
+    
+    // Show a toast to confirm navigation
+    toast({
+      title: "Opening project details",
+      description: `Loading project ${projectId}`
+    });
   };
 
   const filteredPortfolioItems = portfolioItems.filter(item => 

@@ -1,7 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
-import { AuthProvider, useAuth } from './AuthContext';
+import { AuthProvider } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import { useMediaQuery } from './hooks/useMediaQuery';
@@ -22,7 +22,9 @@ import './App.css';
 
 // Inner component that uses the auth context
 const AppContent = () => {
-  const { isAuthenticated, loading } = useAuth();
+  // Temporarily consider all users as authenticated
+  const isAuthenticated = true;
+  const loading = false;
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
@@ -31,10 +33,11 @@ const AppContent = () => {
       <BetaIndicator />
       <div className={`${isAuthenticated ? (isMobile ? "pb-20 mobile-page-padding" : "fixed-nav-content") : ""}`}>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+          {/* Redirect from login/signup straight to explore for now */}
+          <Route path="/" element={<Explore />} />
+          <Route path="/login" element={<Explore />} />
+          <Route path="/signup" element={<Explore />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
