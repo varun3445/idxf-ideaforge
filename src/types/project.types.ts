@@ -40,5 +40,5 @@ export interface QRCodeResponse {
 export interface JoinProjectResponse {
   success: boolean;
   message: string;
-  project: Project;
+  project: Project | null;
 }

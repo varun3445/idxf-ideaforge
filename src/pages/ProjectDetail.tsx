@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Plus, Share2, Check, QrCode } from 'lucide-react';
@@ -45,6 +44,10 @@ const ProjectDetail = () => {
     queryFn: async () => {
       console.log('Fetching project with ID:', projectId);
       
+      if (!projectId) {
+        throw new Error('No project ID provided');
+      }
+      
       try {
         const { data, error } = await supabase
           .from('projects')
@@ -57,6 +60,10 @@ const ProjectDetail = () => {
           throw error;
         }
         
+        if (!data) {
+          throw new Error('Project not found');
+        }
+        
         console.log('Fetched project data:', data);
         return data;
       } catch (err) {
@@ -65,6 +72,7 @@ const ProjectDetail = () => {
       }
     },
     enabled: !!projectId,
+    retry: 1,
   });
   
   // Log when project data changes
@@ -109,23 +117,27 @@ const ProjectDetail = () => {
   
   if (isProjectLoading || isStepsLoading || isCollaboratorsLoading) {
     return (
-      <div className="page-container flex justify-center items-center min-h-[60vh]">
-        <div className="animate-pulse text-xl">Loading project details...</div>
-      </div>
+      <AnimatedTransition>
+        <div className="page-container flex justify-center items-center min-h-[60vh]">
+          <div className="animate-pulse text-xl">Loading project details...</div>
+        </div>
+      </AnimatedTransition>
     );
   }
   
   if (projectError || !project) {
     return (
-      <div className="page-container">
-        <div className="text-center py-20">
-          <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
-          <p className="mb-8">The project you're looking for doesn't exist or may have been removed.</p>
-          <Link to="/forge">
-            <Button>Return to Forge</Button>
-          </Link>
+      <AnimatedTransition>
+        <div className="page-container">
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
+            <p className="mb-8">The project you're looking for doesn't exist or may have been removed.</p>
+            <Link to="/forge">
+              <Button>Return to Forge</Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </AnimatedTransition>
     );
   }
   

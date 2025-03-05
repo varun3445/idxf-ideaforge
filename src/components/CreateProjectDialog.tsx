@@ -47,11 +47,16 @@ const CreateProjectDialog = ({ open, onOpenChange }: CreateProjectDialogProps) =
   });
   
   const onSubmit = async (values: z.infer<typeof projectFormSchema>) => {
+    if (!user?.id) {
+      console.error('No user ID found, cannot create project');
+      return;
+    }
+    
     await createProject.mutateAsync({
       title: values.title,
       description: values.description || null,
-      owner_id: user?.id || '', // Add user ID from context
-      share_code: null, // Add share_code property with null value
+      owner_id: user.id,
+      share_code: null
     });
     
     form.reset();

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,78 +12,95 @@ export const useProjects = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Debug logging function
+  const logDebug = (message: string, data?: any) => {
+    console.log(`[useProjects] ${message}`, data || '');
+  };
+
   // Get projects owned by the current user
   const ownedProjects = useQuery({
     queryKey: ['ownedProjects'],
     queryFn: async () => {
-      console.log('Fetching owned projects for user ID:', user?.id);
+      logDebug('Fetching owned projects for user ID:', user?.id);
       
       if (!user?.id) {
-        console.log('No user ID found, skipping query');
+        logDebug('No user ID found, skipping query');
         return [];
       }
 
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('updated_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('owner_id', user.id)
+          .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching owned projects:', error);
-        throw error;
+        if (error) {
+          console.error('Error fetching owned projects:', error);
+          throw error;
+        }
+
+        logDebug('Fetched owned projects:', data);
+        return data || [];
+      } catch (err) {
+        console.error('Failed to fetch owned projects:', err);
+        throw err;
       }
-
-      console.log('Fetched owned projects:', data);
-      return data || [];
     },
     enabled: !!user?.id,
+    retry: 1,
   });
 
   // Get projects the current user is collaborating on
   const collaboratingProjects = useQuery({
     queryKey: ['collaboratingProjects'],
     queryFn: async () => {
-      console.log('Fetching collaborating projects for user ID:', user?.id);
+      logDebug('Fetching collaborating projects for user ID:', user?.id);
       
       if (!user?.id) {
-        console.log('No user ID found, skipping query');
+        logDebug('No user ID found, skipping query');
         return [];
       }
 
-      const { data: collaborations, error: collaborationsError } = await supabase
-        .from('project_collaborators')
-        .select('project_id')
-        .eq('user_id', user.id);
+      try {
+        const { data: collaborations, error: collaborationsError } = await supabase
+          .from('project_collaborators')
+          .select('project_id')
+          .eq('user_id', user.id);
 
-      if (collaborationsError) {
-        console.error('Error fetching collaborations:', collaborationsError);
-        throw collaborationsError;
+        if (collaborationsError) {
+          console.error('Error fetching collaborations:', collaborationsError);
+          throw collaborationsError;
+        }
+
+        if (!collaborations || collaborations.length === 0) {
+          logDebug('No collaborations found');
+          return [];
+        }
+
+        const projectIds = collaborations.map(collab => collab.project_id);
+        logDebug('Project IDs the user is collaborating on:', projectIds);
+
+        const { data: projects, error: projectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .in('id', projectIds)
+          .order('updated_at', { ascending: false });
+
+        if (projectsError) {
+          console.error('Error fetching collaborating projects:', projectsError);
+          throw projectsError;
+        }
+
+        logDebug('Fetched collaborating projects:', projects);
+        return projects || [];
+      } catch (err) {
+        console.error('Failed to fetch collaborating projects:', err);
+        throw err;
       }
-
-      if (!collaborations || collaborations.length === 0) {
-        console.log('No collaborations found');
-        return [];
-      }
-
-      const projectIds = collaborations.map(collab => collab.project_id);
-      console.log('Project IDs the user is collaborating on:', projectIds);
-
-      const { data: projects, error: projectsError } = await supabase
-        .from('projects')
-        .select('*')
-        .in('id', projectIds)
-        .order('updated_at', { ascending: false });
-
-      if (projectsError) {
-        console.error('Error fetching collaborating projects:', projectsError);
-        throw projectsError;
-      }
-
-      console.log('Fetched collaborating projects:', projects);
-      return projects || [];
     },
     enabled: !!user?.id,
+    retry: 1,
   });
 
   // Get collaborators for a specific project
@@ -90,60 +108,74 @@ export const useProjects = () => {
     return useQuery({
       queryKey: ['projectCollaborators', projectId],
       queryFn: async () => {
-        console.log('Fetching collaborators for project ID:', projectId);
+        logDebug('Fetching collaborators for project ID:', projectId);
         
         if (!projectId) {
-          console.log('No project ID provided, skipping query');
+          logDebug('No project ID provided, skipping query');
           return [];
         }
 
-        // First get the collaborator records
-        const { data: collaborators, error: collaboratorsError } = await supabase
-          .from('project_collaborators')
-          .select('*')
-          .eq('project_id', projectId);
+        try {
+          // First get the collaborator records
+          const { data: collaborators, error: collaboratorsError } = await supabase
+            .from('project_collaborators')
+            .select('*')
+            .eq('project_id', projectId);
 
-        if (collaboratorsError) {
-          console.error('Error fetching collaborators:', collaboratorsError);
-          throw collaboratorsError;
+          if (collaboratorsError) {
+            console.error('Error fetching collaborators:', collaboratorsError);
+            throw collaboratorsError;
+          }
+
+          if (!collaborators || collaborators.length === 0) {
+            logDebug('No collaborators found for project');
+            return [];
+          }
+
+          logDebug('Raw collaborator records:', collaborators);
+
+          // Then for each collaborator, fetch their profile information
+          const collaboratorsWithProfiles = await Promise.all(
+            collaborators.map(async (collaborator) => {
+              try {
+                const { data: profileData, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', collaborator.user_id)
+                  .single();
+
+                if (profileError) {
+                  console.error('Error fetching profile for user:', collaborator.user_id, profileError);
+                  // Return collaborator with empty user object if profile fetch fails
+                  return {
+                    ...collaborator,
+                    user: { name: 'Unknown User', avatar: null }
+                  };
+                }
+
+                return {
+                  ...collaborator,
+                  user: profileData
+                };
+              } catch (err) {
+                console.error('Failed to fetch profile for user:', collaborator.user_id, err);
+                return {
+                  ...collaborator,
+                  user: { name: 'Unknown User', avatar: null }
+                };
+              }
+            })
+          );
+
+          logDebug('Collaborators with profiles:', collaboratorsWithProfiles);
+          return collaboratorsWithProfiles;
+        } catch (err) {
+          console.error('Failed to fetch project collaborators:', err);
+          throw err;
         }
-
-        if (!collaborators || collaborators.length === 0) {
-          console.log('No collaborators found for project');
-          return [];
-        }
-
-        console.log('Raw collaborator records:', collaborators);
-
-        // Then for each collaborator, fetch their profile information
-        const collaboratorsWithProfiles = await Promise.all(
-          collaborators.map(async (collaborator) => {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', collaborator.user_id)
-              .single();
-
-            if (profileError) {
-              console.error('Error fetching profile for user:', collaborator.user_id, profileError);
-              // Return collaborator with empty user object if profile fetch fails
-              return {
-                ...collaborator,
-                user: { name: 'Unknown User', avatar: null }
-              };
-            }
-
-            return {
-              ...collaborator,
-              user: profileData
-            };
-          })
-        );
-
-        console.log('Collaborators with profiles:', collaboratorsWithProfiles);
-        return collaboratorsWithProfiles;
       },
       enabled: !!projectId,
+      retry: 1,
     });
   };
 
@@ -152,34 +184,42 @@ export const useProjects = () => {
     return useQuery({
       queryKey: ['projectSteps', projectId],
       queryFn: async () => {
-        console.log('Fetching steps for project ID:', projectId);
+        logDebug('Fetching steps for project ID:', projectId);
         
         if (!projectId) {
-          console.log('No project ID provided, skipping query');
+          logDebug('No project ID provided, skipping query');
           return [];
         }
 
-        const { data, error } = await supabase
-          .from('project_steps')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('order_index');
+        try {
+          const { data, error } = await supabase
+            .from('project_steps')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('order_index');
 
-        if (error) {
-          console.error('Error fetching project steps:', error);
-          throw error;
+          if (error) {
+            console.error('Error fetching project steps:', error);
+            throw error;
+          }
+
+          logDebug('Fetched project steps:', data);
+          return data || [];
+        } catch (err) {
+          console.error('Failed to fetch project steps:', err);
+          throw err;
         }
-
-        console.log('Fetched project steps:', data);
-        return data || [];
       },
       enabled: !!projectId,
+      retry: 1,
     });
   };
 
   // Create a new project
   const createProject = useMutation({
     mutationFn: async (projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
+      logDebug('Creating new project with data:', projectData);
+      
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
@@ -191,18 +231,24 @@ export const useProjects = () => {
         share_code: null
       };
 
-      const { data, error } = await supabase
-        .from('projects')
-        .insert([newProject])
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .insert([newProject])
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error creating project:', error);
-        throw error;
+        if (error) {
+          console.error('Error creating project:', error);
+          throw error;
+        }
+
+        logDebug('Project created successfully:', data);
+        return data;
+      } catch (err) {
+        console.error('Failed to create project:', err);
+        throw err;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ownedProjects'] });
@@ -232,52 +278,61 @@ export const useProjects = () => {
       title: string; 
       description?: string;
     }) => {
+      logDebug('Adding step to project ID:', projectId);
+      
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
 
-      // Get the current highest order_index
-      const { data: steps, error: stepsError } = await supabase
-        .from('project_steps')
-        .select('order_index')
-        .eq('project_id', projectId)
-        .order('order_index', { ascending: false })
-        .limit(1);
+      try {
+        // Get the current highest order_index
+        const { data: steps, error: stepsError } = await supabase
+          .from('project_steps')
+          .select('order_index')
+          .eq('project_id', projectId)
+          .order('order_index', { ascending: false })
+          .limit(1);
 
-      if (stepsError) {
-        throw stepsError;
+        if (stepsError) {
+          throw stepsError;
+        }
+
+        const order_index = steps && steps.length > 0 ? steps[0].order_index + 1 : 0;
+
+        const newStep = {
+          id: uuidv4(),
+          project_id: projectId,
+          title,
+          description: description || null,
+          is_completed: false,
+          order_index,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await supabase
+          .from('project_steps')
+          .insert([newStep])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error adding project step:', error);
+          throw error;
+        }
+
+        // Update the project's updated_at field
+        await supabase
+          .from('projects')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', projectId);
+
+        logDebug('Step added successfully:', data);
+        return data;
+      } catch (err) {
+        console.error('Failed to add project step:', err);
+        throw err;
       }
-
-      const order_index = steps && steps.length > 0 ? steps[0].order_index + 1 : 0;
-
-      const newStep = {
-        id: uuidv4(),
-        project_id: projectId,
-        title,
-        description: description || '',
-        is_completed: false,
-        order_index,
-        created_by: user.id,
-      };
-
-      const { data, error } = await supabase
-        .from('project_steps')
-        .insert([newStep])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding project step:', error);
-        throw error;
-      }
-
-      // Update the project's updated_at field
-      await supabase
-        .from('projects')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', projectId);
-
-      return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['projectSteps', variables.projectId] });
@@ -307,29 +362,37 @@ export const useProjects = () => {
       id: string;
       is_completed: boolean;
     }) => {
+      logDebug('Updating step ID:', id);
+      
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('project_steps')
-        .update({ is_completed })
-        .eq('id', id)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('project_steps')
+          .update({ is_completed })
+          .eq('id', id)
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error updating project step:', error);
-        throw error;
+        if (error) {
+          console.error('Error updating project step:', error);
+          throw error;
+        }
+
+        // Update the project's updated_at field
+        await supabase
+          .from('projects')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', data.project_id);
+
+        logDebug('Step updated successfully:', data);
+        return data;
+      } catch (err) {
+        console.error('Failed to update project step:', err);
+        throw err;
       }
-
-      // Update the project's updated_at field
-      await supabase
-        .from('projects')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', data.project_id);
-
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projectSteps', data.project_id] });
@@ -355,29 +418,37 @@ export const useProjects = () => {
   // Toggle step completion status
   const toggleStepCompletion = useMutation({
     mutationFn: async ({ step, isCompleted }: { step: ProjectStep; isCompleted: boolean }) => {
+      logDebug('Toggling step completion, ID:', step.id);
+      
       if (!user?.id) {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('project_steps')
-        .update({ is_completed: isCompleted })
-        .eq('id', step.id)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('project_steps')
+          .update({ is_completed: isCompleted })
+          .eq('id', step.id)
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error toggling step completion:', error);
-        throw error;
+        if (error) {
+          console.error('Error toggling step completion:', error);
+          throw error;
+        }
+
+        // Update the project's updated_at field
+        await supabase
+          .from('projects')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', step.project_id);
+
+        logDebug('Step toggled successfully:', data);
+        return data;
+      } catch (err) {
+        console.error('Failed to toggle step completion:', err);
+        throw err;
       }
-
-      // Update the project's updated_at field
-      await supabase
-        .from('projects')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', step.project_id);
-
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projectSteps', data.project_id] });
@@ -402,6 +473,8 @@ export const useProjects = () => {
 
   // Generate QR code for project sharing
   const generateQRCode = async (projectId: string): Promise<QRCodeResponse> => {
+    logDebug('Generating QR code for project ID:', projectId);
+    
     if (!user?.id) {
       throw new Error('User not authenticated');
     }
@@ -417,15 +490,18 @@ export const useProjects = () => {
         throw new Error('Failed to generate QR code');
       }
 
+      logDebug('QR code generated successfully:', data);
       return data as QRCodeResponse;
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-      throw error;
+    } catch (err) {
+      console.error('Failed to generate QR code:', err);
+      throw err;
     }
   };
 
   // Join a project using a share code
-  const joinProject = async (shareCode: string) => {
+  const joinProject = async (shareCode: string): Promise<JoinProjectResponse> => {
+    logDebug('Joining project with share code:', shareCode);
+    
     if (!user?.id) {
       throw new Error('User not authenticated');
     }
@@ -445,10 +521,11 @@ export const useProjects = () => {
       queryClient.invalidateQueries({ queryKey: ['ownedProjects'] });
       queryClient.invalidateQueries({ queryKey: ['collaboratingProjects'] });
 
-      return data;
-    } catch (error) {
-      console.error('Error joining project:', error);
-      throw error;
+      logDebug('Project joined successfully:', data);
+      return data as JoinProjectResponse;
+    } catch (err) {
+      console.error('Failed to join project:', err);
+      throw err;
     }
   };
 

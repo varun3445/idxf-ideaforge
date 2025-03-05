@@ -1,69 +1,78 @@
 
 import { useState } from 'react';
-import { ProjectStep } from '@/types/project.types';
+import { Check, Trash, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useProjects } from '@/hooks/useProjects';
-import { CheckCircle, Circle } from 'lucide-react';
+import { ProjectStep } from '@/types/project.types';
 
 interface ProjectStepCardProps {
   step: ProjectStep;
-  isOwner: boolean;
+  isOwner?: boolean;
 }
 
-const ProjectStepCard = ({ step, isOwner }: ProjectStepCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const ProjectStepCard = ({ step, isOwner = false }: ProjectStepCardProps) => {
+  const [isChecked, setIsChecked] = useState(step.is_completed);
   const { toggleStepCompletion } = useProjects();
-  
-  const toggleComplete = () => {
-    toggleStepCompletion.mutate({
-      step,
-      isCompleted: !step.is_completed
-    });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleToggle = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // We need to wait for the mutation to complete to avoid the UI flickering
+      await toggleStepCompletion.mutateAsync({
+        step,
+        isCompleted: !isChecked
+      });
+      
+      // Update local state after successful mutation
+      setIsChecked(!isChecked);
+    } catch (error) {
+      console.error('Error toggling step completion:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
+
   return (
-    <div 
-      className={`border rounded-lg p-4 mb-4 transition-all ${
-        step.is_completed ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex-shrink-0">
-          <Checkbox 
-            checked={step.is_completed}
-            onCheckedChange={() => toggleComplete()}
-            className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-          />
-        </div>
+    <div className={`flex items-start gap-3 p-4 rounded-lg border ${isChecked ? 'bg-primary/5 border-primary/20' : 'bg-card border-border'}`}>
+      <Checkbox
+        id={`step-${step.id}`}
+        checked={isChecked}
+        disabled={isSubmitting}
+        onCheckedChange={handleToggle}
+        className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+      />
+      
+      <div className="flex-1">
+        <label 
+          htmlFor={`step-${step.id}`} 
+          className={`font-medium block mb-1 cursor-pointer ${isChecked ? 'line-through text-muted-foreground' : ''}`}
+        >
+          {step.title}
+        </label>
         
-        <div className="flex-grow">
-          <div className="flex justify-between items-start">
-            <h3 
-              className={`text-lg font-medium mb-1 text-left ${
-                step.is_completed ? 'text-primary' : ''
-              }`}
-            >
-              {step.title}
-            </h3>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? 'Show Less' : 'Show More'}
-            </Button>
-          </div>
-          
-          {isExpanded && step.description && (
-            <p className="mt-2 text-muted-foreground text-sm text-left">
-              {step.description}
-            </p>
-          )}
-        </div>
+        {step.description && (
+          <p className={`text-sm ${isChecked ? 'text-muted-foreground/70 line-through' : 'text-muted-foreground'}`}>
+            {step.description}
+          </p>
+        )}
       </div>
+      
+      {isOwner && (
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8"
+            disabled={isSubmitting}
+            onClick={handleToggle}
+          >
+            {isChecked ? <X size={16} /> : <Check size={16} />}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

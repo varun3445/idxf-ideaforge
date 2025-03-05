@@ -1,17 +1,13 @@
 
 import { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import { Project, QRCodeResponse } from '@/types/project.types';
+import { Input } from '@/components/ui/input';
 import { useProjects } from '@/hooks/useProjects';
-import { QrCode, Copy, Check, Share2 } from 'lucide-react';
+import { Check, Copy, QrCode, Share2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Project, QRCodeResponse } from '@/types/project.types';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface ShareProjectDialogProps {
   project: Project;
@@ -20,62 +16,45 @@ interface ShareProjectDialogProps {
 }
 
 export const ShareProjectDialog = ({ project, open, onOpenChange }: ShareProjectDialogProps) => {
+  const [copied, setCopied] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<QRCodeResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
   const { generateQRCode } = useProjects();
   const { toast } = useToast();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
-  const handleGenerateQRCode = async () => {
-    try {
-      setIsLoading(true);
-      const data = await generateQRCode(project.id);
-      setQrCodeData(data);
-    } catch (error) {
-      toast({
-        title: "Error generating QR code",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const shareUrl = qrCodeData?.shareUrl || `${window.location.origin}/join/${project.share_code}`;
   
-  const copyToClipboard = () => {
-    if (!qrCodeData) return;
-    
-    navigator.clipboard.writeText(qrCodeData.shareUrl);
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     
     toast({
-      title: "Link copied",
-      description: "Project link has been copied to clipboard"
+      title: 'Link copied',
+      description: 'The share link has been copied to your clipboard.',
     });
     
     setTimeout(() => setCopied(false), 2000);
   };
   
-  const handleShare = async () => {
-    if (!qrCodeData) return;
+  const handleGenerateQRCode = async () => {
+    if (qrCodeData) return; // Already generated
     
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Join ${project.title} on Forge`,
-          text: `Join my project "${project.title}" on Forge`,
-          url: qrCodeData.shareUrl
-        });
-      } catch (error) {
-        if (error instanceof Error && error.name !== 'AbortError') {
-          toast({
-            title: "Error sharing",
-            description: "Failed to share project link"
-          });
-        }
-      }
-    } else {
-      copyToClipboard();
+    try {
+      setIsLoading(true);
+      
+      const data = await generateQRCode(project.id);
+      
+      setQrCodeData(data);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate QR code. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -83,59 +62,77 @@ export const ShareProjectDialog = ({ project, open, onOpenChange }: ShareProject
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Project</DialogTitle>
+          <DialogTitle>Share project</DialogTitle>
           <DialogDescription>
-            Generate a QR code or share a link to invite collaborators
+            Invite others to collaborate on "{project.title}"
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col items-center justify-center py-4">
-          {!qrCodeData ? (
-            <div className="text-center">
+        <div className="space-y-6 pt-4">
+          <div>
+            <label htmlFor="share-link" className="text-sm font-medium block mb-2">
+              Share Link
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="share-link"
+                readOnly
+                value={shareUrl}
+                className="flex-1"
+              />
               <Button 
-                onClick={handleGenerateQRCode} 
-                disabled={isLoading}
-                className="mb-2"
+                variant="secondary" 
+                size="icon"
+                onClick={handleCopyLink}
+                className="flex-shrink-0"
               >
-                <QrCode className="mr-2 h-4 w-4" />
-                Generate QR Code
+                {copied ? <Check size={16} /> : <Copy size={16} />}
               </Button>
-              <p className="text-sm text-muted-foreground mt-2">
-                This will create a unique sharing link for your project
-              </p>
             </div>
-          ) : (
-            <>
-              <div className="bg-white p-4 rounded-md mb-4">
+          </div>
+          
+          <div className="space-y-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGenerateQRCode}
+              disabled={isLoading || !!qrCodeData}
+            >
+              <QrCode size={16} className="mr-2" />
+              {qrCodeData ? 'QR Code Generated' : isLoading ? 'Generating...' : 'Generate QR Code'}
+            </Button>
+            
+            {qrCodeData && (
+              <div className="flex justify-center p-2 mt-4">
                 <img 
                   src={qrCodeData.qrCodeUrl} 
-                  alt="Project QR Code" 
-                  className="w-48 h-48"
+                  alt="QR Code" 
+                  className="max-w-full h-auto border rounded-lg p-2"
+                  style={{ maxHeight: '200px' }}
                 />
               </div>
-              
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex items-center">
-                  <input
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mr-2"
-                    value={qrCodeData.shareUrl}
-                    readOnly
-                  />
-                  <Button 
-                    size="icon" 
-                    onClick={copyToClipboard}
-                    variant="outline"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-                
-                <Button onClick={handleShare} className="mt-2">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share Link
-                </Button>
-              </div>
-            </>
+            )}
+          </div>
+          
+          {isMobile && (
+            <Button 
+              variant="default" 
+              className="w-full"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `Collaborate on ${project.title}`,
+                    text: `Join my project: ${project.title}`,
+                    url: shareUrl,
+                  }).catch((error) => console.log('Error sharing', error));
+                } else {
+                  handleCopyLink();
+                }
+              }}
+            >
+              <Share2 size={16} className="mr-2" />
+              Share via...
+            </Button>
           )}
         </div>
       </DialogContent>

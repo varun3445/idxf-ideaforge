@@ -1,29 +1,15 @@
 
 import { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useProjects } from '@/hooks/useProjects';
-import { useToast } from '@/components/ui/use-toast';
+import { Users } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { QrCode, AtSign } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useProjects } from '@/hooks/useProjects';
 import { useNavigate } from 'react-router-dom';
 
 interface AddCollaboratorDialogProps {
@@ -32,38 +18,59 @@ interface AddCollaboratorDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const shareCodeSchema = z.object({
+const joinFormSchema = z.object({
   shareCode: z.string().min(1, "Share code is required"),
 });
 
 const AddCollaboratorDialog = ({ projectId, open, onOpenChange }: AddCollaboratorDialogProps) => {
-  const [view, setView] = useState<'options' | 'shareCode'>('options');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { joinProject } = useProjects();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const form = useForm<z.infer<typeof shareCodeSchema>>({
-    resolver: zodResolver(shareCodeSchema),
+  const form = useForm<z.infer<typeof joinFormSchema>>({
+    resolver: zodResolver(joinFormSchema),
     defaultValues: {
       shareCode: '',
     },
   });
   
-  const handleJoinViaCode = async (values: z.infer<typeof shareCodeSchema>) => {
+  const onSubmit = async (values: z.infer<typeof joinFormSchema>) => {
     try {
+      setIsSubmitting(true);
+      console.log('Joining project with share code:', values.shareCode);
+      
       const result = await joinProject(values.shareCode);
+      
+      if (result.success) {
+        toast({
+          title: 'Project joined',
+          description: result.message || 'You have successfully joined the project',
+        });
+        
+        form.reset();
+        onOpenChange(false);
+        
+        // Navigate to the project page
+        if (result.project?.id) {
+          navigate(`/project/${result.project.id}`);
+        }
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'Failed to join project. Please check the share code and try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error joining project:', error);
       toast({
-        title: "Success",
-        description: result.message,
+        title: 'Error',
+        description: error.message || 'Failed to join project. Please try again later.',
+        variant: 'destructive',
       });
-      onOpenChange(false);
-      navigate(`/project/${result.project.id}`);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to join project",
-        variant: "destructive",
-      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -73,73 +80,38 @@ const AddCollaboratorDialog = ({ projectId, open, onOpenChange }: AddCollaborato
         <DialogHeader>
           <DialogTitle>Join Project</DialogTitle>
           <DialogDescription>
-            Join a project using a share code or link
+            Enter a share code to join an existing project
           </DialogDescription>
         </DialogHeader>
         
-        {view === 'options' ? (
-          <div className="grid grid-cols-1 gap-4 py-4">
-            <Button
-              onClick={() => setView('shareCode')}
-              className="flex items-center justify-start h-auto p-4"
-            >
-              <div className="mr-4 p-2 rounded-full bg-primary-foreground">
-                <QrCode className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-medium">Via Share Code</h3>
-                <p className="text-sm text-muted-foreground">
-                  Enter a project share code
-                </p>
-              </div>
-            </Button>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="shareCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Share Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter project share code" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <Button
-              variant="outline"
-              className="flex items-center justify-start h-auto p-4"
-              disabled // Will be implemented in future
-            >
-              <div className="mr-4 p-2 rounded-full bg-muted">
-                <AtSign className="h-5 w-5" />
-              </div>
-              <div className="text-left">
-                <h3 className="font-medium">Via Email</h3>
-                <p className="text-sm text-muted-foreground">
-                  Invite a user by email
-                </p>
-              </div>
-            </Button>
-          </div>
-        ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleJoinViaCode)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="shareCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Share Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter share code" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter className="flex sm:justify-between gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setView('options')}
-                >
-                  Back
-                </Button>
-                <Button type="submit">Join Project</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        )}
+            <DialogFooter className="pt-4">
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                <Users size={16} className="mr-2" />
+                {isSubmitting ? 'Joining...' : 'Join Project'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
