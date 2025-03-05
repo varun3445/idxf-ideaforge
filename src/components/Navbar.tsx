@@ -1,215 +1,139 @@
-
-import { useLocation } from 'react-router-dom';
-import { Grid, Users, Flame, User, Settings, LogOut } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
-import { useToast } from '../hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { useMediaQuery } from '../hooks/useMediaQuery';
+import { Compass, Users, Microscope, User, LogOut, FileCode } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const Navbar = () => {
+  const { logout, user } = useAuth();
   const location = useLocation();
-  const { user, logout } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
-  const profileRef = useRef<HTMLDivElement>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setProfileOpen(false);
-      }
-    };
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const navItems = [
-    { path: '/explore', label: 'Explore', icon: Grid },
-    { path: '/matches', label: 'Network', icon: Users },
-    { path: '/lab', label: 'Forge', icon: Flame },
+  const navigation = [
+    { name: 'Explore', href: '/explore', icon: <Compass /> },
+    { name: 'Matches', href: '/matches', icon: <Users /> },
+    { name: 'Forge', href: '/forge', icon: <FileCode /> },
+    { name: 'Lab', href: '/lab', icon: <Microscope /> },
+    { name: 'Profile', href: '/profile', icon: <User /> },
   ];
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account"
-      });
-      navigate('/'); // Changed from '/login' to '/' to redirect to landing page
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Logout failed",
-        description: "An error occurred while logging out",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Mobile top profile button and bottom navigation
-  if (isMobile) {
-    return (
-      <>
-        {/* Mobile profile button (top right) */}
-        <div className="fixed top-4 right-4 z-40">
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden bg-black shadow-lg border border-white/10"
-            >
-              {user && user.avatar ? (
-                <img 
-                  src={user.avatar}
-                  alt={user.name || 'User'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={20} className="text-white" />
-              )}
-            </button>
-
-            {profileOpen && (
-              <div 
-                className="absolute right-0 top-full mt-2 rounded-md shadow-lg bg-black/95 border border-white/10 z-50 w-36"
-              >
-                <div className="py-1">
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center px-4 py-2 text-sm text-white hover:bg-white/10 transition-colors"
-                    onClick={() => setProfileOpen(false)}
+  return (
+    <nav className="bg-background border-b border-border fixed top-0 left-0 w-full z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="text-xl font-bold text-black">
+              AI Matcher
+            </Link>
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-4">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`text-black hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium ${location.pathname === item.href ? 'bg-gray-900 text-white' : 'text-gray-300'
+                      }`}
                   >
-                    <Settings size={16} className="mr-2" />
-                    Edit Profile
+                    <div className="flex items-center">
+                      <span className="mr-2">{item.icon}</span>
+                      {item.name}
+                    </div>
                   </Link>
-                  <button 
-                    onClick={() => {
-                      setProfileOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 transition-colors"
-                  >
-                    <LogOut size={16} className="mr-2" />
-                    Logout
-                  </button>
-                </div>
+                ))}
               </div>
-            )}
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <div className="ml-4 flex items-center md:ml-6">
+              <span className="mr-3 text-sm">
+                {user?.name}
+              </span>
+              <Button variant="outline" size="sm" onClick={async () => {
+                await logout();
+              }}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+          <div className="-mr-2 flex md:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              type="button"
+              className="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+              aria-controls="mobile-menu"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Open main menu</span>
+              <svg
+                className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <svg
+                className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-        
-        {/* Mobile bottom navigation - improved spacing */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-black text-white border-t border-border/10 overflow-hidden">
-          <div className="flex justify-around items-center h-16">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex flex-col items-center justify-center w-full h-full ${
-                  isActive(item.path)
-                    ? 'text-primary'
-                    : 'text-white/70 hover:text-white'
-                }`}
-              >
-                <item.icon size={20} className="mb-1" />
-                <span className="text-xs">{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-      </>
-    );
-  }
+      </div>
 
-  // Desktop sidebar navigation
-  return (
-    <nav className="fixed inset-y-0 left-0 z-40 flex flex-col bg-black text-white border-r border-border/10 w-64 hidden md:flex">
-      <div className="flex flex-col h-full p-4">
-        <Link 
-          to="/explore" 
-          className="text-xl font-bold tracking-tight transition-all mb-8 text-left"
-        >
-          <span className="text-white">Idea <span className="text-primary">Forge</span></span>
-        </Link>
-        
-        <div className="flex flex-col space-y-2">
-          {navItems.map((item) => (
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`} id="mobile-menu">
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {navigation.map((item) => (
             <Link
-              key={item.path}
-              to={item.path}
-              className={`px-4 py-3 rounded-lg transition-all duration-300 flex items-center justify-start space-x-3 ${
-                isActive(item.path)
-                  ? 'bg-primary text-black font-medium'
-                  : 'hover:bg-white/10'
-              }`}
+              key={item.name}
+              to={item.href}
+              className={`text-black hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium ${location.pathname === item.href ? 'bg-gray-900 text-white' : 'text-gray-300'
+                }`}
             >
-              <item.icon size={20} />
-              <span>{item.label}</span>
+              <div className="flex items-center">
+                <span className="mr-2">{item.icon}</span>
+                {item.name}
+              </div>
             </Link>
           ))}
         </div>
-
-        <div className="mt-auto">
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center justify-start space-x-3 w-full p-3 rounded-lg hover:bg-white/10 transition-colors overflow-hidden"
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center">
-                {user && user.avatar ? (
-                  <img 
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User size={18} className="text-white" />
-                )}
-              </div>
-              <div className="text-left overflow-hidden text-ellipsis">
-                <p className="font-medium truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-white/60 truncate">{user?.email || ''}</p>
-              </div>
-            </button>
-
-            {profileOpen && (
-              <div 
-                className="absolute right-0 left-0 bottom-full mb-2 rounded-md shadow-lg bg-black/95 border border-white/10 z-50"
-              >
-                <div className="py-1">
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center px-4 py-2 text-sm hover:bg-white/10 transition-colors"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    <Settings size={16} className="mr-2" />
-                    Edit Profile
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      setProfileOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 transition-colors"
-                  >
-                    <LogOut size={16} className="mr-2" />
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
+        <div className="pt-4 pb-3 border-t border-gray-700">
+          <div className="mt-3 px-2 space-y-1">
+            <Button variant="outline" size="sm" className="w-full justify-center" onClick={async () => {
+              await logout();
+            }}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </div>

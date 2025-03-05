@@ -16,6 +16,8 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
 import ProjectDetail from './pages/ProjectDetail';
+import Forge from './pages/Forge';
+import JoinProject from './pages/JoinProject';
 
 import './App.css';
 
@@ -38,6 +40,8 @@ const AppContent = () => {
           <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+          <Route path="/forge" element={<ProtectedRoute><Forge /></ProtectedRoute>} />
+          <Route path="/join/:code" element={<ProtectedRoute><JoinProject /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
