@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/AuthContext';
-import { type Project, type ProjectStep, type ProjectCollaborator } from '@/types/project.types';
+import { type Project, type ProjectStep, type ProjectCollaborator, type QRCodeResponse } from '@/types/project.types';
 
 export const useProjects = () => {
   const { user } = useAuth();
@@ -164,7 +164,7 @@ export const useProjects = () => {
           .from('project_steps')
           .select('*')
           .eq('project_id', projectId)
-          .order('position');
+          .order('order_index');
 
         if (error) {
           console.error('Error fetching project steps:', error);
@@ -189,6 +189,7 @@ export const useProjects = () => {
         ...projectData,
         id: uuidv4(),
         owner_id: user.id,
+        share_code: null
       };
 
       const { data, error } = await supabase
@@ -236,19 +237,19 @@ export const useProjects = () => {
         throw new Error('User not authenticated');
       }
 
-      // Get the current highest position
+      // Get the current highest order_index
       const { data: steps, error: stepsError } = await supabase
         .from('project_steps')
-        .select('position')
+        .select('order_index')
         .eq('project_id', projectId)
-        .order('position', { ascending: false })
+        .order('order_index', { ascending: false })
         .limit(1);
 
       if (stepsError) {
         throw stepsError;
       }
 
-      const position = steps && steps.length > 0 ? steps[0].position + 1 : 0;
+      const order_index = steps && steps.length > 0 ? steps[0].order_index + 1 : 0;
 
       const newStep = {
         id: uuidv4(),
@@ -256,7 +257,7 @@ export const useProjects = () => {
         title,
         description: description || '',
         is_completed: false,
-        position,
+        order_index,
         created_by: user.id,
       };
 
@@ -293,6 +294,60 @@ export const useProjects = () => {
       toast({
         title: 'Error',
         description: 'Failed to add step. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update a project step
+  const updateProjectStep = useMutation({
+    mutationFn: async ({
+      id,
+      is_completed
+    }: {
+      id: string;
+      is_completed: boolean;
+    }) => {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('project_steps')
+        .update({ is_completed })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating project step:', error);
+        throw error;
+      }
+
+      // Update the project's updated_at field
+      await supabase
+        .from('projects')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', data.project_id);
+
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projectSteps', data.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['ownedProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['collaboratingProjects'] });
+      toast({
+        title: data.is_completed ? 'Step completed' : 'Step marked as incomplete',
+        description: data.is_completed 
+          ? 'Great job! The step has been marked as complete.' 
+          : 'The step has been marked as incomplete.',
+      });
+    },
+    onError: (error) => {
+      console.error('Step update error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update step status. Please try again.',
         variant: 'destructive',
       });
     },
@@ -346,7 +401,58 @@ export const useProjects = () => {
     },
   });
 
-  // Use this hook in other components
+  // Generate QR code for project sharing
+  const generateQRCode = async (projectId: string): Promise<QRCodeResponse> => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('generate-qr-code', {
+        body: { projectId },
+      });
+
+      if (error) {
+        console.error('Error generating QR code:', error);
+        throw new Error('Failed to generate QR code');
+      }
+
+      return data as QRCodeResponse;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      throw error;
+    }
+  };
+
+  // Join a project using a share code
+  const joinProject = async (shareCode: string) => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('join-project', {
+        body: { shareCode, userId: user.id },
+      });
+
+      if (error) {
+        console.error('Error joining project:', error);
+        throw new Error('Failed to join project');
+      }
+
+      // Invalidate queries to refresh project lists
+      queryClient.invalidateQueries({ queryKey: ['ownedProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['collaboratingProjects'] });
+
+      return data;
+    } catch (error) {
+      console.error('Error joining project:', error);
+      throw error;
+    }
+  };
+
   return {
     ownedProjects,
     collaboratingProjects,
@@ -354,6 +460,9 @@ export const useProjects = () => {
     useProjectSteps,
     createProject,
     addProjectStep,
+    updateProjectStep,
     toggleStepCompletion,
+    generateQRCode,
+    joinProject
   };
 };

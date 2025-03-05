@@ -13,12 +13,12 @@ interface ProjectStepCardProps {
 
 const ProjectStepCard = ({ step, isOwner }: ProjectStepCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { updateProjectStep } = useProjects();
+  const { toggleStepCompletion } = useProjects();
   
   const toggleComplete = () => {
-    updateProjectStep.mutate({
-      id: step.id,
-      is_completed: !step.is_completed
+    toggleStepCompletion.mutate({
+      step,
+      isCompleted: !step.is_completed
     });
   };
   

@@ -36,3 +36,9 @@ export interface QRCodeResponse {
   shareCode: string;
   shareUrl: string;
 }
+
+export interface JoinProjectResponse {
+  success: boolean;
+  message: string;
+  project: Project;
+}
