@@ -80,7 +80,7 @@ export const useProjects = () => {
           .from('project_collaborators')
           .select(`
             *,
-            user:profiles(name, avatar)
+            profiles(name, avatar)
           `)
           .eq('project_id', projectId);
           
@@ -89,8 +89,8 @@ export const useProjects = () => {
         return data.map(collab => ({
           ...collab,
           user: {
-            name: collab.user?.[0]?.name || 'Unknown User',
-            avatar: collab.user?.[0]?.avatar || null
+            name: collab.profiles?.name || 'Unknown User',
+            avatar: collab.profiles?.avatar || null
           }
         })) as ProjectCollaborator[];
       },
