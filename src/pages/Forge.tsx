@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Users, Share2, Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -11,6 +11,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAuth } from '@/AuthContext';
 import { projectIdeas } from '../data/mockData';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useToast } from '@/hooks/use-toast';
 
 const Forge = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -21,6 +22,7 @@ const Forge = () => {
   const { ownedProjects, collaboratingProjects } = useProjects();
   const { user } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { toast } = useToast();
   
   const categories = ['All', ...new Set(projectIdeas.map(idea => idea.category))];
   const filteredIdeas = projectIdeas.filter(idea => {
@@ -32,6 +34,50 @@ const Forge = () => {
   });
   
   const isLoading = ownedProjects.isLoading || collaboratingProjects.isLoading;
+  const hasError = ownedProjects.error || collaboratingProjects.error;
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('Forge component mounted');
+    console.log('User:', user);
+    console.log('Owned Projects Loading:', ownedProjects.isLoading);
+    console.log('Collaborating Projects Loading:', collaboratingProjects.isLoading);
+    
+    if (ownedProjects.error) {
+      console.error('Owned Projects Error:', ownedProjects.error);
+    }
+    
+    if (collaboratingProjects.error) {
+      console.error('Collaborating Projects Error:', collaboratingProjects.error);
+    }
+    
+    if (ownedProjects.data) {
+      console.log('Owned Projects Data:', ownedProjects.data);
+    }
+    
+    if (collaboratingProjects.data) {
+      console.log('Collaborating Projects Data:', collaboratingProjects.data);
+    }
+  }, [user, ownedProjects.isLoading, collaboratingProjects.isLoading, ownedProjects.error, collaboratingProjects.error, ownedProjects.data, collaboratingProjects.data]);
+
+  // Show error toast if there's an error
+  useEffect(() => {
+    if (ownedProjects.error) {
+      toast({
+        title: 'Error loading your projects',
+        description: 'There was an error loading your projects. Please try refreshing the page.',
+        variant: 'destructive',
+      });
+    }
+    
+    if (collaboratingProjects.error) {
+      toast({
+        title: 'Error loading collaborations',
+        description: 'There was an error loading your collaborations. Please try refreshing the page.',
+        variant: 'destructive',
+      });
+    }
+  }, [ownedProjects.error, collaboratingProjects.error, toast]);
   
   return (
     <AnimatedTransition>
@@ -84,6 +130,16 @@ const Forge = () => {
           isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : hasError ? (
+            <div className="text-center py-12 bg-muted/30 rounded-lg border border-border">
+              <h3 className="text-xl font-medium mb-2">Error loading projects</h3>
+              <p className="text-muted-foreground mb-4">
+                There was a problem loading your projects. Please try refreshing the page.
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                Refresh Page
+              </Button>
             </div>
           ) : (
             <>

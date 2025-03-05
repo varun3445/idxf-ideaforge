@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Plus, Share2, Check, QrCode } from 'lucide-react';
@@ -24,31 +25,82 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Debug logging
+  useEffect(() => {
+    console.log('ProjectDetail component mounted, id:', id);
+    console.log('User:', user);
+  }, [id, user]);
+  
   useEffect(() => {
     if (!id) {
+      console.log('No project ID found, navigating to /forge');
       navigate('/forge');
     }
   }, [id, navigate]);
   
   const projectId = id || '';
   
-  const { data: project, isLoading: isProjectLoading } = useQuery({
+  const { data: project, isLoading: isProjectLoading, error: projectError } = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', projectId)
-        .single();
+      console.log('Fetching project with ID:', projectId);
+      
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching project:', error);
+          throw error;
+        }
         
-      if (error) throw error;
-      return data;
+        console.log('Fetched project data:', data);
+        return data;
+      } catch (err) {
+        console.error('Exception while fetching project:', err);
+        throw err;
+      }
     },
     enabled: !!projectId,
   });
   
-  const { data: steps, isLoading: isStepsLoading } = useProjects().useProjectSteps(projectId);
-  const { data: collaborators, isLoading: isCollaboratorsLoading } = useProjects().useProjectCollaborators(projectId);
+  // Log when project data changes
+  useEffect(() => {
+    if (project) {
+      console.log('Project data loaded:', project);
+    }
+    if (projectError) {
+      console.error('Project loading error:', projectError);
+      toast({
+        title: 'Error loading project',
+        description: 'There was a problem loading the project details. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }, [project, projectError, toast]);
+  
+  const { data: steps, isLoading: isStepsLoading, error: stepsError } = useProjects().useProjectSteps(projectId);
+  const { data: collaborators, isLoading: isCollaboratorsLoading, error: collaboratorsError } = useProjects().useProjectCollaborators(projectId);
+  
+  // Log when steps and collaborators data changes
+  useEffect(() => {
+    if (steps) {
+      console.log('Project steps loaded:', steps);
+    }
+    if (stepsError) {
+      console.error('Steps loading error:', stepsError);
+    }
+    
+    if (collaborators) {
+      console.log('Project collaborators loaded:', collaborators);
+    }
+    if (collaboratorsError) {
+      console.error('Collaborators loading error:', collaboratorsError);
+    }
+  }, [steps, stepsError, collaborators, collaboratorsError]);
   
   const isOwner = project?.owner_id === user?.id;
   const completedSteps = steps?.filter(step => step.is_completed)?.length || 0;
@@ -63,7 +115,7 @@ const ProjectDetail = () => {
     );
   }
   
-  if (!project) {
+  if (projectError || !project) {
     return (
       <div className="page-container">
         <div className="text-center py-20">
