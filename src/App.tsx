@@ -11,7 +11,6 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
-import ExperimentLab from './pages/ExperimentLab';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
@@ -37,7 +36,6 @@ const AppContent = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
           <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-          <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
           <Route path="/forge" element={<ProtectedRoute><Forge /></ProtectedRoute>} />

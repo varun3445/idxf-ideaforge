@@ -1,7 +1,8 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
-import { Compass, Users, Microscope, User, LogOut, FileCode } from 'lucide-react';
+import { Compass, Users, User, LogOut, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -23,8 +24,6 @@ const Navbar = () => {
     { name: 'Explore', href: '/explore', icon: <Compass /> },
     { name: 'Matches', href: '/matches', icon: <Users /> },
     { name: 'Forge', href: '/forge', icon: <FileCode /> },
-    { name: 'Lab', href: '/lab', icon: <Microscope /> },
-    { name: 'Profile', href: '/profile', icon: <User /> },
   ];
 
   return (
@@ -33,7 +32,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-black">
-              AI Matcher
+              Idea Forge
             </Link>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
@@ -55,9 +54,18 @@ const Navbar = () => {
           </div>
           <div className="hidden md:block">
             <div className="ml-4 flex items-center md:ml-6">
-              <span className="mr-3 text-sm">
-                {user?.name}
-              </span>
+              <Link to="/profile" className="flex items-center mr-4">
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user?.name || 'User'} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                </div>
+                <span className="ml-2 text-sm">
+                  {user?.name}
+                </span>
+              </Link>
               <Button variant="outline" size="sm" onClick={async () => {
                 await logout();
               }}>
@@ -125,6 +133,15 @@ const Navbar = () => {
               </div>
             </Link>
           ))}
+          <Link
+            to="/profile"
+            className={`text-black hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/profile' ? 'bg-gray-900 text-white' : 'text-gray-300'}`}
+          >
+            <div className="flex items-center">
+              <span className="mr-2"><User /></span>
+              Profile
+            </div>
+          </Link>
         </div>
         <div className="pt-4 pb-3 border-t border-gray-700">
           <div className="mt-3 px-2 space-y-1">

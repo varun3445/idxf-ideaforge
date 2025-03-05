@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -107,8 +108,8 @@ export const useProjects = () => {
             return {
               ...collab,
               user: {
-                name: profileData.name || 'Unknown User',
-                avatar: profileData.avatar
+                name: profileData?.name || 'Unknown User',
+                avatar: profileData?.avatar
               }
             };
           })
