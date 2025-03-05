@@ -76,23 +76,45 @@ export const useProjects = () => {
     return useQuery({
       queryKey: ['projectCollaborators', projectId],
       queryFn: async () => {
-        const { data, error } = await supabase
+        const { data: collaborators, error: collabError } = await supabase
           .from('project_collaborators')
-          .select(`
-            *,
-            profiles(name, avatar)
-          `)
+          .select('*')
           .eq('project_id', projectId);
           
-        if (error) throw error;
+        if (collabError) throw collabError;
         
-        return data.map(collab => ({
-          ...collab,
-          user: {
-            name: collab.profiles?.name || 'Unknown User',
-            avatar: collab.profiles?.avatar || null
-          }
-        })) as ProjectCollaborator[];
+        if (collaborators.length === 0) return [];
+        
+        const collaboratorsWithProfiles = await Promise.all(
+          collaborators.map(async (collab) => {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('name, avatar')
+              .eq('id', collab.user_id)
+              .single();
+              
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
+              return {
+                ...collab,
+                user: {
+                  name: 'Unknown User',
+                  avatar: null
+                }
+              };
+            }
+            
+            return {
+              ...collab,
+              user: {
+                name: profileData.name || 'Unknown User',
+                avatar: profileData.avatar
+              }
+            };
+          })
+        );
+        
+        return collaboratorsWithProfiles as ProjectCollaborator[];
       },
       enabled: !!projectId,
     });
@@ -133,7 +155,6 @@ export const useProjects = () => {
   // Add a step to a project
   const addProjectStep = useMutation({
     mutationFn: async (stepData: { projectId: string; title: string; description?: string }) => {
-      // Get the highest order_index
       const { data: existingSteps, error: stepsError } = await supabase
         .from('project_steps')
         .select('order_index')
@@ -262,7 +283,6 @@ export const useProjects = () => {
     
     const result = await response.json();
     
-    // Refetch after successful join
     queryClient.invalidateQueries({ queryKey: ['collaboratingProjects'] });
     
     return result;
