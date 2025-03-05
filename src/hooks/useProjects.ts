@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,10 +80,7 @@ export const useProjects = () => {
           .from('project_collaborators')
           .select(`
             *,
-            user:user_id (
-              name:profiles!profiles(name),
-              avatar:profiles!profiles(avatar)
-            )
+            user:profiles(name, avatar)
           `)
           .eq('project_id', projectId);
           
