@@ -22,6 +22,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '@/AuthContext';
 
 interface CreateProjectDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ const projectFormSchema = z.object({
 
 const CreateProjectDialog = ({ open, onOpenChange }: CreateProjectDialogProps) => {
   const { createProject } = useProjects();
+  const { user } = useAuth();
   
   const form = useForm<z.infer<typeof projectFormSchema>>({
     resolver: zodResolver(projectFormSchema),
@@ -47,7 +49,9 @@ const CreateProjectDialog = ({ open, onOpenChange }: CreateProjectDialogProps) =
   const onSubmit = async (values: z.infer<typeof projectFormSchema>) => {
     await createProject.mutateAsync({
       title: values.title,
-      description: values.description,
+      description: values.description || null,
+      owner_id: user?.id || '', // Add user ID from context
+      share_code: null, // Add share_code property with null value
     });
     
     form.reset();

@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/AuthContext';
-import { type Project, type ProjectStep, type ProjectCollaborator, type QRCodeResponse } from '@/types/project.types';
+import { type Project, type ProjectStep, type ProjectCollaborator, type QRCodeResponse, type JoinProjectResponse } from '@/types/project.types';
 
 export const useProjects = () => {
   const { user } = useAuth();
