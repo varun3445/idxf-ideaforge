@@ -27,7 +27,7 @@ const ExperimentLab = () => {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={16} className="text-muted-foreground" />
             </div>
-            <input type="text" placeholder="Search for project ideas..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full h-10 sm:h-12 rounded-lg border border-input bg-background px-3 sm:px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            <input type="text" placeholder="Search for project ideas..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full h-10 sm:h-12 rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-[45px]" />
           </div>
           
           <div className="flex flex-col gap-3">
