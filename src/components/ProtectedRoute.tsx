@@ -9,6 +9,11 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
   
+  // Temporarily bypass authentication checks
+  return <>{children}</>;
+  
+  // Original authentication check code (commented out for now)
+  /*
   // Show loading state while checking authentication
   if (loading) {
     return <div className="flex justify-center items-center h-screen">
@@ -23,6 +28,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   
   // If authenticated, render the protected content
   return <>{children}</>;
+  */
 };
 
 export default ProtectedRoute;

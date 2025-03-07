@@ -16,6 +16,8 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
 import ProjectDetail from './pages/ProjectDetail';
+import Projects from './pages/Projects';
+import Forge from './pages/Forge';
 
 import './App.css';
 
@@ -26,18 +28,20 @@ const AppContent = () => {
 
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      {<Navbar />}
       <BetaIndicator />
-      <div className={`${isAuthenticated ? (isMobile ? "pb-16 mobile-page-padding" : "fixed-nav-content") : ""}`}>
+      <div className={`${isMobile ? "pb-16 mobile-page-padding" : "fixed-nav-content"}`}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-          <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-          <Route path="/lab" element={<ProtectedRoute><ExperimentLab /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+          <Route path="/login" element={<Explore />} />
+          <Route path="/signup" element={<Explore />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/matches" element={<Matches />} />
+          <Route path="/lab" element={<ExperimentLab />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/forge/:projectId" element={<Forge />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
