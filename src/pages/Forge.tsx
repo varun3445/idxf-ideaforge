@@ -25,6 +25,28 @@ import { useToast } from '../hooks/use-toast';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Define a separate style component to avoid JSX issues
+const ForgeStyles = () => (
+  <style jsx>{`
+    .highlight-step {
+      background-color: rgba(var(--primary-rgb), 0.1);
+      border-radius: 0.5rem;
+      transition: background-color 0.3s ease-in-out;
+    }
+    .animate-pulse-once {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+  `}</style>
+);
+
 const ProjectContent: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -140,7 +162,8 @@ const ProjectContent: React.FC = () => {
   }
   
   return (
-    <div className="page-container">
+    <div className="page-container p-4 md:p-6">
+      <ForgeStyles />
       <div className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
@@ -283,27 +306,6 @@ const ProjectContent: React.FC = () => {
           shareCode={currentProject.share_code}
         />
       )}
-      
-      <style>
-        {`
-        .highlight-step {
-          background-color: rgba(var(--primary-rgb), 0.1);
-          border-radius: 0.5rem;
-          transition: background-color 0.3s ease-in-out;
-        }
-        .animate-pulse-once {
-          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1;
-        }
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.7;
-          }
-        }
-        `}
-      </style>
     </div>
   );
 };

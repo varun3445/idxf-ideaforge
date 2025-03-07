@@ -44,8 +44,16 @@ const AppContent = () => {
           <Route path="/lab" element={<ExperimentLab />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/forge/:projectId" element={<Forge />} />
+          <Route path="/projects" element={
+            <ProtectedRoute>
+              <Projects />
+            </ProtectedRoute>
+          } />
+          <Route path="/forge/:projectId" element={
+            <ProtectedRoute>
+              <Forge />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

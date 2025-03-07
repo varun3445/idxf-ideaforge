@@ -55,7 +55,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
               size={200}
               level="H"
               includeMargin={true}
-              className="block"
+              className="block w-full h-auto"
             />
           </div>
           
