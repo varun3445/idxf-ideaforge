@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -51,24 +50,20 @@ const ProjectContent: React.FC = () => {
     }
   }, [projectId]);
   
-  // Handle opening add step dialog
   const handleAddStep = () => {
     setParentStepId(null);
     setAddStepDialogOpen(true);
   };
   
-  // Handle opening add substep dialog
   const handleAddSubstep = (parentId: string) => {
     setParentStepId(parentId);
     setAddStepDialogOpen(true);
   };
   
-  // Handle sharing project
   const handleShareProject = () => {
     setShareDialogOpen(true);
   };
 
-  // Handle setting current focus step
   const handleSetCurrentFocus = (step: ProjectStep) => {
     if (!currentProject) return;
     
@@ -85,7 +80,6 @@ const ProjectContent: React.FC = () => {
     });
   };
   
-  // Scroll to step
   const scrollToStep = (stepId: string) => {
     setTimeout(() => {
       const stepElement = document.getElementById(`step-${stepId}`);
@@ -99,7 +93,6 @@ const ProjectContent: React.FC = () => {
     }, 100);
   };
   
-  // Root level steps (no parent)
   const rootSteps = projectSteps
     .filter(step => step.parent_step_id === null)
     .sort((a, b) => a.order_index - b.order_index);
@@ -308,6 +301,7 @@ const ForgeWithProvider: React.FC = () => {
         <ProjectContent />
       </ProjectProvider>
     </AnimatedTransition>
+  );
 };
 
 export default ForgeWithProvider;
