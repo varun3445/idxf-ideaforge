@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -25,12 +25,16 @@ import './App.css';
 const AppContent = () => {
   const { isAuthenticated, loading } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const location = useLocation();
+  
+  // Hide navbar on landing page
+  const showNavbar = location.pathname !== '/';
 
   return (
     <>
-      {<Navbar />}
-      <BetaIndicator />
-      <div className={`${isMobile ? "pb-16 mobile-page-padding" : "fixed-nav-content"}`}>
+      {showNavbar && <Navbar />}
+      {showNavbar && <BetaIndicator />}
+      <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Explore />} />

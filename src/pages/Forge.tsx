@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Plus, 
@@ -7,7 +7,10 @@ import {
   Layers, 
   ListChecks, 
   ArrowLeft, 
-  Share
+  Share2,
+  CheckCircle2,
+  Circle,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,8 +19,10 @@ import ProjectStepCard from '@/components/ProjectStepCard';
 import AddStepDialog from '@/components/AddStepDialog';
 import AddCollaboratorDialog from '@/components/AddCollaboratorDialog';
 import CollaboratorsList from '@/components/CollaboratorsList';
-import { useProject, ProjectProvider } from '../contexts/ProjectContext';
+import { useProject, ProjectProvider, ProjectStep } from '../contexts/ProjectContext';
 import { useToast } from '../hooks/use-toast';
+import ProjectShareDialog from '@/components/ProjectShareDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ProjectContent: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -28,13 +33,17 @@ const ProjectContent: React.FC = () => {
     currentProject, 
     projectSteps,
     currentStep,
+    setCurrentStep,
+    updateProject,
     loading,
     error
   } = useProject();
   
   const [addStepDialogOpen, setAddStepDialogOpen] = useState(false);
   const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (projectId) {
@@ -56,16 +65,38 @@ const ProjectContent: React.FC = () => {
   
   // Handle sharing project
   const handleShareProject = () => {
-    if (currentProject?.share_code) {
-      navigator.clipboard.writeText(
-        `${window.location.origin}/join-project/${currentProject.share_code}`
-      );
-      toast({
-        title: 'Link copied',
-        description: 'Project invitation link copied to clipboard',
-        variant: 'default'
-      });
-    }
+    setShareDialogOpen(true);
+  };
+
+  // Handle setting current focus step
+  const handleSetCurrentFocus = (step: ProjectStep) => {
+    if (!currentProject) return;
+    
+    setCurrentStep(step);
+    updateProject({
+      id: currentProject.id,
+      current_step_id: step.id
+    });
+    
+    toast({
+      title: 'Current focus updated',
+      description: `The team is now focused on "${step.title}"`,
+      variant: 'default'
+    });
+  };
+  
+  // Scroll to step
+  const scrollToStep = (stepId: string) => {
+    setTimeout(() => {
+      const stepElement = document.getElementById(`step-${stepId}`);
+      if (stepElement) {
+        stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        stepElement.classList.add('highlight-step');
+        setTimeout(() => {
+          stepElement.classList.remove('highlight-step');
+        }, 2000);
+      }
+    }, 100);
   };
   
   // Root level steps (no parent)
@@ -126,7 +157,7 @@ const ProjectContent: React.FC = () => {
           
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleShareProject}>
-              <Share className="mr-2 h-4 w-4" />
+              <Share2 className="mr-2 h-4 w-4" />
               Share
             </Button>
             <Button onClick={() => setAddCollaboratorDialogOpen(true)}>
@@ -141,7 +172,7 @@ const ProjectContent: React.FC = () => {
         </div>
         
         {currentStep && (
-          <Card className="mt-6 border-l-4 border-l-primary">
+          <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Layers className="mr-2 h-5 w-5 text-primary" />
@@ -157,7 +188,7 @@ const ProjectContent: React.FC = () => {
                     <p className="text-sm text-gray-600 mt-1">{currentStep.description}</p>
                   )}
                 </div>
-                <Button size="sm" variant="outline" onClick={() => navigate('#step-' + currentStep.id)}>
+                <Button size="sm" variant="outline" onClick={() => scrollToStep(currentStep.id)}>
                   <ListChecks className="mr-2 h-4 w-4" />
                   Go to Step
                 </Button>
@@ -168,7 +199,7 @@ const ProjectContent: React.FC = () => {
       </div>
       
       <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-1">
+        <div className="flex-1" ref={stepsRef}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Project Steps</h2>
             <Button size="sm" onClick={handleAddStep}>
@@ -194,11 +225,28 @@ const ProjectContent: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {rootSteps.map(step => (
-                <ProjectStepCard 
-                  key={step.id} 
-                  step={step} 
-                  onAddSubstep={handleAddSubstep}
-                />
+                <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
+                  <div className="flex items-start gap-2 mb-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="px-1 h-6 mt-1"
+                      onClick={() => handleSetCurrentFocus(step)}
+                    >
+                      {currentStep?.id === step.id ? 
+                        <CheckCircle2 className="h-5 w-5 text-primary" /> : 
+                        <Circle className="h-5 w-5 text-gray-400" />}
+                    </Button>
+                    
+                    <div className="flex-1">
+                      <ProjectStepCard 
+                        step={step} 
+                        onAddSubstep={handleAddSubstep}
+                        isCurrentFocus={currentStep?.id === step.id}
+                      />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -219,6 +267,34 @@ const ProjectContent: React.FC = () => {
         open={addCollaboratorDialogOpen} 
         onOpenChange={setAddCollaboratorDialogOpen}
       />
+      
+      {currentProject && (
+        <ProjectShareDialog 
+          open={shareDialogOpen} 
+          onOpenChange={setShareDialogOpen}
+          projectTitle={currentProject.title} 
+          shareCode={currentProject.share_code}
+        />
+      )}
+      
+      <style jsx global>{`
+        .highlight-step {
+          background-color: rgba(var(--primary-rgb), 0.1);
+          border-radius: 0.5rem;
+          transition: background-color 0.3s ease-in-out;
+        }
+        .animate-pulse-once {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1;
+        }
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
+        }
+      `}</style>
     </div>
   );
 };

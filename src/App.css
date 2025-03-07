@@ -1,4 +1,3 @@
-
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -72,4 +71,29 @@
   .mobile-page-padding {
     padding-top: 25px;
   }
+}
+
+/* Highlight animation for steps */
+@keyframes highlight-pulse {
+  0% {
+    background-color: rgba(var(--primary-rgb), 0.1);
+  }
+  50% {
+    background-color: rgba(var(--primary-rgb), 0.2);
+  }
+  100% {
+    background-color: rgba(var(--primary-rgb), 0.1);
+  }
+}
+
+.highlight-step {
+  animation: highlight-pulse 2s ease-in-out;
+}
+
+/* QR Code styles */
+.qr-code-container {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  display: inline-block;
 }
