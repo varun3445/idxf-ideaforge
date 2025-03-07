@@ -1,18 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  Plus, 
-  Users, 
-  Layers, 
-  ListChecks, 
-  ArrowLeft, 
-  Share2,
-  CheckCircle2,
-  Circle,
-  ChevronRight,
-  Link2
-} from 'lucide-react';
+import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -26,8 +14,7 @@ import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define a separate style component to avoid JSX issues
-const ForgeStyles = () => (
-  <style jsx>{`
+const ForgeStyles = () => <style jsx>{`
     .highlight-step {
       background-color: rgba(var(--primary-rgb), 0.1);
       border-radius: 0.5rem;
@@ -44,16 +31,20 @@ const ForgeStyles = () => (
         opacity: 0.7;
       }
     }
-  `}</style>
-);
-
+  `}</style>;
 const ProjectContent: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const {
+    projectId
+  } = useParams<{
+    projectId: string;
+  }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { 
-    loadProjectDetails, 
-    currentProject, 
+  const {
+    toast
+  } = useToast();
+  const {
+    loadProjectDetails,
+    currentProject,
     projectSteps,
     currentStep,
     setCurrentStep,
@@ -61,33 +52,27 @@ const ProjectContent: React.FC = () => {
     loading,
     error
   } = useProject();
-  
   const [addStepDialogOpen, setAddStepDialogOpen] = useState(false);
   const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
-  
   useEffect(() => {
     if (projectId) {
       loadProjectDetails(projectId);
     }
   }, [projectId, loadProjectDetails]);
-  
   const handleAddStep = () => {
     setParentStepId(null);
     setAddStepDialogOpen(true);
   };
-  
   const handleAddSubstep = (parentId: string) => {
     setParentStepId(parentId);
     setAddStepDialogOpen(true);
   };
-  
   const handleShareProject = () => {
     setShareDialogOpen(true);
   };
-
   const handleConnectElements = () => {
     toast({
       title: 'Connect Elements',
@@ -95,28 +80,27 @@ const ProjectContent: React.FC = () => {
       variant: 'default'
     });
   };
-
   const handleSetCurrentFocus = (step: ProjectStep) => {
     if (!currentProject) return;
-    
     setCurrentStep(step);
     updateProject({
       id: currentProject.id,
       current_step_id: step.id
     });
-    
     toast({
       title: 'Current focus updated',
       description: `The team is now focused on "${step.title}"`,
       variant: 'default'
     });
   };
-  
   const scrollToStep = (stepId: string) => {
     setTimeout(() => {
       const stepElement = document.getElementById(`step-${stepId}`);
       if (stepElement) {
-        stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        stepElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
         stepElement.classList.add('highlight-step');
         setTimeout(() => {
           stepElement.classList.remove('highlight-step');
@@ -124,61 +108,41 @@ const ProjectContent: React.FC = () => {
       }
     }, 100);
   };
-  
-  const rootSteps = projectSteps
-    .filter(step => step.parent_step_id === null)
-    .sort((a, b) => a.order_index - b.order_index);
-  
+  const rootSteps = projectSteps.filter(step => step.parent_step_id === null).sort((a, b) => a.order_index - b.order_index);
   if (loading && !currentProject) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
+    return <div className="flex h-full w-full items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+      </div>;
   }
-  
   if (error && !currentProject) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
+    return <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-medium mb-2">Error loading project</h3>
           <p className="text-sm text-gray-500 mb-4">{error}</p>
           <Button onClick={() => navigate('/projects')}>Go back to projects</Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-  
   if (!currentProject) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
+    return <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
           <h3 className="text-lg font-medium mb-2">Project not found</h3>
           <p className="text-sm text-gray-500 mb-4">The project you're looking for doesn't exist or you don't have access.</p>
           <Button onClick={() => navigate('/projects')}>Go back to projects</Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-  
-  return (
-    <div className="page-container p-4 md:p-6">
+  return <div className="page-container p-4 md:p-6">
       <ForgeStyles />
       <div className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <Button
-              variant="ghost"
-              className="mb-2 pl-0"
-              onClick={() => navigate('/projects')}
-            >
+            <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-2 pl-0 text-left">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Projects
             </Button>
-            <h1 className="text-3xl font-bold">{currentProject.title}</h1>
-            {currentProject.description && (
-              <p className="text-gray-600 mt-2">{currentProject.description}</p>
-            )}
+            <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
+            {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
           </div>
           
           <div className="flex flex-wrap gap-2">
@@ -201,8 +165,7 @@ const ProjectContent: React.FC = () => {
           </div>
         </div>
         
-        {currentStep && (
-          <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
+        {currentStep && <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Layers className="mr-2 h-5 w-5 text-primary" />
@@ -214,9 +177,7 @@ const ProjectContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-medium">{currentStep.title}</h3>
-                  {currentStep.description && (
-                    <p className="text-sm text-gray-600 mt-1">{currentStep.description}</p>
-                  )}
+                  {currentStep.description && <p className="text-sm text-gray-600 mt-1">{currentStep.description}</p>}
                 </div>
                 <Button size="sm" variant="outline" onClick={() => scrollToStep(currentStep.id)}>
                   <ListChecks className="mr-2 h-4 w-4" />
@@ -224,8 +185,7 @@ const ProjectContent: React.FC = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
       </div>
       
       <div className="flex flex-col lg:flex-row gap-8">
@@ -238,8 +198,7 @@ const ProjectContent: React.FC = () => {
             </Button>
           </div>
           
-          {rootSteps.length === 0 ? (
-            <Card>
+          {rootSteps.length === 0 ? <Card>
               <CardContent className="flex flex-col items-center justify-center p-8">
                 <ListChecks className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No steps yet</h3>
@@ -251,35 +210,19 @@ const ProjectContent: React.FC = () => {
                   Add First Step
                 </Button>
               </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {rootSteps.map(step => (
-                <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
+            </Card> : <div className="space-y-4">
+              {rootSteps.map(step => <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
                   <div className="flex items-start gap-2 mb-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="px-1 h-6 mt-1"
-                      onClick={() => handleSetCurrentFocus(step)}
-                    >
-                      {currentStep?.id === step.id ? 
-                        <CheckCircle2 className="h-5 w-5 text-primary" /> : 
-                        <Circle className="h-5 w-5 text-gray-400" />}
+                    <Button variant="ghost" size="sm" className="px-1 h-6 mt-1" onClick={() => handleSetCurrentFocus(step)}>
+                      {currentStep?.id === step.id ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-gray-400" />}
                     </Button>
                     
                     <div className="flex-1">
-                      <ProjectStepCard 
-                        step={step} 
-                        onAddSubstep={handleAddSubstep}
-                        isCurrentFocus={currentStep?.id === step.id}
-                      />
+                      <ProjectStepCard step={step} onAddSubstep={handleAddSubstep} isCurrentFocus={currentStep?.id === step.id} />
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
         </div>
         
         <div className="lg:w-80">
@@ -287,37 +230,18 @@ const ProjectContent: React.FC = () => {
         </div>
       </div>
       
-      <AddStepDialog 
-        open={addStepDialogOpen} 
-        onOpenChange={setAddStepDialogOpen}
-        parentStepId={parentStepId}
-      />
+      <AddStepDialog open={addStepDialogOpen} onOpenChange={setAddStepDialogOpen} parentStepId={parentStepId} />
       
-      <AddCollaboratorDialog 
-        open={addCollaboratorDialogOpen} 
-        onOpenChange={setAddCollaboratorDialogOpen}
-      />
+      <AddCollaboratorDialog open={addCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen} />
       
-      {currentProject && (
-        <ProjectShareDialog 
-          open={shareDialogOpen} 
-          onOpenChange={setShareDialogOpen}
-          projectTitle={currentProject.title} 
-          shareCode={currentProject.share_code}
-        />
-      )}
-    </div>
-  );
+      {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
+    </div>;
 };
-
 const ForgeWithProvider: React.FC = () => {
-  return (
-    <AnimatedTransition>
+  return <AnimatedTransition>
       <ProjectProvider>
         <ProjectContent />
       </ProjectProvider>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default ForgeWithProvider;
