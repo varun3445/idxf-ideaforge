@@ -277,7 +277,8 @@ const ProjectContent: React.FC = () => {
         />
       )}
       
-      <style jsx global>{`
+      <style>
+        {`
         .highlight-step {
           background-color: rgba(var(--primary-rgb), 0.1);
           border-radius: 0.5rem;
@@ -294,7 +295,8 @@ const ProjectContent: React.FC = () => {
             opacity: 0.7;
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
@@ -306,7 +308,6 @@ const ForgeWithProvider: React.FC = () => {
         <ProjectContent />
       </ProjectProvider>
     </AnimatedTransition>
-  );
 };
 
 export default ForgeWithProvider;
