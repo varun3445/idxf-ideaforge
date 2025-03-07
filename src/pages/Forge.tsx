@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -48,7 +49,7 @@ const ProjectContent: React.FC = () => {
     if (projectId) {
       loadProjectDetails(projectId);
     }
-  }, [projectId]);
+  }, [projectId, loadProjectDetails]);
   
   const handleAddStep = () => {
     setParentStepId(null);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import AnimatedTransition from '../components/AnimatedTransition';
-import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X, MapPin } from 'lucide-react';
+import { Loader2, Sparkles, Info, ArrowLeft, ArrowRight, Image, Check, UserPlus, X, MapPin, UserCheck } from 'lucide-react';
 import { supabase, checkDatabaseConnection } from '../integrations/supabase/client';
 import { useAuth } from '../AuthContext';
 import { Input } from '../components/ui/input';
@@ -77,6 +77,7 @@ const Matches = () => {
   const [locationError, setLocationError] = useState<string>('');
   const profilesScrollRef = useRef<HTMLDivElement>(null);
   const projectsScrollRef = useRef<HTMLDivElement>(null);
+  const [collaborationRequested, setCollaborationRequested] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const getUserLocation = () => {
@@ -448,6 +449,19 @@ const Matches = () => {
     setShowProjectDialog(false);
   };
 
+  const handleCollaborate = (profileId: string, profileName: string) => {
+    setCollaborationRequested(prev => ({
+      ...prev,
+      [profileId]: true
+    }));
+    
+    toast({
+      title: "Collaboration request sent",
+      description: `You've sent a collaboration request to ${profileName}`,
+      variant: "success"
+    });
+  };
+
   const getRandomProjectTitle = () => {
     const titles = ["Smart City Planner", "Health Monitor App", "Sustainable Energy Platform", "Virtual Reality Classroom", "AI Writing Assistant", "Blockchain Voting System", "Digital Art Marketplace", "Remote Work Collaboration Tool", "Fitness Tracking Wearable", "Augmented Reality Navigation"];
     return titles[Math.floor(Math.random() * titles.length)];
@@ -624,6 +638,26 @@ const Matches = () => {
                                 +{profile.skills.length - 2} more
                               </Badge>}
                           </div>
+                          <div className="mt-3 flex justify-end">
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleCollaborate(profile.id, profile.name)}
+                              disabled={collaborationRequested[profile.id]}
+                              className="w-full"
+                            >
+                              {collaborationRequested[profile.id] ? (
+                                <>
+                                  <UserCheck className="mr-2 h-4 w-4" />
+                                  Request Sent
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  Collaborate
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>)}
                     </div>
                   </div>}
@@ -652,11 +686,22 @@ const Matches = () => {
                           </div>
                           <div className="p-4">
                             <h3 className="font-bold text-lg mb-1">{project.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{project.description}</p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {project.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
-                                  {skill.name}
-                                </Badge>)}
+                            <p className="text-muted-foreground mb-4">{project.description}</p>
+                            
+                            <div className="mb-4">
+                              <h3 className="text-sm font-medium mb-2">Skills needed:</h3>
+                              <div className="flex flex-wrap gap-2">
+                                {project.skills.map((skill, index) => <Badge key={index} monochrome className="shadow-sm">
+                                    {skill.name}
+                                  </Badge>)}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <h3 className="text-sm font-medium mb-2">Collaborators:</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {project.contributors.length} person{project.contributors.length !== 1 ? 's' : ''} contributing to this project
+                              </p>
                             </div>
                           </div>
                         </div>)}
