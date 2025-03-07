@@ -10,7 +10,8 @@ import {
   Share2,
   CheckCircle2,
   Circle,
-  ChevronRight
+  ChevronRight,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,6 +64,14 @@ const ProjectContent: React.FC = () => {
   
   const handleShareProject = () => {
     setShareDialogOpen(true);
+  };
+
+  const handleConnectElements = () => {
+    toast({
+      title: 'Connect Elements',
+      description: 'This feature allows you to link different project elements together',
+      variant: 'default'
+    });
   };
 
   const handleSetCurrentFocus = (step: ProjectStep) => {
@@ -150,6 +159,10 @@ const ProjectContent: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
+            <Button onClick={handleConnectElements}>
+              <Link2 className="mr-2 h-4 w-4" />
+              Connect Elements
+            </Button>
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share

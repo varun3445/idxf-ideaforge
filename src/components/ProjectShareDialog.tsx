@@ -49,12 +49,13 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
         </DialogHeader>
         
         <div className="flex flex-col items-center space-y-4 py-4">
-          <div className="bg-white p-4 rounded-lg">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
             <QRCodeSVG 
               value={shareUrl}
               size={200}
               level="H"
               includeMargin={true}
+              className="block"
             />
           </div>
           
