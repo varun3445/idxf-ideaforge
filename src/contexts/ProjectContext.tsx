@@ -49,6 +49,11 @@ export interface Project {
   share_code: string | null;
 }
 
+export interface SuggestedStep {
+  title: string;
+  description: string;
+}
+
 interface ProjectContextType {
   projects: Project[];
   currentProject: Project | null;
@@ -60,7 +65,7 @@ interface ProjectContextType {
   stepAssignments: StepAssignment[];
   loadProjects: () => Promise<void>;
   loadProjectDetails: (projectId: string) => Promise<void>;
-  createProject: (title: string, description: string) => Promise<Project | null>;
+  createProject: (title: string, description: string, suggestedSteps?: SuggestedStep[]) => Promise<Project | null>;
   updateProject: (project: Partial<Project> & { id: string }) => Promise<void>;
   createStep: (data: { title: string; description?: string; parent_step_id?: string | null }) => Promise<ProjectStep | null>;
   updateStep: (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => Promise<void>;
@@ -295,7 +300,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Create a new project
-  const createProject = async (title: string, description: string): Promise<Project | null> => {
+  const createProject = async (title: string, description: string, suggestedSteps?: SuggestedStep[]): Promise<Project | null> => {
     setLoading(true);
     setError(null);
     
@@ -313,6 +318,32 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
       
       setProjects(prev => [...prev, newProject]);
+      
+      // If suggested steps are provided, create them
+      if (suggestedSteps && suggestedSteps.length > 0) {
+        const createdSteps: ProjectStep[] = [];
+        
+        for (let i = 0; i < suggestedSteps.length; i++) {
+          const step = suggestedSteps[i];
+          const newStep: ProjectStep = {
+            id: `step-${Date.now()}-${i}`,
+            project_id: newProject.id,
+            title: step.title,
+            description: step.description || null,
+            is_completed: false,
+            order_index: i,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            parent_step_id: null
+          };
+          
+          createdSteps.push(newStep);
+        }
+        
+        // Add steps to the project
+        setProjectSteps(prev => [...prev, ...createdSteps]);
+      }
+      
       toast({
         title: 'Success',
         description: 'Project created successfully',

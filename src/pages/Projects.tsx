@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2 } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,15 +13,32 @@ import { useProject, ProjectProvider, Project } from '../contexts/ProjectContext
 import { format } from 'date-fns';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface SuggestedStep {
+  title: string;
+  description: string;
+}
+
+interface SuggestedRole {
+  title: string;
+  description: string;
+}
 
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const { projects, loadProjects, createProject, loading } = useProject();
+  const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [suggestedSteps, setSuggestedSteps] = useState<SuggestedStep[]>([]);
+  const [suggestedRoles, setSuggestedRoles] = useState<SuggestedRole[]>([]);
+  const [isSuggestingSteps, setIsSuggestingSteps] = useState(false);
+  const [isSuggestingRoles, setIsSuggestingRoles] = useState(false);
   
   useEffect(() => {
     loadProjects();
@@ -46,6 +63,155 @@ const ProjectsList: React.FC = () => {
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
+  };
+
+  const handleSuggestSteps = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Project title required",
+        description: "Please provide a project title first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSuggestingSteps(true);
+    setSuggestedSteps([]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('project-ai-assistant', {
+        body: { 
+          action: 'suggestSteps',
+          projectInfo: {
+            title,
+            description
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Parse the AI response - simple parsing assuming a formatted list
+      const content = data.result;
+      const steps: SuggestedStep[] = [];
+      
+      // Simple parsing of the OpenAI response
+      const lines = content.split('\n');
+      let currentStep: Partial<SuggestedStep> = {};
+      
+      for (const line of lines) {
+        if (line.match(/^\d+\.\s+/) || line.match(/^Step \d+:/)) { // New step
+          const titleMatch = line.match(/^\d+\.\s+(.*)/i) || line.match(/^Step \d+:\s+(.*)/i);
+          if (titleMatch && currentStep.title) {
+            steps.push(currentStep as SuggestedStep);
+            currentStep = {};
+          }
+          if (titleMatch) {
+            currentStep.title = titleMatch[1].trim();
+          }
+        } else if (currentStep.title && !currentStep.description && line.trim()) {
+          currentStep.description = line.trim();
+        }
+      }
+      
+      // Add the last step if it exists
+      if (currentStep.title && currentStep.description) {
+        steps.push(currentStep as SuggestedStep);
+      }
+      
+      setSuggestedSteps(steps);
+      
+      toast({
+        title: "Steps suggested!",
+        description: "AI has generated project steps based on your project details",
+      });
+    } catch (error) {
+      console.error('Error suggesting steps:', error);
+      toast({
+        title: "Suggestion failed",
+        description: "Failed to generate steps. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSuggestingSteps(false);
+    }
+  };
+
+  const handleSuggestTeam = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Project title required",
+        description: "Please provide a project title first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSuggestingRoles(true);
+    setSuggestedRoles([]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('project-ai-assistant', {
+        body: { 
+          action: 'suggestTeam',
+          projectInfo: {
+            title,
+            description
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Parse the AI response
+      const content = data.result;
+      const roles: SuggestedRole[] = [];
+      
+      // Simple parsing of the OpenAI response
+      const lines = content.split('\n');
+      let currentRole: Partial<SuggestedRole> = {};
+      
+      for (const line of lines) {
+        if (line.match(/^\d+\.\s+/) || line.match(/^Role \d+:/)) { // New role
+          const titleMatch = line.match(/^\d+\.\s+(.*?):/i) || line.match(/^Role \d+:\s+(.*?):/i);
+          if (titleMatch && currentRole.title) {
+            roles.push(currentRole as SuggestedRole);
+            currentRole = {};
+          }
+          if (titleMatch) {
+            currentRole.title = titleMatch[1].trim();
+            // Get description if it's on the same line after the colon
+            const descMatch = line.match(/^.*?:(.*)/);
+            if (descMatch) {
+              currentRole.description = descMatch[1].trim();
+            }
+          }
+        } else if (currentRole.title && !currentRole.description && line.trim()) {
+          currentRole.description = line.trim();
+        }
+      }
+      
+      // Add the last role if it exists
+      if (currentRole.title && currentRole.description) {
+        roles.push(currentRole as SuggestedRole);
+      }
+      
+      setSuggestedRoles(roles);
+      
+      toast({
+        title: "Team suggested!",
+        description: "AI has generated team roles based on your project details",
+      });
+    } catch (error) {
+      console.error('Error suggesting team roles:', error);
+      toast({
+        title: "Suggestion failed",
+        description: "Failed to generate team roles. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSuggestingRoles(false);
+    }
   };
 
   // Divide projects into owned and collaborations
@@ -152,7 +318,7 @@ const ProjectsList: React.FC = () => {
       )}
       
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
@@ -180,14 +346,91 @@ const ProjectsList: React.FC = () => {
               />
             </div>
             
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex flex-col md:flex-row gap-4 py-3">
+              <Button 
+                type="button" 
+                variant="secondary"
+                className="flex-1"
+                onClick={handleSuggestSteps}
+                disabled={isSuggestingSteps || !title.trim()}
+              >
+                {isSuggestingSteps ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                {isSuggestingSteps ? "Generating..." : "Suggest Project Steps"}
+              </Button>
+              
+              <Button 
+                type="button" 
+                variant="secondary"
+                className="flex-1"
+                onClick={handleSuggestTeam}
+                disabled={isSuggestingRoles || !title.trim()}
+              >
+                {isSuggestingRoles ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Users className="h-4 w-4 mr-2" />
+                )}
+                {isSuggestingRoles ? "Generating..." : "Suggest Team Roles"}
+              </Button>
+            </div>
+            
+            {suggestedSteps.length > 0 && (
+              <div className="space-y-3 mt-4 border rounded-md p-4 bg-gray-50 shadow-sm">
+                <h3 className="font-semibold text-md flex items-center">
+                  <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                  Suggested Project Steps
+                </h3>
+                <div className="space-y-2">
+                  {suggestedSteps.map((step, index) => (
+                    <Card key={index} className="bg-white">
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-sm font-medium">{step.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="py-2 px-3">
+                        <p className="text-xs text-gray-600">{step.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 italic">
+                  These steps will be automatically added when you create the project.
+                </p>
+              </div>
+            )}
+            
+            {suggestedRoles.length > 0 && (
+              <div className="space-y-3 mt-4 border rounded-md p-4 bg-gray-50 shadow-sm">
+                <h3 className="font-semibold text-md flex items-center">
+                  <Users className="h-4 w-4 mr-2 text-primary" />
+                  Suggested Team Roles
+                </h3>
+                <div className="space-y-2">
+                  {suggestedRoles.map((role, index) => (
+                    <Card key={index} className="bg-white">
+                      <CardHeader className="py-2 px-3">
+                        <CardTitle className="text-sm font-medium">{role.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="py-2 px-3">
+                        <p className="text-xs text-gray-600">{role.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={!title.trim()}>
                 Create Project
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

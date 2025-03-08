@@ -137,18 +137,19 @@ const ProjectContent: React.FC = () => {
   return <div className="page-container p-4 md:p-6">
       <ForgeStyles />
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-2 pl-0 text-left">
+        <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center">
+            <Button variant="ghost" onClick={() => navigate('/projects')} className="mr-4 pl-0 text-left">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Projects
             </Button>
-            <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
-            {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button onClick={handleAddStep}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Step
+            </Button>
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -157,8 +158,12 @@ const ProjectContent: React.FC = () => {
               <Users className="mr-2 h-4 w-4" />
               Add Collaborator
             </Button>
-            
           </div>
+        </div>
+        
+        <div className="mt-6">
+          <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
+          {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
         </div>
         
         {currentStep && <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
@@ -233,6 +238,7 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
+
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
