@@ -146,10 +146,7 @@ const ProjectContent: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2 justify-end">
-            <Button onClick={handleAddStep}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Step
-            </Button>
+            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -238,7 +235,6 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
-
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
