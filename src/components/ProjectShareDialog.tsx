@@ -26,10 +26,11 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
   
   if (!shareCode) return null;
   
-  const shareUrl = `${window.location.origin}/join-project/${shareCode}`;
+  // Create a join project URL that will go to a dedicated join project page
+  const joinProjectUrl = `${window.location.origin}/join-project/${shareCode}`;
   
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
+    navigator.clipboard.writeText(joinProjectUrl);
     setCopied(true);
     
     toast({
@@ -51,7 +52,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
         <div className="flex flex-col items-center space-y-4 py-4">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <QRCodeSVG 
-              value={shareUrl}
+              value={joinProjectUrl}
               size={200}
               level="H"
               includeMargin={true}
@@ -61,7 +62,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
           
           <div className="text-sm text-center">
             <p className="font-medium mb-1">{projectTitle}</p>
-            <p className="text-gray-500">Scan this QR code to join the project</p>
+            <p className="text-gray-500">Scan this QR code to join and collaborate on this project</p>
           </div>
           
           <div className="grid w-full gap-2">
@@ -69,7 +70,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
             <div className="flex items-center space-x-2">
               <Input
                 id="share-link"
-                value={shareUrl}
+                value={joinProjectUrl}
                 readOnly
                 onClick={event => (event.target as HTMLInputElement).select()}
               />

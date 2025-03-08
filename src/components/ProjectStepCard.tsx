@@ -49,8 +49,8 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
   const assignments = stepAssignments.filter(a => a.step_id === step.id);
 
   // Handle step completion toggle
-  const handleCompletionToggle = () => {
-    completeStep(step.id, !step.is_completed);
+  const handleCompletionToggle = (checked: boolean) => {
+    completeStep(step.id, checked);
   };
 
   // Handle delete step
@@ -93,10 +93,18 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
         <CardHeader className="py-3 px-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-2">
-              <Checkbox id={`step-${step.id}-checkbox`} checked={step.is_completed} onCheckedChange={handleCompletionToggle} />
+              <Checkbox 
+                id={`step-${step.id}-checkbox`} 
+                checked={step.is_completed} 
+                onCheckedChange={handleCompletionToggle}
+              />
               <div>
                 <div className="flex items-center">
-                  <label htmlFor={`step-${step.id}-checkbox`} className={cn("font-medium cursor-pointer text-base", step.is_completed && "line-through text-gray-500")}>
+                  <label 
+                    htmlFor={`step-${step.id}-checkbox`} 
+                    className={cn("font-medium cursor-pointer text-base", 
+                      step.is_completed && "line-through text-gray-500")}
+                  >
                     {step.title}
                   </label>
                   {isCurrentFocus && (
@@ -105,7 +113,13 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
                     </div>
                   )}
                 </div>
-                {step.description && <p className={cn("text-sm text-gray-600 mt-1 text-left", step.is_completed && "line-through text-gray-500")}>{step.description}</p>}
+                {step.description && (
+                  <p className={cn("text-sm text-gray-600 mt-1 text-left", 
+                    step.is_completed && "line-through text-gray-500")}
+                  >
+                    {step.description}
+                  </p>
+                )}
                 <div className="flex items-center mt-2 space-x-4">
                   <span className="text-xs text-gray-500">Created {format(new Date(step.created_at), 'MMM d, yyyy')}</span>
                   
@@ -182,40 +196,60 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
                     {step.image_url ? 'Change' : 'Add'} Image
                   </DropdownMenuItem>
                   
+                  <DropdownMenuSeparator />
+                  
                   <DropdownMenuItem>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Assign to
-                    <ChevronRight className="h-4 w-4 ml-auto" />
-                    
-                    <DropdownMenuContent className="min-w-[180px]">
-                      {collaborators.length === 0 ? (
-                        <DropdownMenuItem disabled>
-                          No collaborators available
-                        </DropdownMenuItem>
-                      ) : (
-                        collaborators.map(collaborator => (
-                          <DropdownMenuItem key={collaborator.id} onClick={() => handleAssignCollaborator(collaborator.user_id)}>
-                            <div className="flex items-center w-full">
-                              <Avatar className="h-6 w-6 mr-2">
-                                <AvatarImage src={collaborator.user?.avatar || ''} />
-                                <AvatarFallback>
-                                  {getInitials(collaborator.user?.name || 'User')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="truncate">{collaborator.user?.name}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))
-                      )}
-                    </DropdownMenuContent>
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
+                  
+                  {onAddSubstep && (
+                    <DropdownMenuItem onClick={() => onAddSubstep(step.id)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Substep
+                    </DropdownMenuItem>
+                  )}
                   
                   <DropdownMenuItem onClick={handleDeleteStep} className="text-red-600 hover:text-red-700 hover:bg-red-50">
                     <Trash className="h-4 w-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* User assignment submenu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1">
+                    <UserPlus className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  <DropdownMenuItem disabled className="font-medium">
+                    Assign to
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {collaborators.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      No collaborators available
+                    </DropdownMenuItem>
+                  ) : (
+                    collaborators.map(collaborator => (
+                      <DropdownMenuItem key={collaborator.id} onClick={() => handleAssignCollaborator(collaborator.user_id)}>
+                        <div className="flex items-center w-full">
+                          <Avatar className="h-6 w-6 mr-2">
+                            <AvatarImage src={collaborator.user?.avatar || ''} />
+                            <AvatarFallback>
+                              {getInitials(collaborator.user?.name || 'User')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">{collaborator.user?.name}</span>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               
