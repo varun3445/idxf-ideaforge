@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2 } from 'lucide-react';
@@ -39,22 +38,31 @@ const ProjectsList: React.FC = () => {
   const [suggestedRoles, setSuggestedRoles] = useState<SuggestedRole[]>([]);
   const [isSuggestingSteps, setIsSuggestingSteps] = useState(false);
   const [isSuggestingRoles, setIsSuggestingRoles] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   
   useEffect(() => {
     loadProjects();
   }, []);
   
+  const validateForm = () => {
+    setFormSubmitted(true);
+    return title.trim() !== '' && description.trim() !== '';
+  };
+  
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim()) {
+    if (!validateForm()) {
       return;
     }
     
-    const newProject = await createProject(title.trim(), description.trim());
+    const newProject = await createProject(title.trim(), description.trim(), suggestedSteps);
     if (newProject) {
       setTitle('');
       setDescription('');
+      setSuggestedSteps([]);
+      setSuggestedRoles([]);
+      setFormSubmitted(false);
       setCreateDialogOpen(false);
       navigate(`/forge/${newProject.id}`);
     }
@@ -66,10 +74,10 @@ const ProjectsList: React.FC = () => {
   };
 
   const handleSuggestSteps = async () => {
-    if (!title.trim()) {
+    if (!validateForm()) {
       toast({
-        title: "Project title required",
-        description: "Please provide a project title first",
+        title: "Required fields missing",
+        description: "Please provide both a project title and description",
         variant: "destructive"
       });
       return;
@@ -138,10 +146,10 @@ const ProjectsList: React.FC = () => {
   };
 
   const handleSuggestTeam = async () => {
-    if (!title.trim()) {
+    if (!validateForm()) {
       toast({
-        title: "Project title required",
-        description: "Please provide a project title first",
+        title: "Required fields missing",
+        description: "Please provide both a project title and description",
         variant: "destructive"
       });
       return;
@@ -214,10 +222,6 @@ const ProjectsList: React.FC = () => {
     }
   };
 
-  // Divide projects into owned and collaborations
-  const ownedProjects = projects.filter(p => p.owner_id === 'user-1'); // Update with real auth user id when ready
-  const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1'); // Update with real auth user id when ready
-  
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
       return (
@@ -325,25 +329,38 @@ const ProjectsList: React.FC = () => {
           
           <form onSubmit={handleCreateProject} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="project-title">Project Title</Label>
+              <Label htmlFor="project-title">
+                Project Title <span className="text-red-500">*</span>
+              </Label>
               <Input 
                 id="project-title" 
                 value={title} 
                 onChange={e => setTitle(e.target.value)}
                 placeholder="Enter project title"
+                className={formSubmitted && !title.trim() ? "border-red-500" : ""}
                 required
               />
+              {formSubmitted && !title.trim() && (
+                <p className="text-red-500 text-sm mt-1">Project title is required</p>
+              )}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="project-description">Description (optional)</Label>
+              <Label htmlFor="project-description">
+                Description <span className="text-red-500">*</span>
+              </Label>
               <Textarea 
                 id="project-description" 
                 value={description} 
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Enter project description"
+                className={formSubmitted && !description.trim() ? "border-red-500" : ""}
                 rows={4}
+                required
               />
+              {formSubmitted && !description.trim() && (
+                <p className="text-red-500 text-sm mt-1">Project description is required</p>
+              )}
             </div>
             
             <div className="flex flex-col md:flex-row gap-4 py-3">
@@ -352,7 +369,7 @@ const ProjectsList: React.FC = () => {
                 variant="secondary"
                 className="flex-1"
                 onClick={handleSuggestSteps}
-                disabled={isSuggestingSteps || !title.trim()}
+                disabled={isSuggestingSteps}
               >
                 {isSuggestingSteps ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -367,7 +384,7 @@ const ProjectsList: React.FC = () => {
                 variant="secondary"
                 className="flex-1"
                 onClick={handleSuggestTeam}
-                disabled={isSuggestingRoles || !title.trim()}
+                disabled={isSuggestingRoles}
               >
                 {isSuggestingRoles ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -427,7 +444,7 @@ const ProjectsList: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!title.trim()}>
+              <Button type="submit">
                 Create Project
               </Button>
             </DialogFooter>
