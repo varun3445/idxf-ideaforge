@@ -14,7 +14,9 @@ import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define a separate style component to avoid JSX issues
-const ForgeStyles = () => <style jsx>{`
+const ForgeStyles = () => (
+  <style>
+    {`
     .highlight-step {
       background-color: rgba(var(--primary-rgb), 0.1);
       border-radius: 0.5rem;
@@ -31,7 +33,10 @@ const ForgeStyles = () => <style jsx>{`
         opacity: 0.7;
       }
     }
-  `}</style>;
+  `}
+  </style>
+);
+
 const ProjectContent: React.FC = () => {
   const {
     projectId
@@ -237,6 +242,7 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
+
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -244,4 +250,5 @@ const ForgeWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ForgeWithProvider;
