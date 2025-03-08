@@ -14,8 +14,7 @@ import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define a separate style component to avoid JSX issues
-const ForgeStyles = () => (
-  <style>
+const ForgeStyles = () => <style>
     {`
     .highlight-step {
       background-color: rgba(var(--primary-rgb), 0.1);
@@ -34,9 +33,7 @@ const ForgeStyles = () => (
       }
     }
   `}
-  </style>
-);
-
+  </style>;
 const ProjectContent: React.FC = () => {
   const {
     projectId
@@ -151,10 +148,7 @@ const ProjectContent: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleConnectElements}>
-              <Link2 className="mr-2 h-4 w-4" />
-              Connect Elements
-            </Button>
+            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -163,10 +157,7 @@ const ProjectContent: React.FC = () => {
               <Users className="mr-2 h-4 w-4" />
               Add Collaborator
             </Button>
-            <Button onClick={handleAddStep}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Step
-            </Button>
+            
           </div>
         </div>
         
@@ -242,7 +233,6 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
-
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -250,5 +240,4 @@ const ForgeWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
-
 export default ForgeWithProvider;
