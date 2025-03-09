@@ -93,10 +93,18 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
         <CardHeader className="py-3 px-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-2">
-              <Checkbox id={`step-${step.id}-checkbox`} checked={step.is_completed} onCheckedChange={handleCompletionToggle} />
+              <Checkbox 
+                id={`step-${step.id}-checkbox`} 
+                checked={step.is_completed} 
+                onCheckedChange={handleCompletionToggle} 
+                className="mt-1"
+              />
               <div>
                 <div className="flex items-center">
-                  <label htmlFor={`step-${step.id}-checkbox`} className={cn("font-medium cursor-pointer text-base", step.is_completed && "line-through text-gray-500")}>
+                  <label 
+                    htmlFor={`step-${step.id}-checkbox`} 
+                    className={cn("font-medium cursor-pointer text-base", step.is_completed && "line-through text-gray-500")}
+                  >
                     {step.title}
                   </label>
                   {isCurrentFocus && (
@@ -135,10 +143,10 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
               </div>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               {/* Assigned users */}
               {assignments.length > 0 && (
-                <div className="flex -space-x-2 mr-2">
+                <div className="flex -space-x-2">
                   {assignments.map(assignment => (
                     <DropdownMenu key={assignment.id}>
                       <DropdownMenuTrigger asChild>
@@ -221,7 +229,7 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
               
               {/* Expand/collapse button for substeps */}
               {substeps.length > 0 && (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1" onClick={() => setExpanded(prev => !prev)}>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setExpanded(prev => !prev)}>
                   {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </Button>
               )}

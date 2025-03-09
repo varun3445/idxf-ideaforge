@@ -42,6 +42,12 @@ const AppContent = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/forge/:projectId" element={<Forge />} />
+          <Route path="/join/:shareCode" element={
+            <div className="flex h-screen w-screen items-center justify-center flex-col">
+              <h1 className="text-2xl font-bold mb-4">Join and collaborate on this project</h1>
+              <p>This page is under construction. Soon you'll be able to join this project and collaborate with the team.</p>
+            </div>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -82,6 +83,8 @@ interface ProjectContextType {
   removeCollaborator: (collaboratorId: string) => Promise<void>;
   assignStep: (stepId: string, userId: string) => Promise<void>;
   unassignStep: (assignmentId: string) => Promise<void>;
+  generateProjectSteps: (title: string, description: string) => Promise<SuggestedStep[]>;
+  generateTeamSuggestions: (title: string, description: string) => Promise<{name: string, role: string}[]>;
   loading: boolean;
   error: string | null;
 }
@@ -308,15 +311,154 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const generateProjectSteps = async (title: string, description: string): Promise<SuggestedStep[]> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/project-ai-assistant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          action: 'suggestSteps',
+          projectInfo: { title, description }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate project steps');
+      }
+
+      const data = await response.json();
+      // Parse the AI response to extract steps
+      // This is a simple parsing logic, you might need to adjust based on the actual response format
+      const lines = data.result.split('\n');
+      const steps: SuggestedStep[] = [];
+      let currentStep: SuggestedStep | null = null;
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.match(/^\d+\.\s+.+/)) {
+          // This is a new step (e.g. "1. Research Phase")
+          if (currentStep) {
+            steps.push(currentStep);
+          }
+          const title = trimmedLine.replace(/^\d+\.\s+/, '');
+          currentStep = { title, description: '' };
+        } else if (trimmedLine && currentStep) {
+          // This is a description for the current step
+          currentStep.description += (currentStep.description ? '\n' : '') + trimmedLine;
+        }
+      }
+
+      if (currentStep) {
+        steps.push(currentStep);
+      }
+
+      return steps;
+    } catch (error) {
+      console.error('Error generating project steps:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate project steps. Using default steps instead.',
+        variant: 'destructive'
+      });
+      
+      // Return some default steps in case of error
+      return [
+        { title: 'Research and Planning', description: 'Define project scope and research similar solutions' },
+        { title: 'Design Phase', description: 'Create wireframes and design mockups' },
+        { title: 'Development', description: 'Build the application' },
+        { title: 'Testing', description: 'Ensure quality and usability' },
+        { title: 'Launch and Marketing', description: 'Release the product and promote it' }
+      ];
+    }
+  };
+
+  const generateTeamSuggestions = async (title: string, description: string): Promise<{name: string, role: string}[]> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/project-ai-assistant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          action: 'suggestTeam',
+          projectInfo: { title, description }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate team suggestions');
+      }
+
+      const data = await response.json();
+      // Parse the AI response to extract team roles
+      const lines = data.result.split('\n');
+      const team: {name: string, role: string}[] = [];
+      let currentRole: {name: string, role: string} | null = null;
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.match(/^\d+\.\s+.+/) || trimmedLine.match(/^[A-Z][a-z]+\s*:/)) {
+          // This is a new role (e.g. "1. UI/UX Designer" or "Designer:")
+          if (currentRole) {
+            team.push(currentRole);
+          }
+          const name = trimmedLine.replace(/^\d+\.\s+/, '').replace(/\s*:$/, '');
+          currentRole = { name, role: '' };
+        } else if (trimmedLine && currentRole) {
+          // This is a description for the current role
+          currentRole.role += (currentRole.role ? '\n' : '') + trimmedLine;
+        }
+      }
+
+      if (currentRole) {
+        team.push(currentRole);
+      }
+
+      // Generate names for each role
+      const defaultNames = ['Jane Smith', 'Bob Johnson', 'Alex Rivera', 'Priya Patel'];
+      return team.map((member, index) => ({
+        name: defaultNames[index % defaultNames.length],
+        role: member.name
+      }));
+    } catch (error) {
+      console.error('Error generating team suggestions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate team suggestions. Using default team instead.',
+        variant: 'destructive'
+      });
+      
+      // Return some default team members in case of error
+      return [
+        { name: 'Jane Smith', role: 'Designer' },
+        { name: 'Bob Johnson', role: 'Developer' },
+        { name: 'Alex Rivera', role: 'Project Manager' }
+      ];
+    }
+  };
+
   const createProject = async (title: string, description: string, suggestedSteps?: SuggestedStep[]): Promise<Project | null> => {
     setLoading(true);
     setError(null);
     
     try {
-      if (!title.trim() || !description.trim()) {
+      if (!title.trim()) {
         toast({
           title: 'Validation Error',
-          description: 'Project title and description are required.',
+          description: 'Project title is required.',
+          variant: 'destructive'
+        });
+        return null;
+      }
+      
+      if (!description.trim()) {
+        toast({
+          title: 'Validation Error',
+          description: 'Project description is required.',
           variant: 'destructive'
         });
         return null;
@@ -335,11 +477,17 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setProjects(prev => [...prev, newProject]);
       
-      if (suggestedSteps && suggestedSteps.length > 0) {
+      // If no suggested steps provided, generate them
+      let steps = suggestedSteps;
+      if (!steps || steps.length === 0) {
+        steps = await generateProjectSteps(title, description);
+      }
+      
+      if (steps && steps.length > 0) {
         const createdSteps: ProjectStep[] = [];
         
-        for (let i = 0; i < suggestedSteps.length; i++) {
-          const step = suggestedSteps[i];
+        for (let i = 0; i < steps.length; i++) {
+          const step = steps[i];
           const newStep: ProjectStep = {
             id: `step-${Date.now()}-${i}`,
             project_id: newProject.id,
@@ -561,6 +709,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
+      // First update the current step
       setProjectSteps(prev => 
         prev.map(step => 
           step.id === stepId 
@@ -774,6 +923,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         removeCollaborator,
         assignStep,
         unassignStep,
+        generateProjectSteps,
+        generateTeamSuggestions,
         loading,
         error
       }}
