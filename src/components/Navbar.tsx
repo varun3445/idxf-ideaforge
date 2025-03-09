@@ -10,12 +10,18 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const Navbar = () => {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  // Don't show navbar on landing page for non-authenticated users
+  const isLandingPage = location.pathname === '/';
+  if (isLandingPage && !isAuthenticated) {
+    return null;
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,7 +54,7 @@ const Navbar = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate('/'); // Changed from '/login' to '/' to redirect to landing page
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast({

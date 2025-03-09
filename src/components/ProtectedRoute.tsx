@@ -7,14 +7,9 @@ interface ProtectedRouteProps {
   children?: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps = {}) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
   
-  // Temporary immediate rendering for development
-  return children ? <>{children}</> : <Outlet />;
-  
-  // Original authentication check code (commented out for now)
-  /*
   // Show loading state while checking authentication
   if (loading) {
     return <div className="flex justify-center items-center h-screen">
@@ -29,7 +24,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps = {}) => {
   
   // If authenticated, render the protected content
   return children ? <>{children}</> : <Outlet />;
-  */
 };
 
 export default ProtectedRoute;

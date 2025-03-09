@@ -5,10 +5,12 @@ import { Grid, Heart, Lightbulb, ArrowRight, ArrowUpRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useAuth } from '../AuthContext';
 
 const Index = () => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { isAuthenticated } = useAuth();
   
   useEffect(() => {
     setIsVisible(true);
@@ -42,10 +44,10 @@ const Index = () => {
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <div className={`text-left transition-all duration-1000 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                <h1 className="hero-headline mb-4 md:mb-6">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 md:mb-6">
                   Connect, Collaborate & Create <span className="text-primary">Together</span>
                 </h1>
-                <p className="hero-subheadline max-w-xl">
+                <p className="text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-xl">
                   Find the perfect creative partners with complementary skillsets and bring your ideas to life on Idea Forge.
                 </p>
                 
@@ -53,13 +55,15 @@ const Index = () => {
                   flex flex-col sm:flex-row gap-3 transition-all duration-1000 delay-200
                   ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
                 `}>
-                  <Link to="/signup" className="button-primary flex items-center justify-center">
-                    <span>Get Started</span>
+                  <Link to={isAuthenticated ? "/explore" : "/signup"} className="bg-primary text-black hover:bg-primary/90 font-medium px-6 py-3 rounded-full flex items-center justify-center transition-all">
+                    <span>{isAuthenticated ? "Go to Explore" : "Get Started"}</span>
                     <ArrowRight size={16} className="ml-2" />
                   </Link>
-                  <Link to="/login" className="button-secondary flex items-center justify-center">
-                    <span>Login</span>
-                  </Link>
+                  {!isAuthenticated && (
+                    <Link to="/login" className="bg-white text-black border-2 border-border hover:border-primary hover:shadow-md px-6 py-3 rounded-full flex items-center justify-center transition-all">
+                      <span>Login</span>
+                    </Link>
+                  )}
                 </div>
               </div>
               
@@ -92,8 +96,8 @@ const Index = () => {
               {features.map((feature, index) => (
                 <div key={index} className={`transition-all duration-700 delay-${feature.delay} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                   <div className="flex flex-col h-full p-4 md:p-6 rounded-2xl bg-background border border-border/40 hover:border-primary/40 transition-all duration-300">
-                    <div className="feature-icon w-12 h-12 flex items-center justify-center rounded-full mb-4 md:mb-6">
-                      <feature.icon size={20} />
+                    <div className="bg-primary/10 w-12 h-12 flex items-center justify-center rounded-full mb-4 md:mb-6">
+                      <feature.icon size={20} className="text-primary" />
                     </div>
                     
                     <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-3">{feature.title}</h3>
@@ -101,7 +105,7 @@ const Index = () => {
                       {feature.description}
                     </p>
                     
-                    <Link to="/signup" className="mt-auto inline-flex items-center text-primary font-medium hover:underline gap-1 group">
+                    <Link to={isAuthenticated ? feature.path : "/signup"} className="mt-auto inline-flex items-center text-primary font-medium hover:underline gap-1 group">
                       <span>Try {feature.title}</span>
                       <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </Link>
@@ -120,7 +124,7 @@ const Index = () => {
               Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-              <Link to="/signup" className="button-primary inline-flex items-center">
+              <Link to="/signup" className="bg-primary text-black hover:bg-primary/90 font-medium px-6 py-3 rounded-full inline-flex items-center transition-all">
                 Get Started For Free
               </Link>
               <Link to="/login" className="bg-transparent border border-white text-white hover:bg-white/10 px-4 py-2 rounded-full inline-flex items-center transition-colors">
