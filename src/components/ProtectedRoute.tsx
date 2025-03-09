@@ -1,16 +1,17 @@
 
-import { Navigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps = {}) => {
   const { isAuthenticated, loading } = useAuth();
   
   // Temporary immediate rendering for development
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
   
   // Original authentication check code (commented out for now)
   /*
@@ -27,7 +28,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
   
   // If authenticated, render the protected content
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
   */
 };
 
