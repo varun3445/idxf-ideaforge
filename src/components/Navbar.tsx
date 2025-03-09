@@ -1,4 +1,3 @@
-
 import { useLocation } from 'react-router-dom';
 import { Grid, Users, Layers, User, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../AuthContext';

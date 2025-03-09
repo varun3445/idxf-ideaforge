@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from '../components/ui/button';
@@ -19,10 +19,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   
   // If already authenticated, redirect to explore page
-  if (isAuthenticated) {
-    navigate('/explore');
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/explore');
+    }
+  }, [isAuthenticated, navigate]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
