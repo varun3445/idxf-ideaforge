@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -13,6 +12,8 @@ export interface ProjectStep {
   created_at: string;
   updated_at: string;
   parent_step_id: string | null;
+  image_url?: string | null;
+  note?: string | null;
 }
 
 export interface StepAssignment {
@@ -49,6 +50,11 @@ export interface Project {
   share_code: string | null;
 }
 
+export interface SuggestedStep {
+  title: string;
+  description: string;
+}
+
 interface ProjectContextType {
   projects: Project[];
   currentProject: Project | null;
@@ -60,9 +66,15 @@ interface ProjectContextType {
   stepAssignments: StepAssignment[];
   loadProjects: () => Promise<void>;
   loadProjectDetails: (projectId: string) => Promise<void>;
-  createProject: (title: string, description: string) => Promise<Project | null>;
+  createProject: (title: string, description: string, suggestedSteps?: SuggestedStep[]) => Promise<Project | null>;
   updateProject: (project: Partial<Project> & { id: string }) => Promise<void>;
-  createStep: (data: { title: string; description?: string; parent_step_id?: string | null }) => Promise<ProjectStep | null>;
+  createStep: (data: { 
+    title: string; 
+    description?: string; 
+    parent_step_id?: string | null;
+    image_url?: string;
+    note?: string;
+  }) => Promise<ProjectStep | null>;
   updateStep: (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => Promise<void>;
   deleteStep: (stepId: string) => Promise<void>;
   completeStep: (stepId: string, isCompleted: boolean) => Promise<void>;
@@ -87,13 +99,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Load all projects
   const loadProjects = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Temporarily using mock data
       const mockProjects: Project[] = [
         {
           id: '1',
@@ -132,13 +142,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Load project details including steps, collaborators and assignments
   const loadProjectDetails = async (projectId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock project details for development
       const project = projects.find(p => p.id === projectId) || {
         id: projectId,
         title: 'Mock Project',
@@ -152,7 +160,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setCurrentProject(project);
       
-      // Mock steps
       const mockSteps: ProjectStep[] = [
         {
           id: 'step-1',
@@ -163,7 +170,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           order_index: 0,
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
+          parent_step_id: null,
+          image_url: 'https://images.unsplash.com/photo-1517292987719-0369a794ec0f?q=80&w=1374&auto=format&fit=crop',
+          note: 'We should focus on competitive analysis first'
         },
         {
           id: 'step-2',
@@ -174,7 +183,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           order_index: 1,
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
+          parent_step_id: null,
+          image_url: null,
+          note: null
         },
         {
           id: 'step-2-1',
@@ -185,7 +196,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           order_index: 0,
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: 'step-2'
+          parent_step_id: 'step-2',
+          image_url: null,
+          note: null
         },
         {
           id: 'step-2-2',
@@ -196,7 +209,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           order_index: 1,
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: 'step-2'
+          parent_step_id: 'step-2',
+          image_url: null,
+          note: null
         },
         {
           id: 'step-3',
@@ -207,13 +222,14 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           order_index: 2,
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
+          parent_step_id: null,
+          image_url: null,
+          note: null
         }
       ];
       
       setProjectSteps(mockSteps);
       
-      // Mock collaborators
       const mockCollaborators: ProjectCollaborator[] = [
         {
           id: 'collab-1',
@@ -241,7 +257,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setCollaborators(mockCollaborators);
       
-      // Mock assignments
       const mockAssignments: StepAssignment[] = [
         {
           id: 'assign-1',
@@ -267,7 +282,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setStepAssignments(mockAssignments);
       
-      // Set current step if project has one
       if (project.current_step_id) {
         const currentStep = mockSteps.find(step => step.id === project.current_step_id) || null;
         setCurrentStep(currentStep);
@@ -294,13 +308,20 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Create a new project
-  const createProject = async (title: string, description: string): Promise<Project | null> => {
+  const createProject = async (title: string, description: string, suggestedSteps?: SuggestedStep[]): Promise<Project | null> => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock creating a project
+      if (!title.trim() || !description.trim()) {
+        toast({
+          title: 'Validation Error',
+          description: 'Project title and description are required.',
+          variant: 'destructive'
+        });
+        return null;
+      }
+      
       const newProject: Project = {
         id: `project-${Date.now()}`,
         title,
@@ -313,6 +334,32 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
       
       setProjects(prev => [...prev, newProject]);
+      
+      if (suggestedSteps && suggestedSteps.length > 0) {
+        const createdSteps: ProjectStep[] = [];
+        
+        for (let i = 0; i < suggestedSteps.length; i++) {
+          const step = suggestedSteps[i];
+          const newStep: ProjectStep = {
+            id: `step-${Date.now()}-${i}`,
+            project_id: newProject.id,
+            title: step.title,
+            description: step.description || null,
+            is_completed: false,
+            order_index: i,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            parent_step_id: null,
+            image_url: null,
+            note: null
+          };
+          
+          createdSteps.push(newStep);
+        }
+        
+        setProjectSteps(prev => [...prev, ...createdSteps]);
+      }
+      
       toast({
         title: 'Success',
         description: 'Project created successfully',
@@ -334,13 +381,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Update a project
   const updateProject = async (projectData: Partial<Project> & { id: string }) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock updating a project
       setProjects(prev => 
         prev.map(project => 
           project.id === projectData.id 
@@ -371,8 +416,13 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Create a new step
-  const createStep = async (data: { title: string; description?: string; parent_step_id?: string | null }): Promise<ProjectStep | null> => {
+  const createStep = async (data: { 
+    title: string; 
+    description?: string; 
+    parent_step_id?: string | null;
+    image_url?: string;
+    note?: string;
+  }): Promise<ProjectStep | null> => {
     if (!currentProject) {
       toast({
         title: 'Error',
@@ -382,11 +432,19 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       return null;
     }
     
+    if (!data.title.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Step title is required.',
+        variant: 'destructive'
+      });
+      return null;
+    }
+    
     setLoading(true);
     setError(null);
     
     try {
-      // Mock creating a step
       const newStep: ProjectStep = {
         id: `step-${Date.now()}`,
         project_id: currentProject.id,
@@ -396,7 +454,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         order_index: projectSteps.filter(s => s.parent_step_id === data.parent_step_id).length,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        parent_step_id: data.parent_step_id || null
+        parent_step_id: data.parent_step_id || null,
+        image_url: data.image_url || null,
+        note: data.note || null
       };
       
       setProjectSteps(prev => [...prev, newStep]);
@@ -422,13 +482,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Update a step
   const updateStep = async (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock updating a step
       setProjectSteps(prev => 
         prev.map(step => 
           step.id === stepId 
@@ -459,28 +517,23 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Delete a step
   const deleteStep = async (stepId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock deleting a step and its substeps
       const stepToDelete = projectSteps.find(step => step.id === stepId);
       if (!stepToDelete) {
         throw new Error('Step not found');
       }
       
-      // Remove the step and all its substeps
       const allStepIds = [stepId, ...projectSteps.filter(s => s.parent_step_id === stepId).map(s => s.id)];
       setProjectSteps(prev => prev.filter(step => !allStepIds.includes(step.id)));
       
-      // Update current step if it was deleted
       if (allStepIds.includes(currentStep?.id || '')) {
         setCurrentStep(null);
       }
       
-      // Update project's current step if it was deleted
       if (currentProject?.current_step_id && allStepIds.includes(currentProject.current_step_id)) {
         setCurrentProject(prev => prev ? { ...prev, current_step_id: null } : prev);
       }
@@ -503,13 +556,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Mark a step as completed/uncompleted
   const completeStep = async (stepId: string, isCompleted: boolean) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock completing a step
       setProjectSteps(prev => 
         prev.map(step => 
           step.id === stepId 
@@ -540,7 +591,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Add a collaborator to the project
   const addCollaborator = async (email: string) => {
     if (!currentProject) {
       toast({
@@ -555,7 +605,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Mock adding a collaborator
       const newCollaborator: ProjectCollaborator = {
         id: `collab-${Date.now()}`,
         project_id: currentProject.id,
@@ -588,13 +637,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Remove a collaborator from the project
   const removeCollaborator = async (collaboratorId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock removing a collaborator
       const collaboratorToRemove = collaborators.find(c => c.id === collaboratorId);
       if (!collaboratorToRemove) {
         throw new Error('Collaborator not found');
@@ -602,7 +649,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
       
-      // Also remove any step assignments for this collaborator
       setStepAssignments(prev => prev.filter(a => a.user_id !== collaboratorToRemove.user_id));
       
       toast({
@@ -623,13 +669,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Assign a step to a collaborator
   const assignStep = async (stepId: string, userId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock assigning a step
       const step = projectSteps.find(s => s.id === stepId);
       if (!step) {
         throw new Error('Step not found');
@@ -640,7 +684,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         throw new Error('User not found');
       }
       
-      // Check if already assigned
       const existingAssignment = stepAssignments.find(a => a.step_id === stepId && a.user_id === userId);
       if (existingAssignment) {
         toast({
@@ -683,13 +726,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Unassign a step
   const unassignStep = async (assignmentId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock unassigning a step
       setStepAssignments(prev => prev.filter(a => a.id !== assignmentId));
       
       toast({

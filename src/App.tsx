@@ -11,11 +11,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
-import ExperimentLab from './pages/ExperimentLab';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
-import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
 
@@ -37,15 +35,12 @@ const AppContent = () => {
       <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Explore />} />
-          <Route path="/signup" element={<Explore />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/matches" element={<Matches />} />
-          <Route path="/lab" element={<ExperimentLab />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/projects" element={<Projects />} />
-          {/* Changed from ProtectedRoute to directly rendering Forge */}
           <Route path="/forge/:projectId" element={<Forge />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
