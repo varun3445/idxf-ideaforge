@@ -40,9 +40,6 @@ const ProjectsList: React.FC = () => {
   const [isSuggestingRoles, setIsSuggestingRoles] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   
-  const ownedProjects = projects.filter(project => project.owner_id === 'user-1'); // Replace with actual user ID when real auth is implemented
-  const collaborativeProjects = projects.filter(project => project.owner_id !== 'user-1'); // Replace with actual user ID
-  
   useEffect(() => {
     loadProjects();
   }, []);
@@ -102,14 +99,16 @@ const ProjectsList: React.FC = () => {
       
       if (error) throw error;
       
+      // Parse the AI response - simple parsing assuming a formatted list
       const content = data.result;
       const steps: SuggestedStep[] = [];
       
+      // Simple parsing of the OpenAI response
       const lines = content.split('\n');
       let currentStep: Partial<SuggestedStep> = {};
       
       for (const line of lines) {
-        if (line.match(/^\d+\.\s+/) || line.match(/^Step \d+:/)) {
+        if (line.match(/^\d+\.\s+/) || line.match(/^Step \d+:/)) { // New step
           const titleMatch = line.match(/^\d+\.\s+(.*)/i) || line.match(/^Step \d+:\s+(.*)/i);
           if (titleMatch && currentStep.title) {
             steps.push(currentStep as SuggestedStep);
@@ -123,6 +122,7 @@ const ProjectsList: React.FC = () => {
         }
       }
       
+      // Add the last step if it exists
       if (currentStep.title && currentStep.description) {
         steps.push(currentStep as SuggestedStep);
       }
@@ -171,14 +171,16 @@ const ProjectsList: React.FC = () => {
       
       if (error) throw error;
       
+      // Parse the AI response
       const content = data.result;
       const roles: SuggestedRole[] = [];
       
+      // Simple parsing of the OpenAI response
       const lines = content.split('\n');
       let currentRole: Partial<SuggestedRole> = {};
       
       for (const line of lines) {
-        if (line.match(/^\d+\.\s+/) || line.match(/^Role \d+:/)) {
+        if (line.match(/^\d+\.\s+/) || line.match(/^Role \d+:/)) { // New role
           const titleMatch = line.match(/^\d+\.\s+(.*?):/i) || line.match(/^Role \d+:\s+(.*?):/i);
           if (titleMatch && currentRole.title) {
             roles.push(currentRole as SuggestedRole);
@@ -186,6 +188,7 @@ const ProjectsList: React.FC = () => {
           }
           if (titleMatch) {
             currentRole.title = titleMatch[1].trim();
+            // Get description if it's on the same line after the colon
             const descMatch = line.match(/^.*?:(.*)/);
             if (descMatch) {
               currentRole.description = descMatch[1].trim();
@@ -196,6 +199,7 @@ const ProjectsList: React.FC = () => {
         }
       }
       
+      // Add the last role if it exists
       if (currentRole.title && currentRole.description) {
         roles.push(currentRole as SuggestedRole);
       }
