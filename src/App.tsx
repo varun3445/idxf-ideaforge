@@ -11,9 +11,11 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
+import ExperimentLab from './pages/ExperimentLab';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import BetaIndicator from './components/BetaIndicator';
+import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
 
@@ -35,19 +37,16 @@ const AppContent = () => {
       <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Explore />} />
+          <Route path="/signup" element={<Explore />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/matches" element={<Matches />} />
+          <Route path="/lab" element={<ExperimentLab />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/projects" element={<Projects />} />
+          {/* Changed from ProtectedRoute to directly rendering Forge */}
           <Route path="/forge/:projectId" element={<Forge />} />
-          <Route path="/join/:shareCode" element={
-            <div className="flex h-screen w-screen items-center justify-center flex-col">
-              <h1 className="text-2xl font-bold mb-4">Join and collaborate on this project</h1>
-              <p>This page is under construction. Soon you'll be able to join this project and collaborate with the team.</p>
-            </div>
-          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

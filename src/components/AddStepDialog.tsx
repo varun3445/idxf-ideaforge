@@ -21,49 +21,29 @@ const AddStepDialog: React.FC<AddStepDialogProps> = ({
   const { createStep } = useProject();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [note, setNote] = useState('');
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  
-  const validateForm = () => {
-    setFormSubmitted(true);
-    return title.trim() !== '';
-  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!title.trim()) {
       return;
     }
     
     const result = await createStep({
       title: title.trim(),
       description: description.trim() || undefined,
-      image_url: imageUrl.trim() || undefined,
-      note: note.trim() || undefined,
       parent_step_id: parentStepId
     });
     
     if (result) {
-      resetForm();
+      setTitle('');
+      setDescription('');
       onOpenChange(false);
     }
   };
   
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setImageUrl('');
-    setNote('');
-    setFormSubmitted(false);
-  };
-  
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen) resetForm();
-      onOpenChange(newOpen);
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -73,20 +53,14 @@ const AddStepDialog: React.FC<AddStepDialogProps> = ({
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="step-title">
-              Title <span className="text-red-500">*</span>
-            </Label>
+            <Label htmlFor="step-title">Title</Label>
             <Input 
               id="step-title" 
               value={title} 
               onChange={e => setTitle(e.target.value)}
               placeholder="Enter step title"
-              className={formSubmitted && !title.trim() ? "border-red-500" : ""}
               required
             />
-            {formSubmitted && !title.trim() && (
-              <p className="text-red-500 text-sm mt-1">Step title is required</p>
-            )}
           </div>
           
           <div className="space-y-2">
@@ -96,28 +70,7 @@ const AddStepDialog: React.FC<AddStepDialogProps> = ({
               value={description} 
               onChange={e => setDescription(e.target.value)}
               placeholder="Enter step description"
-              rows={3}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="step-image">Image URL (optional)</Label>
-            <Input 
-              id="step-image" 
-              value={imageUrl} 
-              onChange={e => setImageUrl(e.target.value)}
-              placeholder="Enter image URL"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="step-note">Note (optional)</Label>
-            <Textarea 
-              id="step-note" 
-              value={note} 
-              onChange={e => setNote(e.target.value)}
-              placeholder="Add a note for this step"
-              rows={3}
+              rows={4}
             />
           </div>
           
