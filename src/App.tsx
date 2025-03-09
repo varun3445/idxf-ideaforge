@@ -1,52 +1,59 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from './AuthContext';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from './components/ui/toaster';
+import { AuthProvider, useAuth } from './AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import { useMediaQuery } from './hooks/useMediaQuery';
+
 import Index from './pages/Index';
-import Signup from './pages/Signup';
 import Login from './pages/Login';
-import Projects from './pages/Projects';
-import Forge from './pages/Forge';
-import Profile from './pages/Profile';
+import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
-import ProtectedRoute from './components/ProtectedRoute';
-import JoinProject from './pages/JoinProject';
+import BetaIndicator from './components/BetaIndicator';
+import Projects from './pages/Projects';
+import Forge from './pages/Forge';
+
+import './App.css';
+
+// Inner component that uses the auth context
+const AppContent = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const location = useLocation();
+  
+  // Hide navbar on landing page
+  const showNavbar = location.pathname !== '/';
+
+  return (
+    <>
+      {showNavbar && <Navbar />}
+      {showNavbar && <BetaIndicator />}
+      <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Explore />} />
+          <Route path="/signup" element={<Explore />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/matches" element={<Matches />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/forge/:projectId" element={<Forge />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+      <Toaster />
+    </>
+  );
+};
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-              
-              <Route path="/" element={<ProtectedRoute />}>
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/forge/:projectId" element={<Forge />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/matches" element={<Matches />} />
-              </Route>
-              
-              <Route path="/join-project/:shareCode" element={<JoinProject />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          
-          <Footer />
-          <Toaster />
-        </div>
-      </Router>
+      <AppContent />
     </AuthProvider>
   );
 }

@@ -18,10 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     
     return () => {
-      if (authListener?.subscription) {
-        console.log('Cleaning up auth state listener');
-        authListener.subscription.unsubscribe();
-      }
+      console.log('Cleaning up auth state listener');
+      authListener?.subscription.unsubscribe();
     };
   }, []);
   
