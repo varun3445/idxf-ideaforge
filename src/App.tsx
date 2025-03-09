@@ -35,8 +35,8 @@ const AppContent = () => {
       <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Explore />} />
-          <Route path="/signup" element={<Explore />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/profile" element={<Profile />} />
