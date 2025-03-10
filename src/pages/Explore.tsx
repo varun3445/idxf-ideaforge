@@ -94,8 +94,8 @@ const Explore = () => {
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-center">Explore Projects</h1>
-            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-center">
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore Projects</h1>
+            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-left">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
