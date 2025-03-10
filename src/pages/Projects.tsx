@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2 } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,15 +13,23 @@ import { useProject, ProjectProvider, Project } from '../contexts/ProjectContext
 import { format } from 'date-fns';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '../integrations/supabase/client';
+import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
+import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const { projects, loadProjects, createProject, loading } = useProject();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [suggestedStepsDialogOpen, setSuggestedStepsDialogOpen] = useState(false);
+  const [teamSuggestionsDialogOpen, setTeamSuggestionsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [suggestedSteps, setSuggestedSteps] = useState([]);
+  const [teamSuggestions, setTeamSuggestions] = useState([]);
   
   useEffect(() => {
     loadProjects();
@@ -30,7 +38,7 @@ const ProjectsList: React.FC = () => {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim()) {
+    if (!title.trim() || !description.trim()) {
       return;
     }
     
@@ -46,6 +54,45 @@ const ProjectsList: React.FC = () => {
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
+  };
+
+  const handleGetAISuggestions = async () => {
+    if (!title.trim() || !description.trim()) {
+      return;
+    }
+    
+    setLoadingAI(true);
+    
+    try {
+      // Get suggested steps from OpenAI
+      const { data: stepsData, error: stepsError } = await supabase.functions.invoke('project-ai-assistant', {
+        body: { title, description, requestType: 'steps' }
+      });
+
+      if (stepsError) {
+        throw new Error(`Error getting step suggestions: ${stepsError.message}`);
+      }
+      
+      // Get suggested team members from OpenAI
+      const { data: teamData, error: teamError } = await supabase.functions.invoke('project-ai-assistant', {
+        body: { title, description, requestType: 'team' }
+      });
+      
+      if (teamError) {
+        throw new Error(`Error getting team suggestions: ${teamError.message}`);
+      }
+      
+      // Store suggestions
+      setSuggestedSteps(stepsData.steps || []);
+      setTeamSuggestions(teamData.team || []);
+      
+      // Open the dialog to show suggestions
+      setSuggestedStepsDialogOpen(true);
+    } catch (error) {
+      console.error('Error getting AI suggestions:', error);
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   // Divide projects into owned and collaborations
@@ -151,6 +198,7 @@ const ProjectsList: React.FC = () => {
         </Tabs>
       )}
       
+      {/* Create Project Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -159,7 +207,7 @@ const ProjectsList: React.FC = () => {
           
           <form onSubmit={handleCreateProject} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="project-title">Project Title</Label>
+              <Label htmlFor="project-title">Project Title *</Label>
               <Input 
                 id="project-title" 
                 value={title} 
@@ -170,28 +218,50 @@ const ProjectsList: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="project-description">Description (optional)</Label>
+              <Label htmlFor="project-description">Description *</Label>
               <Textarea 
                 id="project-description" 
                 value={description} 
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Enter project description"
                 rows={4}
+                required
               />
             </div>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full"
+              onClick={handleGetAISuggestions}
+              disabled={!title.trim() || !description.trim() || loadingAI}
+            >
+              {loadingAI ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating Suggestions...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Get AI Suggestions
+                </>
+              )}
+            </Button>
             
-            <div className="flex justify-end space-x-2 pt-4">
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!title.trim()}>
+              <Button type="submit" disabled={!title.trim() || !description.trim()}>
                 Create Project
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
       
+      {/* Share Project Dialog */}
       {selectedProject && (
         <ProjectShareDialog 
           open={shareDialogOpen} 
@@ -200,6 +270,24 @@ const ProjectsList: React.FC = () => {
           shareCode={selectedProject.share_code}
         />
       )}
+      
+      {/* Suggested Steps Dialog */}
+      <SuggestedStepsDialog
+        open={suggestedStepsDialogOpen}
+        onOpenChange={setSuggestedStepsDialogOpen}
+        steps={suggestedSteps}
+        onViewTeam={() => {
+          setSuggestedStepsDialogOpen(false);
+          setTeamSuggestionsDialogOpen(true);
+        }}
+      />
+      
+      {/* Team Suggestions Dialog */}
+      <TeamSuggestionsDialog
+        open={teamSuggestionsDialogOpen}
+        onOpenChange={setTeamSuggestionsDialogOpen}
+        teamMembers={teamSuggestions}
+      />
     </div>
   );
 };

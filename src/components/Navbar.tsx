@@ -1,6 +1,6 @@
 
 import { useLocation } from 'react-router-dom';
-import { Grid, Users, Flame, User, Settings, LogOut } from 'lucide-react';
+import { Grid, Users, Layers, User, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +34,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/explore', label: 'Explore', icon: Grid },
     { path: '/matches', label: 'Network', icon: Users },
-    { path: '/lab', label: 'Forge', icon: Flame },
+    { path: '/projects', label: 'Projects', icon: Layers },
   ];
 
   const isActive = (path: string) => {

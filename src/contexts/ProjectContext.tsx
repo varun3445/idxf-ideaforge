@@ -13,6 +13,8 @@ export interface ProjectStep {
   created_at: string;
   updated_at: string;
   parent_step_id: string | null;
+  image_url?: string | null;
+  notes?: string | null;
 }
 
 export interface StepAssignment {
@@ -313,6 +315,31 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
       
       setProjects(prev => [...prev, newProject]);
+      
+      // Try to generate steps using AI
+      try {
+        const { data, error } = await supabase.functions.invoke('project-ai-assistant', {
+          body: { title, description, requestType: 'steps' }
+        });
+        
+        if (error) {
+          console.error('Error generating AI steps:', error);
+        } else if (data?.steps?.length) {
+          // Create steps from AI suggestions
+          for (let i = 0; i < data.steps.length; i++) {
+            const step = data.steps[i];
+            await createStep({
+              title: step.title,
+              description: step.description,
+              parent_step_id: null
+            });
+          }
+        }
+      } catch (aiError) {
+        console.error('Error with AI step generation:', aiError);
+        // Continue without AI-generated steps
+      }
+      
       toast({
         title: 'Success',
         description: 'Project created successfully',

@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { ChevronDown, ChevronRight, Trash, MoreHorizontal, UserPlus, CheckCircle2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash, MoreHorizontal, UserPlus, CheckCircle2, Image, FileText, Paperclip } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { useProject, ProjectStep, StepAssignment } from '../contexts/ProjectContext';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import StepImageDialog from './StepImageDialog';
+import StepNotesDialog from './StepNotesDialog';
 
 interface ProjectStepCardProps {
   step: ProjectStep;
@@ -32,6 +34,8 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
     currentProject
   } = useProject();
   const [expanded, setExpanded] = useState(true);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   // Find substeps for current step
   const substeps = projectSteps.filter(s => s.parent_step_id === step.id).sort((a, b) => a.order_index - b.order_index);
@@ -90,34 +94,55 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
             </div>
           </div>
           
-          <div className="flex items-center">
-            {/* Assigned users */}
-            {assignments.length > 0 && (
-              <div className="flex -space-x-2 mr-2">
-                {assignments.map(assignment => (
-                  <DropdownMenu key={assignment.id}>
-                    <DropdownMenuTrigger asChild>
-                      <Avatar className="h-6 w-6 cursor-pointer hover:ring-2 ring-white">
-                        <AvatarImage src={assignment.user?.avatar || ''} />
-                        <AvatarFallback className="text-xs">
-                          {getInitials(assignment.user?.name || 'User')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem disabled>
-                        {assignment.user?.name}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleUnassignCollaborator(assignment.id)}>
-                        <Trash className="h-4 w-4 mr-2" />
-                        Remove assignment
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ))}
-              </div>
-            )}
+          <div className="flex items-center space-x-2">
+            {/* Quick action buttons */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0" 
+              onClick={() => setImageDialogOpen(true)}
+              title="Add image"
+            >
+              <Image className="h-4 w-4" />
+              <span className="sr-only">Add image</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0" 
+              onClick={() => setNotesDialogOpen(true)}
+              title="Add notes"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="sr-only">Add notes</span>
+            </Button>
+            
+            {/* Assigned users - moved to separate space */}
+            <div className="flex -space-x-2 ml-2">
+              {assignments.map(assignment => (
+                <DropdownMenu key={assignment.id}>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="h-6 w-6 cursor-pointer hover:ring-2 ring-white">
+                      <AvatarImage src={assignment.user?.avatar || ''} />
+                      <AvatarFallback className="text-xs">
+                        {getInitials(assignment.user?.name || 'User')}
+                      </AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem disabled>
+                      {assignment.user?.name}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleUnassignCollaborator(assignment.id)}>
+                      <Trash className="h-4 w-4 mr-2" />
+                      Remove assignment
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ))}
+            </div>
             
             {/* Actions dropdown */}
             <DropdownMenu>
@@ -127,6 +152,11 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onAddSubstep && onAddSubstep(step.id)}>
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Add substep
+                </DropdownMenuItem>
+                
                 <DropdownMenuItem>
                   <UserPlus className="h-4 w-4 mr-2" />
                   Assign to
@@ -166,7 +196,7 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
             
             {/* Expand/collapse button for substeps */}
             {substeps.length > 0 && (
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-1" onClick={() => setExpanded(prev => !prev)}>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setExpanded(prev => !prev)}>
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             )}
@@ -183,11 +213,28 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
                 key={substep.id} 
                 step={substep} 
                 isCurrentFocus={currentProject?.current_step_id === substep.id} 
+                onAddSubstep={onAddSubstep}
               />
             ))}
           </div>
         </CardContent>
       )}
+      
+      {/* Image Dialog */}
+      <StepImageDialog 
+        open={imageDialogOpen} 
+        onOpenChange={setImageDialogOpen}
+        stepId={step.id}
+        stepTitle={step.title}
+      />
+      
+      {/* Notes Dialog */}
+      <StepNotesDialog 
+        open={notesDialogOpen} 
+        onOpenChange={setNotesDialogOpen}
+        stepId={step.id}
+        stepTitle={step.title}
+      />
     </Card>
   );
 };
