@@ -14,8 +14,7 @@ import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define a separate style component to avoid JSX issues
-const ForgeStyles = () => (
-  <style>
+const ForgeStyles = () => <style>
     {`
     .highlight-step {
       background-color: rgba(var(--primary-rgb), 0.1);
@@ -34,9 +33,7 @@ const ForgeStyles = () => (
       }
     }
   `}
-  </style>
-);
-
+  </style>;
 const ProjectContent: React.FC = () => {
   const {
     projectId
@@ -151,10 +148,7 @@ const ProjectContent: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleConnectElements}>
-              <Link2 className="mr-2 h-4 w-4" />
-              Connect Elements
-            </Button>
+            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -163,10 +157,7 @@ const ProjectContent: React.FC = () => {
               <Users className="mr-2 h-4 w-4" />
               Add Collaborator
             </Button>
-            <Button onClick={handleAddStep}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Step
-            </Button>
+            
           </div>
         </div>
         
@@ -218,9 +209,7 @@ const ProjectContent: React.FC = () => {
             </Card> : <div className="space-y-4">
               {rootSteps.map(step => <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
                   <div className="flex items-start gap-2 mb-2">
-                    <Button variant="ghost" size="sm" className="px-1 h-6 mt-1" onClick={() => handleSetCurrentFocus(step)}>
-                      {currentStep?.id === step.id ? <CheckCircle2 className="h-5 w-5 text-primary" /> : <Circle className="h-5 w-5 text-gray-400" />}
-                    </Button>
+                    
                     
                     <div className="flex-1">
                       <ProjectStepCard step={step} onAddSubstep={handleAddSubstep} isCurrentFocus={currentStep?.id === step.id} />
@@ -242,7 +231,6 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
-
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -250,5 +238,4 @@ const ForgeWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
-
 export default ForgeWithProvider;
