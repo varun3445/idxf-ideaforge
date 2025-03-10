@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '../integrations/supabase/client';
 import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
-
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -34,17 +33,14 @@ const ProjectsList: React.FC = () => {
   const [loadingAI, setLoadingAI] = useState(false);
   const [suggestedSteps, setSuggestedSteps] = useState([]);
   const [teamSuggestions, setTeamSuggestions] = useState([]);
-
   useEffect(() => {
     loadProjects();
   }, []);
-
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       return;
     }
-    
     const newProject = await createProject(title.trim(), description.trim());
     if (newProject) {
       setTitle('');
@@ -53,17 +49,14 @@ const ProjectsList: React.FC = () => {
       navigate(`/forge/${newProject.id}`);
     }
   };
-
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
-
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
     }
-    
     setLoadingAI(true);
     try {
       // Get suggested steps from OpenAI
@@ -77,7 +70,6 @@ const ProjectsList: React.FC = () => {
           requestType: 'steps'
         }
       });
-      
       if (stepsError) {
         throw new Error(`Error getting step suggestions: ${stepsError.message}`);
       }
@@ -93,7 +85,6 @@ const ProjectsList: React.FC = () => {
           requestType: 'team'
         }
       });
-      
       if (teamError) {
         throw new Error(`Error getting team suggestions: ${teamError.message}`);
       }
@@ -164,7 +155,6 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
-
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -203,34 +193,15 @@ const ProjectsList: React.FC = () => {
           <form onSubmit={handleCreateProject} className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="project-title">Project Title *</Label>
-              <Input 
-                id="project-title" 
-                value={title} 
-                onChange={e => setTitle(e.target.value)} 
-                placeholder="Enter project title" 
-                required 
-              />
+              <Input id="project-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter project title" required />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="project-description">Description *</Label>
-              <Textarea 
-                id="project-description" 
-                value={description} 
-                onChange={e => setDescription(e.target.value)} 
-                placeholder="Enter project description" 
-                rows={4} 
-                required 
-              />
+              <Textarea id="project-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter project description" rows={4} required />
             </div>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full" 
-              onClick={handleGetAISuggestions} 
-              disabled={!title.trim() || !description.trim() || loadingAI}
-            >
+            <Button type="button" variant="outline" className="w-full" onClick={handleGetAISuggestions} disabled={!title.trim() || !description.trim() || loadingAI}>
               {loadingAI ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Generating Suggestions...
@@ -244,10 +215,7 @@ const ProjectsList: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={!title.trim() || !description.trim()}
-              >
+              <Button type="submit" disabled={!title.trim() || !description.trim()} className="py-0 my-[10px]">
                 Create Project
               </Button>
             </DialogFooter>
@@ -256,33 +224,18 @@ const ProjectsList: React.FC = () => {
       </Dialog>
       
       {/* Share Project Dialog */}
-      {selectedProject && <ProjectShareDialog 
-        open={shareDialogOpen} 
-        onOpenChange={setShareDialogOpen} 
-        projectTitle={selectedProject.title} 
-        shareCode={selectedProject.share_code} 
-      />}
+      {selectedProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={selectedProject.title} shareCode={selectedProject.share_code} />}
       
       {/* Suggested Steps Dialog */}
-      <SuggestedStepsDialog 
-        open={suggestedStepsDialogOpen} 
-        onOpenChange={setSuggestedStepsDialogOpen} 
-        steps={suggestedSteps} 
-        onViewTeam={() => {
-          setSuggestedStepsDialogOpen(false);
-          setTeamSuggestionsDialogOpen(true);
-        }} 
-      />
+      <SuggestedStepsDialog open={suggestedStepsDialogOpen} onOpenChange={setSuggestedStepsDialogOpen} steps={suggestedSteps} onViewTeam={() => {
+      setSuggestedStepsDialogOpen(false);
+      setTeamSuggestionsDialogOpen(true);
+    }} />
       
       {/* Team Suggestions Dialog */}
-      <TeamSuggestionsDialog 
-        open={teamSuggestionsDialogOpen} 
-        onOpenChange={setTeamSuggestionsDialogOpen} 
-        teamMembers={teamSuggestions} 
-      />
+      <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
-
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -290,5 +243,4 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
-
 export default ProjectsWithProvider;
