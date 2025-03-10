@@ -1,19 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, ArrowRight, ArrowUpRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
   const features = [{
     title: 'Explore',
     description: 'Discover projects and connect with creative professionals from around the world.',
@@ -33,9 +29,7 @@ const Index = () => {
     path: '/lab',
     delay: 300
   }];
-  
-  return (
-    <AnimatedTransition>
+  return <AnimatedTransition>
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-10 md:py-20 lg:py-32 hero-section">
@@ -63,8 +57,7 @@ const Index = () => {
                 </div>
               </div>
               
-              {!isMobile && (
-                <div className={`
+              {!isMobile && <div className={`
                   relative w-full transition-all duration-1000 delay-300
                   ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
                 `}>
@@ -72,14 +65,13 @@ const Index = () => {
                     <img src="/lovable-uploads/dca4cf86-d17a-4f6a-b4bb-8748c5a74884.png" alt="Idea Forge App" className="w-full max-w-md mx-auto rounded-2xl shadow-lg border border-border/10" />
                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-2xl"></div>
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
         </section>
         
         {/* Features Section */}
-        <section className="py-12 md:py-20 bg-white">
+        <section className="py-12 md:py-20 bg-black">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-left mb-8 md:mb-16">
               <h2 className="text-2xl md:text-3xl font-bold">How It Works</h2>
@@ -89,8 +81,7 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className={`transition-all duration-700 delay-${feature.delay} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              {features.map((feature, index) => <div key={index} className={`transition-all duration-700 delay-${feature.delay} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                   <div className="flex flex-col h-full p-4 md:p-6 rounded-2xl bg-background border border-border/40 hover:border-primary/40 transition-all duration-300">
                     <div className="feature-icon w-12 h-12 flex items-center justify-center rounded-full mb-4 md:mb-6">
                       <feature.icon size={20} />
@@ -106,8 +97,7 @@ const Index = () => {
                       <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </Link>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </section>
@@ -130,8 +120,6 @@ const Index = () => {
           </div>
         </section>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Index;
