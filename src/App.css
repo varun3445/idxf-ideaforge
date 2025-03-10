@@ -1,3 +1,4 @@
+
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -20,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #39FF14aa); /* Changed to lime green */
+  filter: drop-shadow(0 0 2em #005BC5aa); /* Changed to blue */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #39FF14aa); /* Changed to lime green */
+  filter: drop-shadow(0 0 2em #005BC5aa); /* Changed to blue */
 }
 
 @keyframes logo-spin {
@@ -43,22 +44,22 @@
 
 .card {
   padding: 1.5em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
 }
 
 .read-the-docs {
-  color: #000; /* Changed to black */
+  color: #FFFFFF; /* Changed to white */
 }
 
 /* Add button styles to ensure they use the correct colors */
 .button-primary {
-  @apply bg-primary text-black px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
+  @apply bg-primary text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
 }
 
 .button-secondary {
-  @apply bg-background text-black border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-background text-white border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
 }
 
 /* Mobile specific adjustments */
