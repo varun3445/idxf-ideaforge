@@ -13,7 +13,6 @@ import { useToast } from '../hooks/use-toast';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Define a separate style component to avoid JSX issues
 const ForgeStyles = () => <style>
     {`
     .highlight-step {
@@ -34,6 +33,7 @@ const ForgeStyles = () => <style>
     }
   `}
   </style>;
+
 const ProjectContent: React.FC = () => {
   const {
     projectId
@@ -59,22 +59,27 @@ const ProjectContent: React.FC = () => {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (projectId) {
       loadProjectDetails(projectId);
     }
   }, [projectId, loadProjectDetails]);
+
   const handleAddStep = () => {
     setParentStepId(null);
     setAddStepDialogOpen(true);
   };
+
   const handleAddSubstep = (parentId: string) => {
     setParentStepId(parentId);
     setAddStepDialogOpen(true);
   };
+
   const handleShareProject = () => {
     setShareDialogOpen(true);
   };
+
   const handleConnectElements = () => {
     toast({
       title: 'Connect Elements',
@@ -82,6 +87,7 @@ const ProjectContent: React.FC = () => {
       variant: 'default'
     });
   };
+
   const handleSetCurrentFocus = (step: ProjectStep) => {
     if (!currentProject) return;
     setCurrentStep(step);
@@ -95,6 +101,7 @@ const ProjectContent: React.FC = () => {
       variant: 'default'
     });
   };
+
   const scrollToStep = (stepId: string) => {
     setTimeout(() => {
       const stepElement = document.getElementById(`step-${stepId}`);
@@ -110,12 +117,15 @@ const ProjectContent: React.FC = () => {
       }
     }, 100);
   };
+
   const rootSteps = projectSteps.filter(step => step.parent_step_id === null).sort((a, b) => a.order_index - b.order_index);
+
   if (loading && !currentProject) {
     return <div className="flex h-full w-full items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>;
   }
+
   if (error && !currentProject) {
     return <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
@@ -125,6 +135,7 @@ const ProjectContent: React.FC = () => {
         </div>
       </div>;
   }
+
   if (!currentProject) {
     return <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
@@ -134,21 +145,21 @@ const ProjectContent: React.FC = () => {
         </div>
       </div>;
   }
+
   return <div className="page-container p-4 md:p-6">
       <ForgeStyles />
       <div className="mb-8">
+        <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-2 pl-0 text-left">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Projects
+        </Button>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-2 pl-0 text-left">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Projects
-            </Button>
             <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
             {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
           </div>
           
           <div className="flex flex-wrap gap-2">
-            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -157,7 +168,6 @@ const ProjectContent: React.FC = () => {
               <Users className="mr-2 h-4 w-4" />
               Add Collaborator
             </Button>
-            
           </div>
         </div>
         
@@ -231,6 +241,7 @@ const ProjectContent: React.FC = () => {
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
     </div>;
 };
+
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -238,4 +249,5 @@ const ForgeWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ForgeWithProvider;
