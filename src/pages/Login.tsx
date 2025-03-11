@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
+
 const Login = () => {
   const navigate = useNavigate();
   const {
@@ -26,6 +27,7 @@ const Login = () => {
     navigate('/explore');
     return null;
   }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -52,6 +54,7 @@ const Login = () => {
       setLoading(false);
     }
   };
+
   return <AnimatedTransition>
       <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md space-y-8">
@@ -67,7 +70,7 @@ const Login = () => {
           <div className="glassmorphic-card">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="px-[100px]">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full" />
               </div>
               
@@ -104,4 +107,5 @@ const Login = () => {
       </div>
     </AnimatedTransition>;
 };
+
 export default Login;
