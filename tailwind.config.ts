@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Poppins', 'sans-serif'],
+				sans: ['Satoshi', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -56,7 +55,7 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				neon: '#005BC5', // Changed from lime green to blue
+				neon: '#005BC5',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
