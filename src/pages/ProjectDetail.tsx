@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
@@ -155,6 +155,16 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleBackProject = () => {
+    if (project) {
+      toast({
+        title: "Project Backed",
+        description: `You have successfully backed "${project.title}"`,
+        variant: "success"
+      });
+    }
+  };
+
   if (isLoading) {
     return <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
@@ -190,28 +200,28 @@ const ProjectDetail = () => {
             
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{project.title}</h1>
             
-            <div className="flex flex-wrap gap-3 mb-8">
-              <span className="inline-flex items-center gap-1 text-sm bg-primary/10 text-black px-3 py-1.5 rounded-full">
+            <div className="flex flex-wrap gap-3 mb-8 justify-center">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-primary/20 text-primary border-primary/30 px-4 py-2 rounded-full">
                 <Tag size={14} />
                 {project.category}
-              </span>
-              <span className="inline-flex items-center gap-1 text-sm bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
+              </Badge>
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted/80 text-muted-foreground px-4 py-2 rounded-full">
                 <Users size={14} />
                 {project.collaborators} collaborators
-              </span>
-              <span className="inline-flex items-center gap-1 text-sm bg-muted text-muted-foreground px-3 py-1.5 rounded-full">
+              </Badge>
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted/80 text-muted-foreground px-4 py-2 rounded-full">
                 <Calendar size={14} />
                 {formattedDate}
-              </span>
-              <span className="inline-flex items-center gap-1 text-sm bg-green-100 text-green-800 px-3 py-1.5 rounded-full">
+              </Badge>
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-green-100 text-green-800 px-4 py-2 rounded-full">
                 <Award size={14} />
                 {project.backersCount} backers
-              </span>
+              </Badge>
               {project.waitlistCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-sm bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full">
+                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 px-4 py-2 rounded-full">
                   <Clock size={14} />
                   {project.waitlistCount} in waitlist
-                </span>
+                </Badge>
               )}
             </div>
             
@@ -247,14 +257,29 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => <span key={index} className="inline-flex items-center gap-1 text-sm bg-muted/80 px-3 py-1.5 rounded-full">
+                    {project.techStack.map((tech, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary border-primary/20 px-3 py-1.5 rounded-full"
+                      >
                         <Code size={14} />
                         {tech}
-                      </span>)}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
                 
-                <div className="pt-6 border-t border-border">
+                <div className="pt-6 border-t border-border space-y-3">
+                  <Button 
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={handleBackProject}
+                    variant="secondary"
+                  >
+                    <Heart className="h-4 w-4" />
+                    Back This Project
+                  </Button>
+                  
                   <Button className="w-full" onClick={handleCollaborate}>
                     Request to Collaborate
                   </Button>

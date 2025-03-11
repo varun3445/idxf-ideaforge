@@ -72,7 +72,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
                 value={shareUrl}
                 readOnly
                 onClick={event => (event.target as HTMLInputElement).select()}
-                className="pr-10"
+                className="flex-grow"
               />
               <Button 
                 type="button" 

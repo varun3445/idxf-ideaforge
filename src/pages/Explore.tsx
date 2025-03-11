@@ -1,14 +1,16 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Award } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface PortfolioItem {
   id: string;
@@ -98,6 +100,14 @@ const Explore = () => {
     setSearchQuery(e.target.value);
   };
 
+  const handleBackProject = (projectId: string, projectTitle: string) => {
+    toast({
+      title: "Project Backed",
+      description: `You have successfully backed "${projectTitle}"`,
+      variant: "success"
+    });
+  };
+
   const filteredPortfolioItems = portfolioItems.filter(item => 
     item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -152,9 +162,9 @@ const Explore = () => {
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
                     <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
                     {item.category && (
-                      <span className="text-xs sm:text-sm text-muted-foreground py-1 sm:py-[5px]">
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px]">
                         {item.category}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   
@@ -177,7 +187,7 @@ const Explore = () => {
                     Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
-                  <div className="mt-auto flex justify-between items-center pt-3 sm:pt-4 md:pt-6 border-t border-border">
+                  <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:pt-4 md:pt-6 border-t border-border">
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                         <Users size={16} className="bg-transparent" />
@@ -190,13 +200,25 @@ const Explore = () => {
                       </Badge>
                     </div>
                     
-                    <Link 
-                      to={`/project/${item.id}`} 
-                      className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group"
-                    >
-                      <span>Explore</span>
-                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="flex items-center bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+                        onClick={() => handleBackProject(item.id, item.title)}
+                      >
+                        <Heart className="h-4 w-4 mr-1" />
+                        <span>Back</span>
+                      </Button>
+                    
+                      <Link 
+                        to={`/project/${item.id}`} 
+                        className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group"
+                      >
+                        <span>Explore</span>
+                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    </div>
                   </div>
                 </GlassmorphicCard>
               </div>
