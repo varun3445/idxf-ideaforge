@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock } from 'lucide-react';
@@ -83,7 +84,9 @@ const ProjectDetail = () => {
         techStack: ['Unity', 'WebXR', 'Three.js', 'Node.js'],
         createdAt: '2023-07-09',
         goals: ['Make abstract concepts tangible through spatial interaction', 'Create immersive historical and scientific simulations', 'Adapt content to different learning styles and paces', 'Enable educators to build VR content without coding skills'],
-        challenges: ['Designing interactions that enhance rather than distract from learning', 'Making VR experiences accessible to schools with limited resources', 'Creating an authoring tool intuitive enough for non-technical educators', 'Measuring learning outcomes in a new educational medium']
+        challenges: ['Designing interactions that enhance rather than distract from learning', 'Making VR experiences accessible to schools with limited resources', 'Creating an authoring tool intuitive enough for non-technical educators', 'Measuring learning outcomes in a new educational medium'],
+        backersCount: 15,
+        waitlistCount: 5
       },
       '4': {
         id: '4',
@@ -97,7 +100,9 @@ const ProjectDetail = () => {
         techStack: ['React', 'Python', 'D3.js', 'PostgreSQL'],
         createdAt: '2023-05-12',
         goals: ['Create an accessible tool for environmental impact assessment', 'Help designers make sustainable choices without sacrificing quality', 'Provide actionable, prioritized optimization recommendations', 'Support both digital and physical product sustainability'],
-        challenges: ['Gathering accurate environmental impact data across industries', 'Making complex sustainability metrics understandable to designers', 'Balancing design constraints with environmental optimizations', 'Creating a system flexible enough for diverse design disciplines']
+        challenges: ['Gathering accurate environmental impact data across industries', 'Making complex sustainability metrics understandable to designers', 'Balancing design constraints with environmental optimizations', 'Creating a system flexible enough for diverse design disciplines'],
+        backersCount: 30,
+        waitlistCount: 10
       },
       '5': {
         id: '5',
@@ -111,7 +116,9 @@ const ProjectDetail = () => {
         techStack: ['WebRTC', 'Web Audio API', 'React', 'Node.js'],
         createdAt: '2023-03-04',
         goals: ['Create studio-quality collaborative experiences for remote teams', 'Support real-time multitrack editing with minimal latency', 'Build specialized tools for different audio disciplines', 'Integrate with existing professional audio workflows'],
-        challenges: ['Synchronizing high-fidelity audio editing in real-time', 'Managing complex version control for collaborative audio projects', 'Creating an interface accessible to different audio disciplines', 'Ensuring compatibility with existing professional tools']
+        challenges: ['Synchronizing high-fidelity audio editing in real-time', 'Managing complex version control for collaborative audio projects', 'Creating an interface accessible to different audio disciplines', 'Ensuring compatibility with existing professional tools'],
+        backersCount: 22,
+        waitlistCount: 14
       },
       '6': {
         id: '6',
@@ -125,7 +132,9 @@ const ProjectDetail = () => {
         techStack: ['React', 'TypeScript', 'ARIA', 'Storybook'],
         createdAt: '2023-01-21',
         goals: ['Create components that are accessible by default, not as an afterthought', 'Build educational tools that teach accessibility best practices', 'Develop testing automation that catches accessibility issues early', 'Support accessibility needs across diverse brands and visual styles'],
-        challenges: ['Balancing aesthetic cohesion with accessibility requirements', 'Supporting the full range of assistive technologies', 'Creating educational materials that drive adoption', 'Building components flexible enough for diverse brand identities']
+        challenges: ['Balancing aesthetic cohesion with accessibility requirements', 'Supporting the full range of assistive technologies', 'Creating educational materials that drive adoption', 'Building components flexible enough for diverse brand identities'],
+        backersCount: 45,
+        waitlistCount: 20
       }
     };
     setTimeout(() => {
