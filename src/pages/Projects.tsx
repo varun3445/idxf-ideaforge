@@ -127,10 +127,10 @@ const ProjectsList: React.FC = () => {
         const createdDate = new Date(project.created_at);
         return <Card key={project.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
-                <CardTitle className="text-xl">{project.title}</CardTitle>
+                <CardTitle className="text-xl text-left">{project.title}</CardTitle>
               </CardHeader>
               <CardContent className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
-                <p className="text-gray-600 line-clamp-3">{project.description}</p>
+                <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
               </CardContent>
               <CardFooter className="border-t pt-4 flex justify-between text-sm text-gray-500">
                 <div className="flex items-center">
