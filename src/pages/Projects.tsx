@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -16,6 +16,7 @@ import { supabase } from '../integrations/supabase/client';
 import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProjectDeadline {
   id: string;
@@ -26,6 +27,7 @@ interface ProjectDeadline {
 
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const {
     projects,
     loadProjects,
@@ -44,6 +46,7 @@ const ProjectsList: React.FC = () => {
   const [teamSuggestions, setTeamSuggestions] = useState([]);
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
+  const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadProjects();
@@ -135,6 +138,26 @@ const ProjectsList: React.FC = () => {
     }
   };
 
+  const handleBackProject = (projectId: string) => {
+    setBackingProjects(prev => ({...prev, [projectId]: true}));
+    
+    const updatedProjects = projects.map(project => 
+      project.id === projectId 
+        ? {...project, backers_count: (project.backers_count || 0) + 1} 
+        : project
+    );
+    
+    toast({
+      title: "Project Backed!",
+      description: "You have successfully backed this project",
+      variant: "success",
+    });
+    
+    setTimeout(() => {
+      setBackingProjects(prev => ({...prev, [projectId]: false}));
+    }, 2000);
+  };
+
   const getNextDeadline = (projectId: string): ProjectDeadline | null => {
     const deadlines = projectDeadlines[projectId] || [];
     const upcomingDeadlines = deadlines
@@ -190,8 +213,9 @@ const ProjectsList: React.FC = () => {
         const createdDate = new Date(project.created_at);
         const nextDeadline = getNextDeadline(project.id);
         const waitlistCount = projectWaitlists[project.id] || 0;
+        const isBackingProject = backingProjects[project.id] || false;
         
-        return <Card key={project.id} className="hover:shadow-md transition-shadow">
+        return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
                 {nextDeadline && project.owner_id === 'user-1' && (
@@ -201,7 +225,7 @@ const ProjectsList: React.FC = () => {
                   </Badge>
                 )}
               </CardHeader>
-              <CardContent className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
+              <CardContent className="cursor-pointer flex-grow" onClick={() => navigate(`/forge/${project.id}`)}>
                 <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
               </CardContent>
               <CardFooter className="border-t pt-4 flex flex-col space-y-3">
@@ -216,14 +240,13 @@ const ProjectsList: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
-                        <Award className="h-3 w-3" />
-                        <span>{project.backers_count || 0} backers</span>
-                      </Badge>
-                    </div>
+                <div className="flex flex-wrap gap-2 justify-between items-center w-full">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
+                      <Award className="h-3 w-3" />
+                      <span>{project.backers_count || 0} backers</span>
+                    </Badge>
+                    
                     {waitlistCount > 0 && (
                       <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200">
                         <Clock className="h-3 w-3" />
@@ -231,13 +254,44 @@ const ProjectsList: React.FC = () => {
                       </Badge>
                     )}
                   </div>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={e => {
-                e.stopPropagation();
-                handleShareProject(project);
-              }}>
-                    <Share2 className="h-4 w-4" />
-                    <span className="sr-only">Share</span>
-                  </Button>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBackProject(project.id);
+                      }}
+                      disabled={isBackingProject}
+                      className="h-8 px-3"
+                    >
+                      {isBackingProject ? (
+                        <span className="flex items-center">
+                          <Heart className="h-4 w-4 fill-current text-primary mr-1" />
+                          <span>Backed!</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <Heart className="h-4 w-4 mr-1" />
+                          <span>Back</span>
+                        </span>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 p-0" 
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleShareProject(project);
+                      }}
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span className="sr-only">Share</span>
+                    </Button>
+                  </div>
                 </div>
               </CardFooter>
             </Card>;

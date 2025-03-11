@@ -34,6 +34,8 @@ const ProjectDetail = () => {
   }>();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBackingProject, setIsBackingProject] = useState(false);
+  const [isCollaborating, setIsCollaborating] = useState(false);
   const {
     toast
   } = useToast();
@@ -137,6 +139,7 @@ const ProjectDetail = () => {
         waitlistCount: 20
       }
     };
+    
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
@@ -147,21 +150,32 @@ const ProjectDetail = () => {
 
   const handleCollaborate = () => {
     if (project) {
+      setIsCollaborating(true);
       toast({
         title: "Collaboration Request Sent",
         description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`,
         variant: "success"
       });
+      
+      // Reset button after a delay for better UX
+      setTimeout(() => setIsCollaborating(false), 2000);
     }
   };
 
   const handleBackProject = () => {
     if (project) {
+      setIsBackingProject(true);
       toast({
         title: "Project Backed",
         description: `You have successfully backed "${project.title}"`,
         variant: "success"
       });
+      
+      // Update the backer count locally for immediate feedback
+      setProject(prev => prev ? {...prev, backersCount: prev.backersCount + 1} : prev);
+      
+      // Reset button after a delay for better UX
+      setTimeout(() => setIsBackingProject(false), 2000);
     }
   };
 
@@ -201,24 +215,24 @@ const ProjectDetail = () => {
             <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{project.title}</h1>
             
             <div className="flex flex-wrap gap-3 mb-8 justify-center">
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-primary/20 text-primary border-primary/30 px-4 py-2 rounded-full">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-primary/30 text-primary border-primary/50 px-4 py-2 rounded-full">
                 <Tag size={14} />
                 {project.category}
               </Badge>
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted/80 text-muted-foreground px-4 py-2 rounded-full">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted text-muted-foreground border-muted px-4 py-2 rounded-full">
                 <Users size={14} />
                 {project.collaborators} collaborators
               </Badge>
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted/80 text-muted-foreground px-4 py-2 rounded-full">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted text-muted-foreground border-muted px-4 py-2 rounded-full">
                 <Calendar size={14} />
                 {formattedDate}
               </Badge>
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-green-100 text-green-800 px-4 py-2 rounded-full">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-green-100 text-green-800 border-green-200 px-4 py-2 rounded-full">
                 <Award size={14} />
                 {project.backersCount} backers
               </Badge>
               {project.waitlistCount > 0 && (
-                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 px-4 py-2 rounded-full">
+                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
                   <Clock size={14} />
                   {project.waitlistCount} in waitlist
                 </Badge>
@@ -261,7 +275,7 @@ const ProjectDetail = () => {
                       <Badge 
                         key={index} 
                         variant="outline" 
-                        className="inline-flex items-center gap-1 text-sm bg-primary/10 text-primary border-primary/20 px-3 py-1.5 rounded-full"
+                        className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full"
                       >
                         <Code size={14} />
                         {tech}
@@ -275,13 +289,27 @@ const ProjectDetail = () => {
                     className="w-full flex items-center justify-center gap-2"
                     onClick={handleBackProject}
                     variant="secondary"
+                    disabled={isBackingProject}
                   >
-                    <Heart className="h-4 w-4" />
-                    Back This Project
+                    {isBackingProject ? (
+                      <span className="flex items-center gap-2">
+                        <Heart className="h-4 w-4 fill-current" />
+                        Backed!
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Heart className="h-4 w-4" />
+                        Back This Project
+                      </span>
+                    )}
                   </Button>
                   
-                  <Button className="w-full" onClick={handleCollaborate}>
-                    Request to Collaborate
+                  <Button 
+                    className="w-full" 
+                    onClick={handleCollaborate}
+                    disabled={isCollaborating}
+                  >
+                    {isCollaborating ? "Request Sent!" : "Request to Collaborate"}
                   </Button>
                 </div>
               </div>
