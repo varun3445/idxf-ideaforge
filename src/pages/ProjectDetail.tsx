@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart } from 'lucide-react';
@@ -8,7 +7,6 @@ import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-
 interface ProjectDetails {
   id: string;
   title: string;
@@ -25,7 +23,6 @@ interface ProjectDetails {
   backersCount: number;
   waitlistCount: number;
 }
-
 const ProjectDetail = () => {
   const {
     id
@@ -39,7 +36,6 @@ const ProjectDetail = () => {
   const {
     toast
   } = useToast();
-
   useEffect(() => {
     const mockProjects: Record<string, ProjectDetails> = {
       '1': {
@@ -139,7 +135,6 @@ const ProjectDetail = () => {
         waitlistCount: 20
       }
     };
-    
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
@@ -147,7 +142,6 @@ const ProjectDetail = () => {
       setIsLoading(false);
     }, 500);
   }, [id]);
-
   const handleCollaborate = () => {
     if (project) {
       setIsCollaborating(true);
@@ -156,12 +150,11 @@ const ProjectDetail = () => {
         description: `Your request to collaborate on "${project.title}" has been sent to the project owner.`,
         variant: "success"
       });
-      
+
       // Reset button after a delay for better UX
       setTimeout(() => setIsCollaborating(false), 2000);
     }
   };
-
   const handleBackProject = () => {
     if (project) {
       setIsBackingProject(true);
@@ -170,21 +163,22 @@ const ProjectDetail = () => {
         description: `You have successfully backed "${project.title}"`,
         variant: "success"
       });
-      
+
       // Update the backer count locally for immediate feedback
-      setProject(prev => prev ? {...prev, backersCount: prev.backersCount + 1} : prev);
-      
+      setProject(prev => prev ? {
+        ...prev,
+        backersCount: prev.backersCount + 1
+      } : prev);
+
       // Reset button after a delay for better UX
       setTimeout(() => setIsBackingProject(false), 2000);
     }
   };
-
   if (isLoading) {
     return <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
       </div>;
   }
-
   if (!project) {
     return <div className="page-container">
         <div className="text-center py-20">
@@ -196,9 +190,7 @@ const ProjectDetail = () => {
         </div>
       </div>;
   }
-
   const formattedDate = format(new Date(project.createdAt), 'dd-MM-yyyy');
-
   return <AnimatedTransition>
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
@@ -223,20 +215,15 @@ const ProjectDetail = () => {
                 <Users size={14} />
                 {project.collaborators} collaborators
               </Badge>
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-muted text-muted-foreground border-muted px-4 py-2 rounded-full">
-                <Calendar size={14} />
-                {formattedDate}
-              </Badge>
+              
               <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-green-100 text-green-800 border-green-200 px-4 py-2 rounded-full">
                 <Award size={14} />
                 {project.backersCount} backers
               </Badge>
-              {project.waitlistCount > 0 && (
-                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
+              {project.waitlistCount > 0 && <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
                   <Clock size={14} />
                   {project.waitlistCount} in waitlist
-                </Badge>
-              )}
+                </Badge>}
             </div>
             
             <div className="space-y-6 mb-8">
@@ -271,44 +258,25 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => (
-                      <Badge 
-                        key={index} 
-                        variant="outline" 
-                        className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full"
-                      >
+                    {project.techStack.map((tech, index) => <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
                         <Code size={14} />
                         {tech}
-                      </Badge>
-                    ))}
+                      </Badge>)}
                   </div>
                 </div>
                 
                 <div className="pt-6 border-t border-border space-y-3">
-                  <Button 
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={handleBackProject}
-                    variant="secondary"
-                    disabled={isBackingProject}
-                  >
-                    {isBackingProject ? (
-                      <span className="flex items-center gap-2">
+                  <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
+                    {isBackingProject ? <span className="flex items-center gap-2">
                         <Heart className="h-4 w-4 fill-current" />
                         Backed!
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
+                      </span> : <span className="flex items-center gap-2">
                         <Heart className="h-4 w-4" />
                         Back This Project
-                      </span>
-                    )}
+                      </span>}
                   </Button>
                   
-                  <Button 
-                    className="w-full" 
-                    onClick={handleCollaborate}
-                    disabled={isCollaborating}
-                  >
+                  <Button className="w-full" onClick={handleCollaborate} disabled={isCollaborating}>
                     {isCollaborating ? "Request Sent!" : "Request to Collaborate"}
                   </Button>
                 </div>
@@ -319,5 +287,4 @@ const ProjectDetail = () => {
       </div>
     </AnimatedTransition>;
 };
-
 export default ProjectDetail;
