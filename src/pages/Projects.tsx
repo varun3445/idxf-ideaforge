@@ -204,25 +204,33 @@ const ProjectsList: React.FC = () => {
               <CardContent className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
               </CardContent>
-              <CardFooter className="border-t pt-4 flex justify-between text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {format(createdDate, 'MMM d, yyyy')}
-                </div>
-                <div className="flex items-center gap-3">
+              <CardFooter className="border-t pt-4 flex flex-col space-y-3">
+                <div className="flex justify-between items-center w-full text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {format(createdDate, 'MMM d, yyyy')}
+                  </div>
                   <div className="flex items-center">
                     <Users className="h-4 w-4 mr-1" />
                     3 collaborators
                   </div>
-                  <div className="flex items-center">
-                    <Award className="h-4 w-4 mr-1" />
-                    {project.backers_count || 0} backers
+                </div>
+                
+                <div className="flex justify-between items-center w-full">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center">
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
+                        <Award className="h-3 w-3" />
+                        <span>{project.backers_count || 0} backers</span>
+                      </Badge>
+                    </div>
+                    {waitlistCount > 0 && (
+                      <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200">
+                        <Clock className="h-3 w-3" />
+                        <span>{waitlistCount} waiting</span>
+                      </Badge>
+                    )}
                   </div>
-                  {waitlistCount > 0 && (
-                    <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
-                      {waitlistCount} waiting
-                    </span>
-                  )}
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={e => {
                 e.stopPropagation();
                 handleShareProject(project);

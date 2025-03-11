@@ -48,7 +48,7 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
           <DialogTitle>Share Project</DialogTitle>
         </DialogHeader>
         
-        <div className="flex flex-col items-center space-y-4 py-4">
+        <div className="flex flex-col items-center space-y-5 py-4">
           <div className="bg-white p-4 rounded-lg shadow-sm">
             <QRCodeSVG 
               value={shareUrl}
@@ -72,12 +72,14 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
                 value={shareUrl}
                 readOnly
                 onClick={event => (event.target as HTMLInputElement).select()}
+                className="pr-10"
               />
               <Button 
                 type="button" 
                 size="icon" 
                 onClick={handleCopyLink}
                 variant={copied ? "default" : "outline"}
+                className="flex-shrink-0"
               >
                 <Copy className="h-4 w-4" />
               </Button>
