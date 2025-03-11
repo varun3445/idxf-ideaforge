@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -49,6 +48,7 @@ export interface Project {
   updated_at: string;
   current_step_id: string | null;
   share_code: string | null;
+  backers_count?: number;
 }
 
 interface ProjectContextType {
@@ -105,7 +105,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           created_at: '2023-11-15T00:00:00Z',
           updated_at: '2023-11-15T00:00:00Z',
           current_step_id: null,
-          share_code: 'DESIGN1'
+          share_code: 'DESIGN1',
+          backers_count: 24
         },
         {
           id: '2',
@@ -115,7 +116,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           created_at: '2023-09-23T00:00:00Z',
           updated_at: '2023-09-23T00:00:00Z',
           current_step_id: null,
-          share_code: 'BLOCK1'
+          share_code: 'BLOCK1',
+          backers_count: 18
         }
       ];
 
@@ -311,7 +313,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         current_step_id: null,
-        share_code: `SHARE${Math.floor(Math.random() * 10000)}`
+        share_code: `SHARE${Math.floor(Math.random() * 10000)}`,
+        backers_count: 0
       };
       
       setProjects(prev => [...prev, newProject]);

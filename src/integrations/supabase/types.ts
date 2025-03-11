@@ -71,6 +71,47 @@ export type Database = {
           },
         ]
       }
+      project_deadlines: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          is_completed: boolean
+          project_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          is_completed?: boolean
+          project_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          is_completed?: boolean
+          project_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deadlines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_steps: {
         Row: {
           created_at: string
@@ -122,8 +163,41 @@ export type Database = {
           },
         ]
       }
+      project_waitlist: {
+        Row: {
+          id: string
+          notes: string | null
+          project_id: string
+          requested_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          project_id: string
+          requested_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          project_id?: string
+          requested_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_waitlist_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
+          backers_count: number
           created_at: string
           current_step_id: string | null
           description: string | null
@@ -134,6 +208,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          backers_count?: number
           created_at?: string
           current_step_id?: string | null
           description?: string | null
@@ -144,6 +219,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          backers_count?: number
           created_at?: string
           current_step_id?: string | null
           description?: string | null

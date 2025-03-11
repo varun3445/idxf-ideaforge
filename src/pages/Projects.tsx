@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -9,12 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useProject, ProjectProvider, Project } from '../contexts/ProjectContext';
-import { format } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '../integrations/supabase/client';
 import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
+import { Badge } from '@/components/ui/badge';
+
+interface ProjectDeadline {
+  id: string;
+  title: string;
+  due_date: string;
+  is_completed: boolean;
+}
+
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -33,9 +42,35 @@ const ProjectsList: React.FC = () => {
   const [loadingAI, setLoadingAI] = useState(false);
   const [suggestedSteps, setSuggestedSteps] = useState([]);
   const [teamSuggestions, setTeamSuggestions] = useState([]);
+  const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
+  const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
+
   useEffect(() => {
     loadProjects();
+    loadProjectsMetadata();
   }, []);
+
+  const loadProjectsMetadata = async () => {
+    const deadlinesMock: Record<string, ProjectDeadline[]> = {
+      '1': [
+        { id: 'd1', title: 'Design Review', due_date: '2023-12-15T00:00:00Z', is_completed: false },
+        { id: 'd2', title: 'MVP Launch', due_date: '2024-01-30T00:00:00Z', is_completed: false }
+      ],
+      '2': [
+        { id: 'd3', title: 'Smart Contract Audit', due_date: '2023-12-20T00:00:00Z', is_completed: false },
+        { id: 'd4', title: 'Beta Launch', due_date: '2024-02-15T00:00:00Z', is_completed: false }
+      ]
+    };
+    
+    const waitlistsMock: Record<string, number> = {
+      '1': 12,
+      '2': 8
+    };
+    
+    setProjectDeadlines(deadlinesMock);
+    setProjectWaitlists(waitlistsMock);
+  };
+
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
@@ -49,17 +84,18 @@ const ProjectsList: React.FC = () => {
       navigate(`/forge/${newProject.id}`);
     }
   };
+
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
+
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
     }
     setLoadingAI(true);
     try {
-      // Get suggested steps from OpenAI
       const {
         data: stepsData,
         error: stepsError
@@ -74,7 +110,6 @@ const ProjectsList: React.FC = () => {
         throw new Error(`Error getting step suggestions: ${stepsError.message}`);
       }
 
-      // Get suggested team members from OpenAI
       const {
         data: teamData,
         error: teamError
@@ -89,11 +124,9 @@ const ProjectsList: React.FC = () => {
         throw new Error(`Error getting team suggestions: ${teamError.message}`);
       }
 
-      // Store suggestions
       setSuggestedSteps(stepsData.steps || []);
       setTeamSuggestions(teamData.team || []);
 
-      // Open the dialog to show suggestions
       setSuggestedStepsDialogOpen(true);
     } catch (error) {
       console.error('Error getting AI suggestions:', error);
@@ -102,9 +135,39 @@ const ProjectsList: React.FC = () => {
     }
   };
 
-  // Divide projects into owned and collaborations
-  const ownedProjects = projects.filter(p => p.owner_id === 'user-1'); // Update with real auth user id when ready
-  const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1'); // Update with real auth user id when ready
+  const getNextDeadline = (projectId: string): ProjectDeadline | null => {
+    const deadlines = projectDeadlines[projectId] || [];
+    const upcomingDeadlines = deadlines
+      .filter(d => !d.is_completed)
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+    
+    return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
+  };
+
+  const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
+    const dueDate = new Date(deadline.due_date);
+    if (isPast(dueDate) && !isToday(dueDate)) {
+      return `Overdue: ${deadline.title} (${format(dueDate, 'MMM d')})`;
+    } else if (isToday(dueDate)) {
+      return `Due Today: ${deadline.title}`;
+    } else {
+      return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
+    }
+  };
+
+  const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
+    const dueDate = new Date(deadline.due_date);
+    if (isPast(dueDate) && !isToday(dueDate)) {
+      return "destructive";
+    } else if (isToday(dueDate)) {
+      return "secondary";
+    } else {
+      return "default";
+    }
+  };
+
+  const ownedProjects = projects.filter(p => p.owner_id === 'user-1');
+  const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1');
 
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
@@ -125,9 +188,18 @@ const ProjectsList: React.FC = () => {
     return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projectsList.map(project => {
         const createdDate = new Date(project.created_at);
+        const nextDeadline = getNextDeadline(project.id);
+        const waitlistCount = projectWaitlists[project.id] || 0;
+        
         return <Card key={project.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
+                {nextDeadline && project.owner_id === 'user-1' && (
+                  <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
+                    <Clock className="mr-1 h-3 w-3" />
+                    {getDeadlineDisplayText(nextDeadline)}
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
@@ -142,6 +214,15 @@ const ProjectsList: React.FC = () => {
                     <Users className="h-4 w-4 mr-1" />
                     3 collaborators
                   </div>
+                  <div className="flex items-center">
+                    <Award className="h-4 w-4 mr-1" />
+                    {project.backers_count || 0} backers
+                  </div>
+                  {waitlistCount > 0 && (
+                    <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                      {waitlistCount} waiting
+                    </span>
+                  )}
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={e => {
                 e.stopPropagation();
                 handleShareProject(project);
@@ -155,6 +236,7 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
+
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -183,7 +265,6 @@ const ProjectsList: React.FC = () => {
           </TabsContent>
         </Tabs>}
       
-      {/* Create Project Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -223,19 +304,17 @@ const ProjectsList: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Share Project Dialog */}
       {selectedProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={selectedProject.title} shareCode={selectedProject.share_code} />}
       
-      {/* Suggested Steps Dialog */}
       <SuggestedStepsDialog open={suggestedStepsDialogOpen} onOpenChange={setSuggestedStepsDialogOpen} steps={suggestedSteps} onViewTeam={() => {
       setSuggestedStepsDialogOpen(false);
       setTeamSuggestionsDialogOpen(true);
     }} />
       
-      {/* Team Suggestions Dialog */}
       <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
+
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -243,4 +322,5 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ProjectsWithProvider;

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, Tag, Code } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 interface ProjectDetails {
   id: string;
@@ -20,6 +21,8 @@ interface ProjectDetails {
   createdAt: string;
   goals: string[];
   challenges: string[];
+  backersCount: number;
+  waitlistCount: number;
 }
 
 const ProjectDetail = () => {
@@ -48,7 +51,9 @@ const ProjectDetail = () => {
         techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
         createdAt: '2023-11-15',
         goals: ['Create an AI assistant that understands design principles', 'Provide real-time feedback on design decisions', 'Help designers learn and improve through contextual suggestions', 'Adapt to individual designer preferences over time'],
-        challenges: ['Training ML models to understand subjective design qualities', 'Creating feedback that\'s helpful without being intrusive', 'Balancing automation with designer creative control', 'Building a system that learns without requiring excessive data']
+        challenges: ['Training ML models to understand subjective design qualities', 'Creating feedback that\'s helpful without being intrusive', 'Balancing automation with designer creative control', 'Building a system that learns without requiring excessive data'],
+        backersCount: 24,
+        waitlistCount: 12
       },
       '2': {
         id: '2',
@@ -62,7 +67,9 @@ const ProjectDetail = () => {
         techStack: ['Solidity', 'React', 'IPFS', 'Ethereum'],
         createdAt: '2023-09-23',
         goals: ['Create a trustless marketplace for creative professionals', 'Eliminate intermediary fees through direct client-creator transactions', 'Automate licensing and rights management via smart contracts', 'Build a reputation system that works across creative disciplines'],
-        challenges: ['Creating smart contracts flexible enough for creative work', 'Balancing blockchain transaction costs with marketplace usability', 'Designing an accessible UX for non-technical creative professionals', 'Implementing fair dispute resolution mechanisms']
+        challenges: ['Creating smart contracts flexible enough for creative work', 'Balancing blockchain transaction costs with marketplace usability', 'Designing an accessible UX for non-technical creative professionals', 'Implementing fair dispute resolution mechanisms'],
+        backersCount: 18,
+        waitlistCount: 8
       },
       '3': {
         id: '3',
@@ -187,6 +194,16 @@ const ProjectDetail = () => {
                 <Calendar size={14} />
                 {formattedDate}
               </span>
+              <span className="inline-flex items-center gap-1 text-sm bg-green-100 text-green-800 px-3 py-1.5 rounded-full">
+                <Award size={14} />
+                {project.backersCount} backers
+              </span>
+              {project.waitlistCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-sm bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full">
+                  <Clock size={14} />
+                  {project.waitlistCount} in waitlist
+                </span>
+              )}
             </div>
             
             <div className="space-y-6 mb-8">
