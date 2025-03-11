@@ -17,17 +17,17 @@ import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-
 interface ProjectDeadline {
   id: string;
   title: string;
   due_date: string;
   is_completed: boolean;
 }
-
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const {
     projects,
     loadProjects,
@@ -47,33 +47,42 @@ const ProjectsList: React.FC = () => {
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
   const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
-
   useEffect(() => {
     loadProjects();
     loadProjectsMetadata();
   }, []);
-
   const loadProjectsMetadata = async () => {
     const deadlinesMock: Record<string, ProjectDeadline[]> = {
-      '1': [
-        { id: 'd1', title: 'Design Review', due_date: '2023-12-15T00:00:00Z', is_completed: false },
-        { id: 'd2', title: 'MVP Launch', due_date: '2024-01-30T00:00:00Z', is_completed: false }
-      ],
-      '2': [
-        { id: 'd3', title: 'Smart Contract Audit', due_date: '2023-12-20T00:00:00Z', is_completed: false },
-        { id: 'd4', title: 'Beta Launch', due_date: '2024-02-15T00:00:00Z', is_completed: false }
-      ]
+      '1': [{
+        id: 'd1',
+        title: 'Design Review',
+        due_date: '2023-12-15T00:00:00Z',
+        is_completed: false
+      }, {
+        id: 'd2',
+        title: 'MVP Launch',
+        due_date: '2024-01-30T00:00:00Z',
+        is_completed: false
+      }],
+      '2': [{
+        id: 'd3',
+        title: 'Smart Contract Audit',
+        due_date: '2023-12-20T00:00:00Z',
+        is_completed: false
+      }, {
+        id: 'd4',
+        title: 'Beta Launch',
+        due_date: '2024-02-15T00:00:00Z',
+        is_completed: false
+      }]
     };
-    
     const waitlistsMock: Record<string, number> = {
       '1': 12,
       '2': 8
     };
-    
     setProjectDeadlines(deadlinesMock);
     setProjectWaitlists(waitlistsMock);
   };
-
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
@@ -87,12 +96,10 @@ const ProjectsList: React.FC = () => {
       navigate(`/forge/${newProject.id}`);
     }
   };
-
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
-
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
@@ -112,7 +119,6 @@ const ProjectsList: React.FC = () => {
       if (stepsError) {
         throw new Error(`Error getting step suggestions: ${stepsError.message}`);
       }
-
       const {
         data: teamData,
         error: teamError
@@ -126,10 +132,8 @@ const ProjectsList: React.FC = () => {
       if (teamError) {
         throw new Error(`Error getting team suggestions: ${teamError.message}`);
       }
-
       setSuggestedSteps(stepsData.steps || []);
       setTeamSuggestions(teamData.team || []);
-
       setSuggestedStepsDialogOpen(true);
     } catch (error) {
       console.error('Error getting AI suggestions:', error);
@@ -137,36 +141,32 @@ const ProjectsList: React.FC = () => {
       setLoadingAI(false);
     }
   };
-
   const handleBackProject = (projectId: string) => {
-    setBackingProjects(prev => ({...prev, [projectId]: true}));
-    
-    const updatedProjects = projects.map(project => 
-      project.id === projectId 
-        ? {...project, backers_count: (project.backers_count || 0) + 1} 
-        : project
-    );
-    
+    setBackingProjects(prev => ({
+      ...prev,
+      [projectId]: true
+    }));
+    const updatedProjects = projects.map(project => project.id === projectId ? {
+      ...project,
+      backers_count: (project.backers_count || 0) + 1
+    } : project);
     toast({
       title: "Project Backed!",
       description: "You have successfully backed this project",
-      variant: "success",
+      variant: "success"
     });
-    
     setTimeout(() => {
-      setBackingProjects(prev => ({...prev, [projectId]: false}));
+      setBackingProjects(prev => ({
+        ...prev,
+        [projectId]: false
+      }));
     }, 2000);
   };
-
   const getNextDeadline = (projectId: string): ProjectDeadline | null => {
     const deadlines = projectDeadlines[projectId] || [];
-    const upcomingDeadlines = deadlines
-      .filter(d => !d.is_completed)
-      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-    
+    const upcomingDeadlines = deadlines.filter(d => !d.is_completed).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
     return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
   };
-
   const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -177,7 +177,6 @@ const ProjectsList: React.FC = () => {
       return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
     }
   };
-
   const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -188,10 +187,8 @@ const ProjectsList: React.FC = () => {
       return "default";
     }
   };
-
   const ownedProjects = projects.filter(p => p.owner_id === 'user-1');
   const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1');
-
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
       return <Card>
@@ -214,16 +211,13 @@ const ProjectsList: React.FC = () => {
         const nextDeadline = getNextDeadline(project.id);
         const waitlistCount = projectWaitlists[project.id] || 0;
         const isBackingProject = backingProjects[project.id] || false;
-        
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
-                {nextDeadline && project.owner_id === 'user-1' && (
-                  <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
+                {nextDeadline && project.owner_id === 'user-1' && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
                     <Clock className="mr-1 h-3 w-3" />
                     {getDeadlineDisplayText(nextDeadline)}
-                  </Badge>
-                )}
+                  </Badge>}
               </CardHeader>
               <CardContent className="cursor-pointer flex-grow" onClick={() => navigate(`/forge/${project.id}`)}>
                 <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
@@ -247,47 +241,19 @@ const ProjectsList: React.FC = () => {
                       <span>{project.backers_count || 0} backers</span>
                     </Badge>
                     
-                    {waitlistCount > 0 && (
-                      <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200">
+                    {waitlistCount > 0 && <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200">
                         <Clock className="h-3 w-3" />
                         <span>{waitlistCount} waiting</span>
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBackProject(project.id);
-                      }}
-                      disabled={isBackingProject}
-                      className="h-8 px-3"
-                    >
-                      {isBackingProject ? (
-                        <span className="flex items-center">
-                          <Heart className="h-4 w-4 fill-current text-primary mr-1" />
-                          <span>Backed!</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center">
-                          <Heart className="h-4 w-4 mr-1" />
-                          <span>Back</span>
-                        </span>
-                      )}
-                    </Button>
                     
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 p-0" 
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleShareProject(project);
-                      }}
-                    >
+                    
+                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={e => {
+                  e.stopPropagation();
+                  handleShareProject(project);
+                }}>
                       <Share2 className="h-4 w-4" />
                       <span className="sr-only">Share</span>
                     </Button>
@@ -298,7 +264,6 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
-
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -376,7 +341,6 @@ const ProjectsList: React.FC = () => {
       <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
-
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -384,5 +348,4 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
-
 export default ProjectsWithProvider;
