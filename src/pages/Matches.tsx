@@ -654,7 +654,7 @@ const Matches = () => {
                           <div className="h-40 w-full overflow-hidden">
                             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
                           </div>
-                          <div className="p-4">
+                          <div className="p-4 bg-neutral-900">
                             <h3 className="font-bold text-lg mb-1">{project.title}</h3>
                             <p className="text-muted-foreground mb-4">{project.description}</p>
                             
