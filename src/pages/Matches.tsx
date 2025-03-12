@@ -515,7 +515,7 @@ const Matches = () => {
                             </div>
                           </div>) : <div className="col-span-full text-center py-8">
                           <p className="text-muted-foreground">No AI matches found</p>
-                        </div> : filteredProfiles.length > 0 ? filteredProfiles.map(profile => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 bg-white shadow-md">
+                        </div> : filteredProfiles.length > 0 ? filteredProfiles.map(profile => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 shadow-md bg-neutral-900">
                             <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 shadow-md">
                               {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
                                   {profile.name[0]}
