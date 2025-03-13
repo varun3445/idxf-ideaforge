@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart, MessageSquare, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import ProjectFeedback from '@/components/ProjectFeedback';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from '../AuthContext';
 
 interface ProjectDetails {
   id: string;
@@ -27,13 +29,23 @@ interface ProjectDetails {
   waitlistCount: number;
 }
 
+interface ProjectUpdate {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+}
+
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string; }>();
   const [project, setProject] = useState<ProjectDetails | null>(null);
+  const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isBackingProject, setIsBackingProject] = useState(false);
   const [isCollaborating, setIsCollaborating] = useState(false);
+  const [hasUserBackedProject, setHasUserBackedProject] = useState(false);
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   
   useEffect(() => {
     const mockProjects: Record<string, ProjectDetails> = {
@@ -138,10 +150,40 @@ const ProjectDetail = () => {
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
+        
+        // Generate mock updates for the project
+        const mockUpdates: ProjectUpdate[] = [
+          {
+            id: '1',
+            title: 'Development Milestone Reached',
+            content: 'We are excited to announce that we have completed the core functionality of our product. The team has been working tirelessly to ensure that everything works seamlessly. We are now moving to the testing phase where we will be looking for bugs and user experience issues.',
+            date: '2023-12-01'
+          },
+          {
+            id: '2',
+            title: 'New Team Members',
+            content: 'We are pleased to welcome two new developers to our team. They bring extensive experience in AI and machine learning which will be invaluable as we develop the intelligent features of our platform.',
+            date: '2023-11-15'
+          },
+          {
+            id: '3',
+            title: 'Funding Update',
+            content: 'Thanks to your support, we have reached our initial funding goal! This will allow us to accelerate development and add some of the stretch features that many of you have been requesting.',
+            date: '2023-10-20'
+          }
+        ];
+        setUpdates(mockUpdates);
+        
+        // Check if current user has backed the project (mock implementation)
+        if (isAuthenticated && user) {
+          // In a real app, this would be a database check
+          // For now, we'll randomly decide for demo purposes
+          setHasUserBackedProject(Math.random() > 0.5);
+        }
       }
       setIsLoading(false);
     }, 500);
-  }, [id]);
+  }, [id, isAuthenticated, user]);
   
   const handleCollaborate = () => {
     if (project) {
@@ -171,6 +213,9 @@ const ProjectDetail = () => {
         ...prev,
         backersCount: prev.backersCount + 1
       } : prev);
+      
+      // Set user as a backer
+      setHasUserBackedProject(true);
 
       // Reset button after a delay for better UX
       setTimeout(() => setIsBackingProject(false), 2000);
@@ -215,9 +260,9 @@ const ProjectDetail = () => {
           <div className="lg:col-span-2">
             <img src={project.imageUrl} alt={project.title} className="w-full aspect-video object-cover rounded-lg shadow-lg mb-6" />
             
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">{project.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
             
-            <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            <div className="flex flex-wrap gap-3 mb-8">
               <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-primary/30 text-primary border-primary/50 px-4 py-2 rounded-full">
                 <Tag size={14} />
                 {project.category}
@@ -239,44 +284,105 @@ const ProjectDetail = () => {
               )}
             </div>
             
-            <div className="space-y-6 mb-8">
-              <p className="text-lg leading-relaxed text-left">{project.longDescription}</p>
+            <Tabs defaultValue="overview" className="w-full mb-8">
+              <TabsList className="mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                {hasUserBackedProject && (
+                  <TabsTrigger value="updates" className="inline-flex items-center">
+                    <Bell className="mr-2 h-4 w-4" />
+                    Updates
+                  </TabsTrigger>
+                )}
+                {hasUserBackedProject && (
+                  <TabsTrigger value="feedback" className="inline-flex items-center">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Feedback
+                  </TabsTrigger>
+                )}
+              </TabsList>
               
-              <div>
-                <h3 className="text-xl font-semibold mb-4 my-0 py-0 text-left">Project Goals</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  {project.goals.map((goal, index) => (
-                    <li key={index} className="text-muted-foreground text-left">{goal}</li>
-                  ))}
-                </ul>
-              </div>
+              <TabsContent value="overview" className="space-y-6">
+                <p className="text-lg leading-relaxed">{project.longDescription}</p>
+                
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Project Goals</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {project.goals.map((goal, index) => (
+                      <li key={index} className="text-muted-foreground">{goal}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">Technical Challenges</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {project.challenges.map((challenge, index) => (
+                      <li key={index} className="text-muted-foreground">{challenge}</li>
+                    ))}
+                  </ul>
+                </div>
+              </TabsContent>
               
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-left">Technical Challenges</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  {project.challenges.map((challenge, index) => (
-                    <li key={index} className="text-muted-foreground px-0 text-left">{challenge}</li>
+              {hasUserBackedProject && (
+                <TabsContent value="updates" className="space-y-6">
+                  <div className="bg-muted/30 p-4 rounded-md mb-6">
+                    <p className="text-sm text-muted-foreground">
+                      <Bell className="inline-block mr-2 h-4 w-4" />
+                      These project updates are exclusively available to backers. Thank you for your support!
+                    </p>
+                  </div>
+                  
+                  {updates.map((update) => (
+                    <div key={update.id} className="border border-border rounded-lg p-6 mb-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-xl font-semibold">{update.title}</h3>
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(update.date), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground">{update.content}</p>
+                    </div>
                   ))}
-                </ul>
-              </div>
-            </div>
+                </TabsContent>
+              )}
+              
+              {hasUserBackedProject && (
+                <TabsContent value="feedback">
+                  {id && <ProjectFeedback projectId={id} />}
+                </TabsContent>
+              )}
+            </Tabs>
             
-            {/* Add the project feedback component */}
-            {id && <ProjectFeedback projectId={id} />}
+            {/* Show feedback prompt for non-backers to encourage backing */}
+            {!hasUserBackedProject && (
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-8">
+                <div className="flex items-center gap-4">
+                  <MessageSquare className="h-10 w-10 text-primary" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1">Back This Project to Provide Feedback</h3>
+                    <p className="text-muted-foreground mb-4">Your support unlocks the ability to provide valuable feedback and access exclusive project updates.</p>
+                    <Button onClick={handleBackProject} disabled={isBackingProject} className="inline-flex items-center">
+                      <Heart className="mr-2 h-4 w-4" />
+                      {isBackingProject ? "Processing..." : "Back This Project"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
           <div>
             <GlassmorphicCard className="sticky top-24">
-              <h3 className="text-xl font-semibold mb-6 text-left">Project Details</h3>
+              <h3 className="text-xl font-semibold mb-6">Project Details</h3>
               
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Creator</h4>
-                  <p className="text-lg text-left">{project.creator}</p>
+                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Creator</h4>
+                  <p className="text-lg">{project.creator}</p>
                 </div>
                 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Tech Stack</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
                     {project.techStack.map((tech, index) => (
                       <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
@@ -288,19 +394,26 @@ const ProjectDetail = () => {
                 </div>
                 
                 <div className="pt-6 border-t border-border space-y-3">
-                  <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
-                    {isBackingProject ? (
-                      <span className="flex items-center gap-2">
-                        <Heart className="h-4 w-4 fill-current" />
-                        Backed!
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" />
-                        Back This Project
-                      </span>
-                    )}
-                  </Button>
+                  {!hasUserBackedProject ? (
+                    <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
+                      {isBackingProject ? (
+                        <span className="flex items-center gap-2">
+                          <Heart className="h-4 w-4 fill-current" />
+                          Backing...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Heart className="h-4 w-4" />
+                          Back This Project
+                        </span>
+                      )}
+                    </Button>
+                  ) : (
+                    <div className="bg-green-100 text-green-800 px-4 py-3 rounded-full text-center flex items-center justify-center">
+                      <Heart className="h-4 w-4 fill-current mr-2" />
+                      You're backing this project
+                    </div>
+                  )}
                   
                   <Button className="w-full" onClick={handleCollaborate} disabled={isCollaborating}>
                     {isCollaborating ? "Request Sent!" : "Request to Collaborate"}
