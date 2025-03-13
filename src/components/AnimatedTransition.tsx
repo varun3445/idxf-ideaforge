@@ -29,7 +29,7 @@ const AnimatedTransition = ({
   }, [location.pathname]);
   return <div ref={elementRef} style={{
     transformOrigin: 'center'
-  }} className="min-h-screen pt-6 md:pt-28 pb-16 animate-scale-in animate-slide-in">
+  }} className="min-h-screen pt-6 md:pt-28 pb-16 animate-scale-in animate-slide-in text-left">
       {children}
     </div>;
 };
