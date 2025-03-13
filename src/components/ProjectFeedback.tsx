@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { supabase } from '../integrations/supabase/client';
@@ -25,7 +26,7 @@ interface Feedback {
   rating: number;
   created_at: string;
   updated_at: string;
-  profiles?: {
+  user_profile?: {
     name: string | null;
     avatar: string | null;
   } | null;
@@ -50,17 +51,36 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
   const fetchFeedback = async () => {
     setFeedbackLoading(true);
     try {
-      const { data, error } = await supabase
+      // First fetch the feedback entries
+      const { data: feedbackData, error: feedbackError } = await supabase
         .from('project_feedback')
-        .select(`
-          *,
-          profiles:profiles(name, avatar)
-        `)
+        .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setFeedback(data as Feedback[]);
+      if (feedbackError) throw feedbackError;
+      
+      // For each feedback entry, fetch the user's profile
+      const feedbackWithProfiles = await Promise.all(
+        feedbackData.map(async (item) => {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('name, avatar')
+            .eq('id', item.user_id)
+            .single();
+          
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError);
+          }
+          
+          return {
+            ...item,
+            user_profile: profileData || null
+          };
+        })
+      );
+      
+      setFeedback(feedbackWithProfiles as Feedback[]);
     } catch (error) {
       console.error('Error fetching feedback:', error);
       toast({
@@ -254,11 +274,11 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-3">
                     <Avatar>
-                      <AvatarImage src={item.profiles?.avatar || ''} />
-                      <AvatarFallback>{item.profiles?.name?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarImage src={item.user_profile?.avatar || ''} />
+                      <AvatarFallback>{item.user_profile?.name?.charAt(0) || 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-medium">{item.profiles?.name || 'Anonymous'}</div>
+                      <div className="font-medium">{item.user_profile?.name || 'Anonymous'}</div>
                       <div className="text-xs text-muted-foreground">
                         {format(new Date(item.created_at), 'MMM d, yyyy')}
                       </div>
