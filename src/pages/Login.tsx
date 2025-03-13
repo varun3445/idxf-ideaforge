@@ -18,14 +18,23 @@ const Login = () => {
       formButtonPrimary: 'bg-primary text-white hover:bg-primary/90 rounded-full shadow-md border-2 border-primary/30 backdrop-blur-sm',
       card: 'bg-transparent shadow-none',
       formFieldInput: 'flex h-10 w-full rounded-md border-3 border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 md:text-sm shadow-md',
-      footerActionText: 'text-primary',
+      footerActionText: 'text-foreground',
       footerActionLink: 'text-primary hover:underline',
       identityPreviewText: 'text-foreground',
       identityPreviewEditButton: 'text-primary',
-      formFieldLabel: 'text-sm font-medium leading-none'
+      formFieldLabel: 'text-sm font-medium leading-none',
+      rootBox: 'w-full',
     },
     layout: {
-      socialButtonsVariant: "iconButton" as const
+      socialButtonsVariant: "iconButton" as const,
+    },
+    baseTheme: 'dark',
+    variables: {
+      colorBackground: 'black',
+      colorPrimary: '#005BC5',
+      colorText: 'white',
+      colorInputText: 'white',
+      colorInputBackground: '#222222',
     }
   };
 
@@ -54,13 +63,15 @@ const Login = () => {
             </p>
           </div>
           
-          <GlassmorphicCard>
+          <GlassmorphicCard className="p-0 overflow-hidden">
             {appearanceReady && (
-              <SignIn 
-                appearance={appearance}
-                redirectUrl="/explore"
-                signUpUrl="/signup"
-              />
+              <div className="w-full">
+                <SignIn 
+                  appearance={appearance}
+                  redirectUrl="/explore"
+                  signUpUrl="/signup"
+                />
+              </div>
             )}
           </GlassmorphicCard>
         </div>

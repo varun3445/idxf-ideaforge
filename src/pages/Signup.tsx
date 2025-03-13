@@ -22,10 +22,19 @@ const Signup = () => {
       identityPreviewText: 'text-foreground',
       identityPreviewEditButton: 'text-primary',
       formFieldLabel: 'text-sm font-medium leading-none',
-      avatarBox: 'border-4 border-background'
+      avatarBox: 'border-4 border-background',
+      rootBox: 'w-full',
     },
     layout: {
-      socialButtonsVariant: "iconButton" as const
+      socialButtonsVariant: "iconButton" as const,
+    },
+    baseTheme: 'dark',
+    variables: {
+      colorBackground: 'black',
+      colorPrimary: '#005BC5',
+      colorText: 'white',
+      colorInputText: 'white',
+      colorInputBackground: '#222222',
     }
   };
 
@@ -50,13 +59,15 @@ const Signup = () => {
             <p className="text-muted-foreground">Join our community of innovators</p>
           </div>
           
-          <GlassmorphicCard>
+          <GlassmorphicCard className="p-0 overflow-hidden">
             {appearanceReady && (
-              <SignUp 
-                appearance={appearance}
-                redirectUrl="/explore"
-                signInUrl="/login"
-              />
+              <div className="w-full">
+                <SignUp 
+                  appearance={appearance}
+                  redirectUrl="/explore"
+                  signInUrl="/login"
+                />
+              </div>
             )}
           </GlassmorphicCard>
         </div>
