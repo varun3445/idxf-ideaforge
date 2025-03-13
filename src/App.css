@@ -47,6 +47,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
+  backdrop-filter: blur(8px);
+  background-color: rgba(3, 3, 3, 0.5);
 }
 
 .read-the-docs {
@@ -97,4 +99,35 @@
   padding: 16px;
   border-radius: 8px;
   display: inline-block;
+}
+
+/* Glassmorphism styles */
+.glassmorphic {
+  @apply bg-card/80 backdrop-blur-sm border-2 border-border/30 shadow-lg;
+}
+
+.text-shadow {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.card-content {
+  @apply text-left space-y-4;
+}
+
+.card-title {
+  @apply text-xl font-bold mb-2 tracking-wide;
+}
+
+.card-description {
+  @apply text-sm text-muted-foreground leading-relaxed;
+}
+
+/* Improved readability for text on dark backgrounds */
+.improved-text-contrast {
+  @apply tracking-wide leading-relaxed;
+}
+
+/* Card hover animations */
+.hover-lift {
+  @apply transition-all duration-300 hover:translate-y-[-3px] hover:shadow-xl;
 }
