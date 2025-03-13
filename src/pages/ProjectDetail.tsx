@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart } from 'lucide-react';
@@ -7,6 +8,8 @@ import GlassmorphicCard from '@/components/GlassmorphicCard';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import ProjectFeedback from '@/components/ProjectFeedback';
+
 interface ProjectDetails {
   id: string;
   title: string;
@@ -23,19 +26,15 @@ interface ProjectDetails {
   backersCount: number;
   waitlistCount: number;
 }
+
 const ProjectDetail = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
+  const { id } = useParams<{ id: string; }>();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBackingProject, setIsBackingProject] = useState(false);
   const [isCollaborating, setIsCollaborating] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
   useEffect(() => {
     const mockProjects: Record<string, ProjectDetails> = {
       '1': {
@@ -135,6 +134,7 @@ const ProjectDetail = () => {
         waitlistCount: 20
       }
     };
+    
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
@@ -142,6 +142,7 @@ const ProjectDetail = () => {
       setIsLoading(false);
     }, 500);
   }, [id]);
+  
   const handleCollaborate = () => {
     if (project) {
       setIsCollaborating(true);
@@ -155,6 +156,7 @@ const ProjectDetail = () => {
       setTimeout(() => setIsCollaborating(false), 2000);
     }
   };
+  
   const handleBackProject = () => {
     if (project) {
       setIsBackingProject(true);
@@ -174,13 +176,18 @@ const ProjectDetail = () => {
       setTimeout(() => setIsBackingProject(false), 2000);
     }
   };
+  
   if (isLoading) {
-    return <div className="page-container flex justify-center items-center min-h-[60vh]">
+    return (
+      <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
-      </div>;
+      </div>
+    );
   }
+  
   if (!project) {
-    return <div className="page-container">
+    return (
+      <div className="page-container">
         <div className="text-center py-20">
           <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
           <p className="mb-8">The project you're looking for doesn't exist or may have been removed.</p>
@@ -188,10 +195,14 @@ const ProjectDetail = () => {
             <Button>Return to Explore</Button>
           </Link>
         </div>
-      </div>;
+      </div>
+    );
   }
+  
   const formattedDate = format(new Date(project.createdAt), 'dd-MM-yyyy');
-  return <AnimatedTransition>
+  
+  return (
+    <AnimatedTransition>
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
           <Link to="/explore" className="inline-flex items-center gap-2 text-black hover:underline px-0 py-0">
@@ -220,10 +231,12 @@ const ProjectDetail = () => {
                 <Award size={14} />
                 {project.backersCount} backers
               </Badge>
-              {project.waitlistCount > 0 && <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
+              {project.waitlistCount > 0 && (
+                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
                   <Clock size={14} />
                   {project.waitlistCount} in waitlist
-                </Badge>}
+                </Badge>
+              )}
             </div>
             
             <div className="space-y-6 mb-8">
@@ -232,17 +245,24 @@ const ProjectDetail = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-4 my-0 py-0 text-left">Project Goals</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.goals.map((goal, index) => <li key={index} className="text-muted-foreground text-left">{goal}</li>)}
+                  {project.goals.map((goal, index) => (
+                    <li key={index} className="text-muted-foreground text-left">{goal}</li>
+                  ))}
                 </ul>
               </div>
               
               <div>
                 <h3 className="text-xl font-semibold mb-4 text-left">Technical Challenges</h3>
                 <ul className="list-disc pl-5 space-y-2">
-                  {project.challenges.map((challenge, index) => <li key={index} className="text-muted-foreground px-0 text-left">{challenge}</li>)}
+                  {project.challenges.map((challenge, index) => (
+                    <li key={index} className="text-muted-foreground px-0 text-left">{challenge}</li>
+                  ))}
                 </ul>
               </div>
             </div>
+            
+            {/* Add the project feedback component */}
+            {id && <ProjectFeedback projectId={id} />}
           </div>
           
           <div>
@@ -258,22 +278,28 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 text-left">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
+                    {project.techStack.map((tech, index) => (
+                      <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
                         <Code size={14} />
                         {tech}
-                      </Badge>)}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
                 
                 <div className="pt-6 border-t border-border space-y-3">
                   <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
-                    {isBackingProject ? <span className="flex items-center gap-2">
+                    {isBackingProject ? (
+                      <span className="flex items-center gap-2">
                         <Heart className="h-4 w-4 fill-current" />
                         Backed!
-                      </span> : <span className="flex items-center gap-2">
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
                         <Heart className="h-4 w-4" />
                         Back This Project
-                      </span>}
+                      </span>
+                    )}
                   </Button>
                   
                   <Button className="w-full" onClick={handleCollaborate} disabled={isCollaborating}>
@@ -285,6 +311,8 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
-    </AnimatedTransition>;
+    </AnimatedTransition>
+  );
 };
+
 export default ProjectDetail;

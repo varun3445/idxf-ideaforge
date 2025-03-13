@@ -6,6 +6,7 @@ export interface User {
   location: string;
   skills: string[];
   avatar: string | null;
+  plan?: string;
 }
 
 export interface AuthContextType {
@@ -17,5 +18,14 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
-  signup: (name: string, email: string, password: string, location: string, skills?: string[], avatar?: string | null) => Promise<{ error?: any }>;
+  signup: (
+    name: string, 
+    email: string, 
+    password: string, 
+    location: string, 
+    skills?: string[], 
+    avatar?: string | null,
+    plan?: string,
+    promoCode?: string | null
+  ) => Promise<{ error?: any }>;
 }

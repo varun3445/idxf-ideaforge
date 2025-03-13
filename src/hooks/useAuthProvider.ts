@@ -28,6 +28,17 @@ export const useAuthProvider = (): AuthContextType => {
 
       const skills = skillsData.map(item => item.skills.name);
 
+      // Fetch user plan data
+      const { data: planData, error: planError } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (planError) {
+        console.error('Error fetching user plan:', planError);
+      }
+
       const userData: User = {
         id: profileData.id,
         email: profileData.email,
@@ -35,6 +46,7 @@ export const useAuthProvider = (): AuthContextType => {
         location: profileData.location,
         skills,
         avatar: profileData.avatar,
+        plan: planData?.plan_type || 'free',
       };
 
       setUser(userData);
@@ -132,6 +144,7 @@ export const useAuthProvider = (): AuthContextType => {
           location: profile?.location || '',
           skills,
           avatar: profile?.avatar || null,
+          plan: 'free',
         });
       }
     } catch (err) {
@@ -207,7 +220,16 @@ export const useAuthProvider = (): AuthContextType => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, location: string, skills: string[] = [], avatar: string | null = null) => {
+  const signup = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    location: string, 
+    skills: string[] = [], 
+    avatar: string | null = null, 
+    plan: string = 'free', 
+    promoCode: string | null = null
+  ) => {
     setLoading(true);
     setError(null);
     
@@ -236,6 +258,20 @@ export const useAuthProvider = (): AuthContextType => {
         if (profileError) {
           setError(profileError.message);
           return { error: profileError };
+        }
+        
+        // Create user plan
+        const { error: planError } = await supabase
+          .from('user_plans')
+          .insert({
+            user_id: data.user.id,
+            plan_type: plan,
+            promo_code: promoCode
+          });
+          
+        if (planError) {
+          console.error('Error creating user plan:', planError);
+          // Continue despite plan error
         }
         
         for (const skill of skills) {

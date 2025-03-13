@@ -10,6 +10,7 @@ import { Loader2, Camera, Upload, X, MapPin } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { supabase } from '../integrations/supabase/client';
 import SkillsetSelector from '../components/SkillsetSelector';
+import PlanSelectionStep from '../components/PlanSelectionStep';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -27,12 +28,24 @@ const Signup = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
 
+  // Plan selection state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [plan, setPlan] = useState('free');
+  const [promoCode, setPromoCode] = useState('');
+
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (currentStep === 1) {
+      // Move to plan selection step
+      setCurrentStep(2);
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
-      const { error } = await signup(name, email, password, location, skills, avatar);
+      const { error } = await signup(name, email, password, location, skills, avatar, plan, promoCode);
       
       if (error) {
         toast({
@@ -252,159 +265,166 @@ const Signup = () => {
             <h2 className="text-2xl font-bold mb-6 text-left">Create an Account</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="mb-6 flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden mb-2 border-4 border-background bg-secondary flex items-center justify-center relative">
-                  {avatar ? (
-                    <img 
-                      src={avatar} 
-                      alt="Profile preview" 
-                      className="w-full h-full object-cover"
+              {currentStep === 1 ? (
+                <>
+                  <div className="mb-6 flex flex-col items-center">
+                    <div className="w-24 h-24 rounded-full overflow-hidden mb-2 border-4 border-background bg-secondary flex items-center justify-center relative">
+                      {avatar ? (
+                        <img 
+                          src={avatar} 
+                          alt="Profile preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Camera size={32} className="text-muted-foreground" />
+                      )}
+                      
+                      <button 
+                        type="button"
+                        onClick={triggerFileInput}
+                        className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Camera size={24} />
+                        )}
+                      </button>
+                    </div>
+                    
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      accept="image/*"
                     />
-                  ) : (
-                    <Camera size={32} className="text-muted-foreground" />
-                  )}
+                    
+                    <div className="flex space-x-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={triggerFileInput}
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <Loader2 size={14} className="mr-1 animate-spin" />
+                        ) : (
+                          <Upload size={14} className="mr-1" />
+                        )}
+                        Upload photo
+                      </Button>
+                      
+                      {avatar && (
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleRemoveAvatar}
+                        >
+                          <X size={14} className="mr-1" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   
-                  <button 
-                    type="button"
-                    onClick={triggerFileInput}
-                    className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                    disabled={uploadingImage}
-                  >
-                    {uploadingImage ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Camera size={24} />
-                    )}
-                  </button>
-                </div>
-                
-                <input 
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  accept="image/*"
-                />
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={triggerFileInput}
-                    disabled={uploadingImage}
-                  >
-                    {uploadingImage ? (
-                      <Loader2 size={14} className="mr-1 animate-spin" />
-                    ) : (
-                      <Upload size={14} className="mr-1" />
-                    )}
-                    Upload photo
-                  </Button>
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="name" className="text-left">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your full name"
+                      required
+                    />
+                  </div>
                   
-                  {avatar && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleRemoveAvatar}
-                    >
-                      <X size={14} className="mr-1" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="space-y-2 text-left">
-                <Label htmlFor="name" className="text-left">Full Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2 text-left">
-                <Label htmlFor="email" className="text-left">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email address"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2 text-left">
-                <Label htmlFor="password" className="text-left">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  required
-                  minLength={8}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Password must be at least 8 characters
-                </p>
-              </div>
-              
-              <div className="space-y-2 text-left">
-                <Label htmlFor="location" className="text-left">Location</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City, Country"
-                    required
-                    className="flex-1"
-                  />
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="email" className="text-left">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Your email address"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="password" className="text-left">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Create a password"
+                      required
+                      minLength={8}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Password must be at least 8 characters
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="location" className="text-left">Location</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="location"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="City, Country"
+                        required
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={detectLocation}
+                        disabled={detectingLocation}
+                        className="flex items-center"
+                      >
+                        {detectingLocation ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <MapPin size={16} />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Click the location pin to auto-detect your location
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 text-left">
+                    <Label className="text-left">Skills</Label>
+                    <SkillsetSelector
+                      selectedSkills={skills}
+                      onChange={setSkills}
+                    />
+                  </div>
+                  
                   <Button 
-                    type="button" 
-                    variant="outline"
-                    onClick={detectLocation}
-                    disabled={detectingLocation}
-                    className="flex items-center"
+                    type="submit" 
+                    className="w-full"
                   >
-                    {detectingLocation ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <MapPin size={16} />
-                    )}
+                    Continue to Plan Selection
                   </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Click the location pin to auto-detect your location
-                </p>
-              </div>
-              
-              <div className="space-y-2 text-left">
-                <Label className="text-left">Skills</Label>
-                <SkillsetSelector
-                  selectedSkills={skills}
-                  onChange={setSkills}
+                </>
+              ) : (
+                <PlanSelectionStep
+                  selectedPlan={plan}
+                  promoCode={promoCode}
+                  onPlanChange={setPlan}
+                  onPromoCodeChange={setPromoCode}
+                  onComplete={handleSubmit}
+                  isLoading={isLoading}
                 />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : 'Sign up'}
-              </Button>
+              )}
               
               <div className="text-left text-sm mt-4">
                 <span className="text-muted-foreground">
