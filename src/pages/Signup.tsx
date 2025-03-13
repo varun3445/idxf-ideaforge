@@ -27,7 +27,6 @@ const Signup = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
 
-  // Plan selection state
   const [currentStep, setCurrentStep] = useState(1);
   const [plan, setPlan] = useState('free');
   const [promoCode, setPromoCode] = useState('');
@@ -36,7 +35,6 @@ const Signup = () => {
     e.preventDefault();
     
     if (currentStep === 1) {
-      // Move to plan selection step
       setCurrentStep(2);
       return;
     }
@@ -60,7 +58,6 @@ const Signup = () => {
         description: 'You have successfully signed up',
       });
       
-      // Store email for welcome back message
       localStorage.setItem('lastLoginEmail', email);
       
       navigate('/explore');
@@ -106,25 +103,21 @@ const Signup = () => {
     setUploadingImage(true);
     
     try {
-      // Create a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `avatar-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
-      // Upload the image to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user_avatars')
         .upload(filePath, file);
         
       if (uploadError) throw uploadError;
       
-      // Get the public URL
       const { data } = supabase.storage
         .from('user_avatars')
         .getPublicUrl(filePath);
         
       if (data && data.publicUrl) {
-        // Set the avatar URL
         setAvatar(data.publicUrl);
         
         toast({
@@ -141,7 +134,6 @@ const Signup = () => {
       });
     } finally {
       setUploadingImage(false);
-      // Clear the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -175,7 +167,6 @@ const Signup = () => {
         try {
           const { latitude, longitude } = position.coords;
           
-          // Use reverse geocoding to get location name
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
           );
@@ -184,7 +175,6 @@ const Signup = () => {
           
           const data = await response.json();
           
-          // Extract city and country if available
           const city = data.address.city || 
                        data.address.town || 
                        data.address.village || 
@@ -420,7 +410,7 @@ const Signup = () => {
                   promoCode={promoCode}
                   onPlanChange={setPlan}
                   onPromoCodeChange={setPromoCode}
-                  onComplete={(e) => handleSubmit(e)}
+                  onComplete={handleSubmit}
                   isLoading={isLoading}
                 />
               )}

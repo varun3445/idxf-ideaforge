@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -55,10 +54,7 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
         .from('project_feedback')
         .select(`
           *,
-          profiles:user_id (
-            name, 
-            avatar
-          )
+          profiles:profiles(name, avatar)
         `)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
@@ -77,10 +73,9 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
     }
   };
 
-  // Load feedback when component mounts
-  useState(() => {
+  useEffect(() => {
     fetchFeedback();
-  });
+  }, [projectId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +102,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
 
     try {
       if (editingFeedback) {
-        // Update existing feedback
         const { error } = await supabase
           .from('project_feedback')
           .update({
@@ -126,7 +120,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
         
         setEditingFeedback(null);
       } else {
-        // Create new feedback
         const { error } = await supabase
           .from('project_feedback')
           .insert({
@@ -144,7 +137,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
         });
       }
 
-      // Reset form and refresh feedback
       setContent('');
       setRating(5);
       fetchFeedback();
@@ -195,7 +187,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
     }
   };
 
-  // Render star rating
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
@@ -209,7 +200,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
       ));
   };
 
-  // Render rating selector
   const renderRatingSelector = () => {
     return (
       <div className="flex items-center space-x-1 mb-4">
@@ -299,7 +289,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
         </div>
       )}
 
-      {/* Edit/Create Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -333,7 +322,6 @@ const ProjectFeedback = ({ projectId }: ProjectFeedbackProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent>
           <DialogHeader>
