@@ -25,7 +25,7 @@ const Signup = () => {
       avatarBox: 'border-4 border-background'
     },
     layout: {
-      socialButtonsVariant: 'iconButton'
+      socialButtonsVariant: "iconButton" as const
     }
   };
 

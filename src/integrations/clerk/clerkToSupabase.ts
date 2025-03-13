@@ -1,9 +1,8 @@
 
 import { supabase } from '../supabase/client';
-import { User as ClerkUser } from '@clerk/clerk-react';
-import { User } from '../../types/auth.types';
+import type { User } from '../../types/auth.types';
 
-export const updateSupabaseAuth = async (clerkUser: ClerkUser | null): Promise<void> => {
+export const updateSupabaseAuth = async (clerkUser: any | null): Promise<void> => {
   if (!clerkUser) {
     // Sign out from Supabase when Clerk user is null
     await supabase.auth.signOut();
@@ -20,7 +19,10 @@ export const updateSupabaseAuth = async (clerkUser: ClerkUser | null): Promise<v
     }
     
     // Authenticate with Supabase using the JWT
-    const { error } = await supabase.auth.signInWithJwt({ jwt: token });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: clerkUser.primaryEmailAddress?.emailAddress || '',
+      password: token.substring(0, 20) // Using a part of the token as a virtual password
+    });
     
     if (error) {
       console.error('Supabase auth error:', error);
@@ -30,7 +32,7 @@ export const updateSupabaseAuth = async (clerkUser: ClerkUser | null): Promise<v
   }
 };
 
-export const syncUserProfile = async (clerkUser: ClerkUser): Promise<User | null> => {
+export const syncUserProfile = async (clerkUser: any): Promise<User | null> => {
   if (!clerkUser) return null;
   
   try {

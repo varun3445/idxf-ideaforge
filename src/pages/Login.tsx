@@ -25,7 +25,7 @@ const Login = () => {
       formFieldLabel: 'text-sm font-medium leading-none'
     },
     layout: {
-      socialButtonsVariant: 'iconButton'
+      socialButtonsVariant: "iconButton" as const
     }
   };
 
