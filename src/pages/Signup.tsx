@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -421,7 +420,7 @@ const Signup = () => {
                   promoCode={promoCode}
                   onPlanChange={setPlan}
                   onPromoCodeChange={setPromoCode}
-                  onComplete={handleSubmit}
+                  onComplete={(e) => handleSubmit(e)}
                   isLoading={isLoading}
                 />
               )}

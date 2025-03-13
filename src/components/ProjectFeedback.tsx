@@ -27,9 +27,9 @@ interface Feedback {
   created_at: string;
   updated_at: string;
   profiles?: {
-    name: string;
+    name: string | null;
     avatar: string | null;
-  };
+  } | null;
 }
 
 interface ProjectFeedbackProps {
