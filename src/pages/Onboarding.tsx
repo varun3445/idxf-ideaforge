@@ -69,12 +69,12 @@ const Onboarding = () => {
       return;
     }
     
-    // Initialize Stripe checkout
-    const stripe = window.Stripe('pk_test_51PshYrH2PkLCQCGsqLe5LyBsOmgHoAkxVmrMJxnmOBK9A5zGtZJBTj6jIQoZnXV7R34HkhjJoivzf7OyHKfBcfYo00i9jB6H1w');
+    // Initialize Stripe checkout with the updated keys
+    const stripe = window.Stripe('pk_test_51LnRRQSGQr4A8npYL8NGMkCuxtyT5KELHh8DegqyHRhVhLzUEWS5a6SUmYG8ag2oVZ9mqLMtiAvTfgZxBtUjmMHV00MCCMvHt1');
 
     stripe.redirectToCheckout({
       lineItems: [{
-        price: 'price_1PshZ8H2PkLCQCGs6TgfRnyx', // Replace with actual Stripe price ID
+        price: 'price_1R2NY6SGQr4A8npYteF7CrYm', // Updated price ID
         quantity: 1,
       }],
       mode: 'payment',
