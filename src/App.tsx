@@ -18,6 +18,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
 import JoinProject from './pages/JoinProject';
+import Onboarding from './pages/Onboarding';
 
 import './App.css';
 
@@ -27,8 +28,8 @@ const AppContent = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const location = useLocation();
   
-  // Hide navbar on landing page
-  const showNavbar = location.pathname !== '/';
+  // Hide navbar on landing page and onboarding page
+  const showNavbar = location.pathname !== '/' && location.pathname !== '/onboarding';
 
   return (
     <>
@@ -46,6 +47,7 @@ const AppContent = () => {
           <Route path="/projects" element={<Projects />} />
           <Route path="/forge/:projectId" element={<Forge />} />
           <Route path="/join-project/:shareCode" element={<JoinProject />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
