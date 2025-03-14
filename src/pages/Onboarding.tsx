@@ -31,7 +31,7 @@ const Onboarding = () => {
 
     try {
       // Store user information in Supabase
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('early_access')
         .insert([{ email, name }]);
 
@@ -57,6 +57,17 @@ const Onboarding = () => {
 
   const handlePaymentClick = () => {
     setIsPaymentVisible(true);
+    
+    // Make sure Stripe is available in the window object
+    if (typeof window.Stripe === 'undefined') {
+      toast({
+        title: "Stripe not loaded",
+        description: "Payment system is not available. Please try again later.",
+        variant: "destructive"
+      });
+      setIsPaymentVisible(false);
+      return;
+    }
     
     // Initialize Stripe checkout
     const stripe = window.Stripe('pk_test_51PshYrH2PkLCQCGsqLe5LyBsOmgHoAkxVmrMJxnmOBK9A5zGtZJBTj6jIQoZnXV7R34HkhjJoivzf7OyHKfBcfYo00i9jB6H1w');
