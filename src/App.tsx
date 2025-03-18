@@ -27,8 +27,8 @@ const AppContent = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const location = useLocation();
   
-  // Hide navbar on landing page
-  const showNavbar = location.pathname !== '/';
+  // Hide navbar on landing page and for unauthenticated users
+  const showNavbar = location.pathname !== '/' && isAuthenticated;
 
   return (
     <>

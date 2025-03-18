@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 const Navbar = () => {
   const location = useLocation();
@@ -48,7 +49,7 @@ const Navbar = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account"
       });
-      navigate('/'); // Changed from '/login' to '/' to redirect to landing page
+      navigate('/'); // Changed to redirect to landing page
     } catch (error) {
       console.error('Logout error:', error);
       toast({
@@ -71,11 +72,12 @@ const Navbar = () => {
               className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden bg-black shadow-lg border border-white/10"
             >
               {user && user.avatar ? (
-                <img 
-                  src={user.avatar}
-                  alt={user.name || 'User'}
-                  className="w-full h-full object-cover"
-                />
+                <Avatar>
+                  <AvatarImage src={user.avatar} alt={user.name || 'User'} />
+                  <AvatarFallback>
+                    <User size={20} className="text-white" />
+                  </AvatarFallback>
+                </Avatar>
               ) : (
                 <User size={20} className="text-white" />
               )}
@@ -169,11 +171,12 @@ const Navbar = () => {
             >
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center">
                 {user && user.avatar ? (
-                  <img 
-                    src={user.avatar}
-                    alt={user.name || 'User'}
-                    className="w-full h-full object-cover"
-                  />
+                  <Avatar>
+                    <AvatarImage src={user.avatar} alt={user.name || 'User'} className="w-full h-full object-cover" />
+                    <AvatarFallback>
+                      <User size={18} className="text-white" />
+                    </AvatarFallback>
+                  </Avatar>
                 ) : (
                   <User size={18} className="text-white" />
                 )}
