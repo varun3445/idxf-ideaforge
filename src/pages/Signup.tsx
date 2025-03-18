@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -186,230 +185,222 @@ const Signup = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4 py-8">
-      <div className="w-full max-w-md">
-        {renderStepIndicator()}
+      {renderStepIndicator()}
+      
+      <Card className="border-none shadow-lg">
+        <CardHeader>
+          <CardTitle>Create an account</CardTitle>
+          <CardDescription>
+            {step === 'account' && "Enter your information to get started"}
+            {step === 'skills' && "What skills do you have?"}
+            {step === 'plan' && "Choose your plan"}
+          </CardDescription>
+        </CardHeader>
         
-        <Card className="border-none shadow-lg">
-          <CardHeader>
-            <CardTitle>Create an account</CardTitle>
-            <CardDescription>
-              {step === 'account' && "Enter your information to get started"}
-              {step === 'skills' && "What skills do you have?"}
-              {step === 'plan' && "Choose your plan"}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <AnimatePresence mode="wait">
-              {step === 'account' && (
-                <motion.div
-                  key="account"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                >
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmitAccountInfo)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="john@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location</FormLabel>
-                            <FormControl>
-                              <Input placeholder="New York, USA" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="sex"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Gender</FormLabel>
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex gap-6"
-                              >
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="male" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Male
-                                  </FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="female" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Female
-                                  </FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="other" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Other
-                                  </FormLabel>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full mt-8"
-                      >
-                        Continue to Skills
-                      </Button>
-                    </form>
-                  </Form>
-                </motion.div>
-              )}
-              
-              {step === 'skills' && (
-                <motion.div
-                  key="skills"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <div className="space-y-4">
-                    <Label>Select your skills</Label>
-                    <SkillsetSelector 
-                      selectedSkills={selectedSkills} 
-                      onChange={setSelectedSkills} 
+        <CardContent>
+          <AnimatePresence mode="wait">
+            {step === 'account' && (
+              <motion.div
+                key="account"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmitAccountInfo)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                     
-                    <div className="flex justify-between mt-8">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => goToStep('account')}
-                        className="flex items-center"
-                      >
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back
-                      </Button>
-                      
-                      <Button 
-                        type="button" 
-                        onClick={() => goToStep('plan')}
-                        className="flex items-center"
-                      >
-                        Continue
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              
-              {step === 'plan' && (
-                <motion.div
-                  key="plan"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <div className="space-y-6">
-                    <PlanSelectionStep 
-                      selectedPlan={selectedPlan}
-                      promoCode={promoCode}
-                      onPlanChange={setSelectedPlan}
-                      onPromoCodeChange={setPromoCode}
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="john@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                     
-                    <div className="flex justify-between mt-8 pt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => goToStep('skills')}
-                        className="flex items-center"
-                      >
-                        <ChevronLeft className="mr-2 h-4 w-4" />
-                        Back
-                      </Button>
-                      
-                      <Button 
-                        type="button" 
-                        onClick={handleSignup}
-                        disabled={loading}
-                      >
-                        {loading ? 'Creating Account...' : 'Create Account'}
-                      </Button>
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="********" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Location</FormLabel>
+                          <FormControl>
+                            <Input placeholder="New York, USA" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="sex"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Gender</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-6"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="male" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Male
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="female" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Female
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="other" />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  Other
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full mt-8"
+                    >
+                      Continue to Skills
+                    </Button>
+                  </form>
+                </Form>
+              </motion.div>
+            )}
+            
+            {step === 'skills' && (
+              <motion.div
+                key="skills"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="space-y-4">
+                  <Label>Select your skills</Label>
+                  <SkillsetSelector 
+                    selectedSkills={selectedSkills} 
+                    onChange={setSelectedSkills} 
+                  />
+                  
+                  <div className="flex justify-between mt-8">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => goToStep('account')}
+                      className="flex items-center"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Back
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      onClick={() => goToStep('plan')}
+                      className="flex items-center"
+                    >
+                      Continue
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-          
-          <CardFooter className="flex flex-col space-y-4">
-            <Separator />
-            <div className="text-center text-sm">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary font-medium hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+                </div>
+              </motion.div>
+            )}
+            
+            {step === 'plan' && (
+              <motion.div
+                key="plan"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <div className="space-y-6">
+                  <PlanSelectionStep 
+                    selectedPlan={selectedPlan}
+                    promoCode={promoCode}
+                    onPlanChange={setSelectedPlan}
+                    onPromoCodeChange={setPromoCode}
+                    onComplete={handleSignup}
+                    isLoading={loading}
+                  />
+                  
+                  <div className="flex justify-between mt-8 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => goToStep('skills')}
+                      className="flex items-center"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Back
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+        
+        <CardFooter className="flex flex-col space-y-4">
+          <Separator />
+          <div className="text-center text-sm">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary font-medium hover:underline">
+              Login
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

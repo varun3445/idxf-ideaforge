@@ -11,7 +11,7 @@ interface PlanSelectionStepProps {
   promoCode?: string;
   onPlanChange: (plan: string) => void;
   onPromoCodeChange?: (code: string) => void;
-  onComplete?: (e: React.SyntheticEvent<HTMLFormElement>) => void;
+  onComplete?: () => void;  // Changed type to not expect a specific event
   isLoading?: boolean;
 }
 
@@ -94,10 +94,10 @@ const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
       )}
 
       <Button 
-        type="submit"
+        type="button"
         className="w-full"
         disabled={isLoading}
-        onClick={(e) => onComplete(e as React.SyntheticEvent<HTMLFormElement>)}
+        onClick={() => onComplete()}
       >
         {isLoading ? (
           <>
