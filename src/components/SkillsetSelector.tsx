@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, X, Circle, PlusCircle } from 'lucide-react';
 import { Input } from './ui/input';
@@ -11,10 +10,9 @@ interface Skill {
 interface SkillsetSelectorProps {
   selectedSkills: string[];
   onChange: (skills: string[]) => void;
-  availableSkills?: Skill[]; // Now accepting skills as prop
+  availableSkills?: Skill[];
 }
 
-// Default available skills (fallback if none provided)
 const defaultSkills: Skill[] = [
   { name: "UI Design", color: "#3B82F6" },
   { name: "UX Design", color: "#8B5CF6" },
@@ -30,7 +28,6 @@ const defaultSkills: Skill[] = [
   { name: "Project Management", color: "#64748B" }
 ];
 
-// Colors for random assignment to custom skills
 const customSkillColors = [
   "#9b87f5", "#7E69AB", "#6E59A5", "#8B5CF6", 
   "#D946EF", "#F97316", "#0EA5E9", "#1EAEDB", 
@@ -38,7 +35,6 @@ const customSkillColors = [
   "#14B8A6", "#06B6D4", "#64748B", "#EC4899"
 ];
 
-// Define some default skill categories for organization
 const defaultCategories = [
   "Design", 
   "Development", 
@@ -48,7 +44,6 @@ const defaultCategories = [
   "Custom"
 ];
 
-// Helper function to categorize skills (simplified)
 const categorizeSkill = (skillName: string): string => {
   if (skillName.includes("Design") || skillName.includes("UI") || skillName.includes("UX") || skillName.includes("Graphic") || skillName.includes("Illustration")) {
     return "Design";
@@ -63,7 +58,6 @@ const categorizeSkill = (skillName: string): string => {
   }
 };
 
-// Helper function to get a random color from customSkillColors
 const getRandomColor = (): string => {
   const randomIndex = Math.floor(Math.random() * customSkillColors.length);
   return customSkillColors[randomIndex];
@@ -75,10 +69,8 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   const [customSkill, setCustomSkill] = useState("");
   const [customSkills, setCustomSkills] = useState<Skill[]>([]);
   
-  // Use default skills if none provided
   const skillsToUse = availableSkills.length > 0 ? availableSkills : defaultSkills;
   
-  // Group skills by category
   const skillsByCategory = defaultCategories.reduce((acc, category) => {
     if (category === "Custom") {
       acc[category] = customSkills;
@@ -105,21 +97,17 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
   const handleAddCustomSkill = () => {
     if (customSkill.trim() === "") return;
     
-    // Create the new custom skill with a random color
     const newSkill = {
       name: customSkill.trim(),
       color: getRandomColor()
     };
     
-    // Add to custom skills
     setCustomSkills([...customSkills, newSkill]);
     
-    // Also add to selected skills
     if (!selectedSkills.includes(newSkill.name)) {
       onChange([...selectedSkills, newSkill.name]);
     }
     
-    // Reset input
     setCustomSkill("");
   };
   
@@ -142,7 +130,6 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         ) : (
           <div className="flex flex-wrap gap-3">
             {selectedSkills.map(skill => {
-              // Find the skill in all available sources
               const skillInfo = 
                 skillsToUse.find(s => s.name === skill) || 
                 customSkills.find(s => s.name === skill);
@@ -177,7 +164,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         </button>
         
         {isExpanded && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-50 w-full">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-[100] w-full">
             <div className="flex gap-2 mb-4 overflow-x-auto py-2 pb-3 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button
