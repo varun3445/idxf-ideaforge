@@ -27,25 +27,74 @@ const AppContent = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const location = useLocation();
   
-  // Hide navbar on landing page and for unauthenticated users
-  const showNavbar = location.pathname !== '/' && isAuthenticated;
+  // Hide navbar only on landing page
+  const showNavbar = location.pathname !== '/';
 
   return (
     <>
-      {showNavbar && <Navbar />}
-      {showNavbar && <BetaIndicator />}
-      <div className={`${isMobile && showNavbar ? "pb-16 mobile-page-padding" : showNavbar ? "fixed-nav-content" : ""}`}>
+      {showNavbar && isAuthenticated && <Navbar />}
+      {showNavbar && isAuthenticated && <BetaIndicator />}
+      <div className={`${isMobile && showNavbar && isAuthenticated ? "pb-16 mobile-page-padding" : showNavbar && isAuthenticated ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/matches" element={<Matches />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/forge/:projectId" element={<Forge />} />
-          <Route path="/join-project/:shareCode" element={<JoinProject />} />
+          <Route 
+            path="/explore" 
+            element={
+              <ProtectedRoute>
+                <Explore />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/matches" 
+            element={
+              <ProtectedRoute>
+                <Matches />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/project/:id" 
+            element={
+              <ProtectedRoute>
+                <ProjectDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/forge/:projectId" 
+            element={
+              <ProtectedRoute>
+                <Forge />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/join-project/:shareCode" 
+            element={
+              <ProtectedRoute>
+                <JoinProject />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
