@@ -1,436 +1,409 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
+
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
+import { Separator } from '../components/ui/separator';
 import { useToast } from '../hooks/use-toast';
-import { Loader2, Camera, Upload, X, MapPin } from 'lucide-react';
-import AnimatedTransition from '../components/AnimatedTransition';
 import { supabase } from '../integrations/supabase/client';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SkillsetSelector from '../components/SkillsetSelector';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import PlanSelectionStep from '../components/PlanSelectionStep';
 
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+  location: z.string().min(2, {
+    message: "Location must be at least 2 characters.",
+  }),
+  sex: z.enum(["male", "female", "other"])
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+type SignupStep = 'account' | 'skills' | 'plan';
+
 const Signup = () => {
-  const navigate = useNavigate();
-  const { signup } = useAuth();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [location, setLocation] = useState('');
-  const [skills, setSkills] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [detectingLocation, setDetectingLocation] = useState(false);
+  const navigate = useNavigate();
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro'>('free');
+  const [step, setStep] = useState<SignupStep>('account');
+  const [accountData, setAccountData] = useState<FormValues | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const [plan, setPlan] = useState('free');
-  const [promoCode, setPromoCode] = useState('');
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      location: "",
+      sex: "male"
+    },
+  });
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (currentStep === 1) {
-      setCurrentStep(2);
-      return;
-    }
-    
-    setIsLoading(true);
-
-    try {
-      const { error } = await signup(name, email, password, location, skills, avatar, plan, promoCode);
-      
-      if (error) {
-        toast({
-          title: 'Signup failed',
-          description: error.message || 'Please check your information and try again',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      toast({
-        title: 'Account created',
-        description: 'You have successfully signed up',
-      });
-      
-      localStorage.setItem('lastLoginEmail', email);
-      
-      navigate('/explore');
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast({
-        title: 'Signup failed',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmitAccountInfo = (values: FormValues) => {
+    setAccountData(values);
+    setStep('skills');
   };
-  
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) {
-      return;
-    }
+
+  const goToStep = (newStep: SignupStep) => {
+    setStep(newStep);
+  };
+
+  const handleSignup = async () => {
+    if (!accountData) return;
     
-    const file = files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    
-    if (file.size > maxSize) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 5MB",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setUploadingImage(true);
+    setLoading(true);
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `avatar-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${fileName}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('user_avatars')
-        .upload(filePath, file);
-        
-      if (uploadError) throw uploadError;
-      
-      const { data } = supabase.storage
-        .from('user_avatars')
-        .getPublicUrl(filePath);
-        
-      if (data && data.publicUrl) {
-        setAvatar(data.publicUrl);
-        
-        toast({
-          title: "Image uploaded",
-          description: "Your profile picture has been uploaded"
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your image",
-        variant: "destructive"
+      // Sign up with Supabase Auth
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
+        email: accountData.email,
+        password: accountData.password,
       });
-    } finally {
-      setUploadingImage(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-  
-  const handleRemoveAvatar = () => {
-    setAvatar(null);
-  };
-  
-  const triggerFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
 
-  const detectLocation = async () => {
-    setDetectingLocation(true);
-    
-    try {
-      if (!navigator.geolocation) {
-        toast({
-          title: "Geolocation not supported",
-          description: "Your browser doesn't support geolocation",
-          variant: "destructive"
-        });
-        return;
+      if (signupError) throw signupError;
+      
+      if (!authData.user) {
+        throw new Error('User creation failed');
       }
       
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
+      // Create profile in profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          name: accountData.name,
+          email: accountData.email,
+          location: accountData.location,
+          sex: accountData.sex
+        });
+
+      if (profileError) throw profileError;
+      
+      // Add user skills
+      if (selectedSkills.length > 0) {
+        // First get skill IDs
+        const { data: skillsData, error: skillsError } = await supabase
+          .from('skills')
+          .select('id, name')
+          .in('name', selectedSkills);
           
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
-          );
+        if (skillsError) throw skillsError;
+        
+        if (skillsData && skillsData.length > 0) {
+          // Create user_skill entries
+          const userSkills = skillsData.map(skill => ({
+            user_id: authData.user!.id,
+            skill_id: skill.id
+          }));
           
-          if (!response.ok) throw new Error("Failed to fetch location data");
-          
-          const data = await response.json();
-          
-          const city = data.address.city || 
-                       data.address.town || 
-                       data.address.village || 
-                       data.address.hamlet ||
-                       data.address.city_district ||
-                       "";
-          const country = data.address.country || "";
-          
-          const locationString = [city, country].filter(Boolean).join(", ");
-          
-          if (locationString) {
-            setLocation(locationString);
-            toast({
-              title: "Location detected",
-              description: `Your location: ${locationString}`
-            });
-          } else {
-            toast({
-              title: "Location detection partial",
-              description: "Could not determine your full location"
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching location name:", error);
-          toast({
-            title: "Location detection failed",
-            description: "Could not determine your location name",
-            variant: "destructive"
+          const { error: userSkillsError } = await supabase
+            .from('user_skills')
+            .insert(userSkills);
+            
+          if (userSkillsError) throw userSkillsError;
+        }
+      }
+      
+      // Add user plan if pro is selected
+      if (selectedPlan === 'pro') {
+        const { error: planError } = await supabase
+          .from('user_plans')
+          .insert({
+            user_id: authData.user.id,
+            plan_type: 'pro',
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
           });
-        } finally {
-          setDetectingLocation(false);
-        }
-      }, (error) => {
-        console.error("Geolocation error:", error);
-        let errorMessage = "Could not detect your location";
-        
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = "Location permission denied";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable";
-            break;
-          case error.TIMEOUT:
-            errorMessage = "Location request timed out";
-            break;
-        }
-        
-        toast({
-          title: "Location detection failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        setDetectingLocation(false);
-      });
-    } catch (error) {
-      console.error("Location detection error:", error);
+          
+        if (planError) throw planError;
+      }
+      
       toast({
-        title: "Location detection failed",
-        description: "An unexpected error occurred",
-        variant: "destructive"
+        title: "Account created successfully!",
+        description: "Welcome to Idea Forge.",
       });
-      setDetectingLocation(false);
+      
+      setTimeout(() => {
+        navigate('/explore');
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error during signup:', error);
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : "An error occurred during signup.",
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const renderStepIndicator = () => {
+    return (
+      <div className="flex items-center justify-center space-x-2 my-6">
+        <div 
+          className={`h-2 w-2 rounded-full ${
+            step === 'account' ? 'bg-primary' : 'bg-gray-300'
+          }`}
+        />
+        <div 
+          className={`h-2 w-2 rounded-full ${
+            step === 'skills' ? 'bg-primary' : 'bg-gray-300'
+          }`}
+        />
+        <div 
+          className={`h-2 w-2 rounded-full ${
+            step === 'plan' ? 'bg-primary' : 'bg-gray-300'
+          }`}
+        />
+      </div>
+    );
   };
 
   return (
-    <AnimatedTransition>
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-        <div className="w-full max-w-md">
-          <div className="text-left mb-10">
-            <h1 className="text-4xl font-extrabold mb-2">Idea Forge</h1>
-            <p className="text-muted-foreground">Join our community of innovators</p>
-          </div>
+    <div className="flex items-center justify-center min-h-screen px-4 py-8">
+      <div className="w-full max-w-md">
+        {renderStepIndicator()}
+        
+        <Card className="border-none shadow-lg">
+          <CardHeader>
+            <CardTitle>Create an account</CardTitle>
+            <CardDescription>
+              {step === 'account' && "Enter your information to get started"}
+              {step === 'skills' && "What skills do you have?"}
+              {step === 'plan' && "Choose your plan"}
+            </CardDescription>
+          </CardHeader>
           
-          <div className="bg-card border border-border rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 text-left">Create an Account</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {currentStep === 1 ? (
-                <>
-                  <div className="mb-6 flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-full overflow-hidden mb-2 border-4 border-background bg-secondary flex items-center justify-center relative">
-                      {avatar ? (
-                        <img 
-                          src={avatar} 
-                          alt="Profile preview" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Camera size={32} className="text-muted-foreground" />
-                      )}
-                      
-                      <button 
-                        type="button"
-                        onClick={triggerFileInput}
-                        className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                        disabled={uploadingImage}
-                      >
-                        {uploadingImage ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <Camera size={24} />
+          <CardContent>
+            <AnimatePresence mode="wait">
+              {step === 'account' && (
+                <motion.div
+                  key="account"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmitAccountInfo)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </button>
-                    </div>
-                    
-                    <input 
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      accept="image/*"
-                    />
-                    
-                    <div className="flex space-x-2">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm"
-                        onClick={triggerFileInput}
-                        disabled={uploadingImage}
-                      >
-                        {uploadingImage ? (
-                          <Loader2 size={14} className="mr-1 animate-spin" />
-                        ) : (
-                          <Upload size={14} className="mr-1" />
-                        )}
-                        Upload photo
-                      </Button>
-                      
-                      {avatar && (
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleRemoveAvatar}
-                        >
-                          <X size={14} className="mr-1" />
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="name" className="text-left">Full Name</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your full name"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="email" className="text-left">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Your email address"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="password" className="text-left">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create a password"
-                      required
-                      minLength={8}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Password must be at least 8 characters
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="location" className="text-left">Location</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="City, Country"
-                        required
-                        className="flex-1"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={detectLocation}
-                        disabled={detectingLocation}
-                        className="flex items-center"
-                      >
-                        {detectingLocation ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <MapPin size={16} />
+                      
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="john@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="********" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location</FormLabel>
+                            <FormControl>
+                              <Input placeholder="New York, USA" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="sex"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel>Gender</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex gap-6"
+                              >
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="male" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    Male
+                                  </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="female" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    Female
+                                  </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="other" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    Other
+                                  </FormLabel>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full mt-8"
+                      >
+                        Continue to Skills
                       </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Click the location pin to auto-detect your location
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2 text-left">
-                    <Label className="text-left">Skills</Label>
-                    <SkillsetSelector
-                      selectedSkills={skills}
-                      onChange={setSkills}
-                    />
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full mt-8"
-                  >
-                    Continue to Plan Selection
-                  </Button>
-                </>
-              ) : (
-                <PlanSelectionStep
-                  selectedPlan={plan}
-                  promoCode={promoCode}
-                  onPlanChange={setPlan}
-                  onPromoCodeChange={setPromoCode}
-                  onComplete={handleSubmit}
-                  isLoading={isLoading}
-                />
+                    </form>
+                  </Form>
+                </motion.div>
               )}
               
-              <div className="text-left text-sm mt-4">
-                <span className="text-muted-foreground">
-                  Already have an account?{' '}
-                  <Link 
-                    to="/login" 
-                    className="text-primary font-medium hover:underline"
-                  >
-                    Sign in
-                  </Link>
-                </span>
-              </div>
-            </form>
-          </div>
-        </div>
+              {step === 'skills' && (
+                <motion.div
+                  key="skills"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="space-y-4">
+                    <Label>Select your skills</Label>
+                    <SkillsetSelector 
+                      selectedSkills={selectedSkills} 
+                      onChange={setSelectedSkills} 
+                    />
+                    
+                    <div className="flex justify-between mt-8">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => goToStep('account')}
+                        className="flex items-center"
+                      >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      
+                      <Button 
+                        type="button" 
+                        onClick={() => goToStep('plan')}
+                        className="flex items-center"
+                      >
+                        Continue
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              
+              {step === 'plan' && (
+                <motion.div
+                  key="plan"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <div className="space-y-6">
+                    <PlanSelectionStep 
+                      selectedPlan={selectedPlan}
+                      onSelectPlan={setSelectedPlan}
+                    />
+                    
+                    <div className="flex justify-between mt-8 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => goToStep('skills')}
+                        className="flex items-center"
+                      >
+                        <ChevronLeft className="mr-2 h-4 w-4" />
+                        Back
+                      </Button>
+                      
+                      <Button 
+                        type="button" 
+                        onClick={handleSignup}
+                        disabled={loading}
+                      >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+          
+          <CardFooter className="flex flex-col space-y-4">
+            <Separator />
+            <div className="text-center text-sm">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary font-medium hover:underline">
+                Login
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
-    </AnimatedTransition>
+    </div>
   );
 };
 
