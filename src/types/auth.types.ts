@@ -11,6 +11,7 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
   error: string | null;
   signUp: (email: string, password: string, name: string) => Promise<void>;

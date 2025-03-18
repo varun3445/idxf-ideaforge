@@ -8,20 +8,20 @@ import { Check, Loader2 } from 'lucide-react';
 
 interface PlanSelectionStepProps {
   selectedPlan: string;
-  promoCode: string;
+  promoCode?: string;
   onPlanChange: (plan: string) => void;
-  onPromoCodeChange: (code: string) => void;
-  onComplete: (e: React.SyntheticEvent<HTMLFormElement>) => void;
-  isLoading: boolean;
+  onPromoCodeChange?: (code: string) => void;
+  onComplete?: (e: React.SyntheticEvent<HTMLFormElement>) => void;
+  isLoading?: boolean;
 }
 
 const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
   selectedPlan,
-  promoCode,
+  promoCode = '',
   onPlanChange,
-  onPromoCodeChange,
-  onComplete,
-  isLoading
+  onPromoCodeChange = () => {},
+  onComplete = () => {},
+  isLoading = false
 }) => {
   const plans = [
     {
@@ -81,20 +81,23 @@ const PlanSelectionStep: React.FC<PlanSelectionStepProps> = ({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="promoCode">Promo Code (optional)</Label>
-        <Input
-          id="promoCode"
-          placeholder="Enter promo code"
-          value={promoCode}
-          onChange={(e) => onPromoCodeChange(e.target.value)}
-        />
-      </div>
+      {onPromoCodeChange && (
+        <div className="space-y-2">
+          <Label htmlFor="promoCode">Promo Code (optional)</Label>
+          <Input
+            id="promoCode"
+            placeholder="Enter promo code"
+            value={promoCode}
+            onChange={(e) => onPromoCodeChange(e.target.value)}
+          />
+        </div>
+      )}
 
       <Button 
         type="submit"
         className="w-full"
         disabled={isLoading}
+        onClick={(e) => onComplete(e as React.SyntheticEvent<HTMLFormElement>)}
       >
         {isLoading ? (
           <>

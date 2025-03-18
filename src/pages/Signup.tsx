@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -42,7 +42,8 @@ const Signup = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro'>('free');
+  const [selectedPlan, setSelectedPlan] = useState<string>('free');
+  const [promoCode, setPromoCode] = useState<string>('');
   const [step, setStep] = useState<SignupStep>('account');
   const [accountData, setAccountData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(false);
@@ -123,14 +124,18 @@ const Signup = () => {
         }
       }
       
-      // Add user plan if pro is selected
-      if (selectedPlan === 'pro') {
+      // Add user plan if not free
+      if (selectedPlan !== 'free') {
+        // Convert expiration date to ISO string format
+        const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        
         const { error: planError } = await supabase
           .from('user_plans')
           .insert({
             user_id: authData.user.id,
-            plan_type: 'pro',
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+            plan_type: selectedPlan,
+            expires_at: expiresAt,
+            promo_code: promoCode || null
           });
           
         if (planError) throw planError;
@@ -364,7 +369,9 @@ const Signup = () => {
                   <div className="space-y-6">
                     <PlanSelectionStep 
                       selectedPlan={selectedPlan}
-                      onSelectPlan={setSelectedPlan}
+                      promoCode={promoCode}
+                      onPlanChange={setSelectedPlan}
+                      onPromoCodeChange={setPromoCode}
                     />
                     
                     <div className="flex justify-between mt-8 pt-4">

@@ -328,6 +328,7 @@ export const useAuthProvider = (): AuthContextType => {
 
   return {
     user,
+    setUser,
     loading,
     error,
     signUp,
