@@ -164,7 +164,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         </button>
         
         {isExpanded && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-[9999] w-full">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-md p-4 shadow-lg z-[10000] w-full">
             <div className="flex gap-2 mb-4 overflow-x-auto py-2 pb-3 scrollbar-thin">
               {defaultCategories.map(category => (
                 <button

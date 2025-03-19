@@ -16,6 +16,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SkillsetSelector from '../components/SkillsetSelector';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import PlanSelectionStep from '../components/PlanSelectionStep';
+
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters."
@@ -31,8 +32,10 @@ const formSchema = z.object({
   }),
   sex: z.enum(["male", "female", "other"])
 });
+
 type FormValues = z.infer<typeof formSchema>;
 type SignupStep = 'account' | 'skills' | 'plan';
+
 const Signup = () => {
   const {
     toast
@@ -44,6 +47,7 @@ const Signup = () => {
   const [step, setStep] = useState<SignupStep>('account');
   const [accountData, setAccountData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,18 +58,20 @@ const Signup = () => {
       sex: "male"
     }
   });
+
   const onSubmitAccountInfo = (values: FormValues) => {
     setAccountData(values);
     setStep('skills');
   };
+
   const goToStep = (newStep: SignupStep) => {
     setStep(newStep);
   };
+
   const handleSignup = async () => {
     if (!accountData) return;
     setLoading(true);
     try {
-      // Sign up with Supabase Auth
       const {
         data: authData,
         error: signupError
@@ -78,7 +84,6 @@ const Signup = () => {
         throw new Error('User creation failed');
       }
 
-      // Create profile in profiles table
       const {
         error: profileError
       } = await supabase.from('profiles').insert({
@@ -90,16 +95,13 @@ const Signup = () => {
       });
       if (profileError) throw profileError;
 
-      // Add user skills
       if (selectedSkills.length > 0) {
-        // First get skill IDs
         const {
           data: skillsData,
           error: skillsError
         } = await supabase.from('skills').select('id, name').in('name', selectedSkills);
         if (skillsError) throw skillsError;
         if (skillsData && skillsData.length > 0) {
-          // Create user_skill entries
           const userSkills = skillsData.map(skill => ({
             user_id: authData.user!.id,
             skill_id: skill.id
@@ -111,9 +113,7 @@ const Signup = () => {
         }
       }
 
-      // Add user plan if not free
       if (selectedPlan !== 'free') {
-        // Convert expiration date to ISO string format
         const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
         const {
           error: planError
@@ -125,6 +125,7 @@ const Signup = () => {
         });
         if (planError) throw planError;
       }
+
       toast({
         title: "Account created successfully!",
         description: "Welcome to Idea Forge."
@@ -143,9 +144,11 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
   const renderStepIndicator = () => {
     return;
   };
+
   return <div className="flex items-center justify-center min-h-screen px-4 py-8">
       {renderStepIndicator()}
       
@@ -269,13 +272,13 @@ const Signup = () => {
                   <Label>Select your skills</Label>
                   <SkillsetSelector selectedSkills={selectedSkills} onChange={setSelectedSkills} />
                   
-                  <div className="flex justify-between mt-8">
-                    <Button type="button" variant="outline" onClick={() => goToStep('account')} className="flex items-center">
+                  <div className="flex justify-between mt-8 z-0">
+                    <Button type="button" variant="outline" onClick={() => goToStep('account')} className="flex items-center z-0">
                       <ChevronLeft className="mr-2 h-4 w-4" />
                       Back
                     </Button>
                     
-                    <Button type="button" onClick={() => goToStep('plan')} className="flex items-center">
+                    <Button type="button" onClick={() => goToStep('plan')} className="flex items-center z-0">
                       Continue
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -319,4 +322,5 @@ const Signup = () => {
       </Card>
     </div>;
 };
+
 export default Signup;
