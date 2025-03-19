@@ -60,8 +60,8 @@ const Index = () => {
                   ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
                 `}>
                   <div className="relative w-full flex items-center justify-center">
-                    <img src="/lovable-uploads/dca4cf86-d17a-4f6a-b4bb-8748c5a74884.png" alt="Idea Forge App" className="w-full max-w-md mx-auto rounded-2xl shadow-lg border border-border/10" />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-2xl"></div>
+                    <img alt="Idea Forge App" className="w-full max-w-md mx-auto rounded-2xl shadow-lg border border-border/10" src="/lovable-uploads/b8bea92f-d08b-4bb7-ab93-fcda35750265.png" />
+                    
                   </div>
                 </div>}
             </div>
