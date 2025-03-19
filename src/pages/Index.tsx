@@ -39,9 +39,7 @@ const Index = () => {
                 <h1 className="hero-headline mb-4 md:mb-6">
                   Connect, Collaborate & Create <span className="text-primary">Together</span>
                 </h1>
-                <p className="hero-subheadline max-w-xl">
-                  Find the perfect creative partners with complementary skillsets and bring your ideas to life on Idea Forge.
-                </p>
+                <p className="hero-subheadline max-w-xl">We empower aim to aspiring creators, innovators, and entrepreneurs who want to build their identity and establish a personal or professional brand.</p>
                 
                 <div className={`
                   flex flex-col sm:flex-row gap-3 transition-all duration-1000 delay-200
