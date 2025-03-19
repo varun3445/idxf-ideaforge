@@ -16,29 +16,27 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SkillsetSelector from '../components/SkillsetSelector';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import PlanSelectionStep from '../components/PlanSelectionStep';
-
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Name must be at least 2 characters."
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Please enter a valid email address."
   }),
   password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+    message: "Password must be at least 8 characters."
   }),
   location: z.string().min(2, {
-    message: "Location must be at least 2 characters.",
+    message: "Location must be at least 2 characters."
   }),
   sex: z.enum(["male", "female", "other"])
 });
-
 type FormValues = z.infer<typeof formSchema>;
-
 type SignupStep = 'account' | 'skills' | 'plan';
-
 const Signup = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>('free');
@@ -46,7 +44,6 @@ const Signup = () => {
   const [step, setStep] = useState<SignupStep>('account');
   const [accountData, setAccountData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(false);
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,136 +52,101 @@ const Signup = () => {
       password: "",
       location: "",
       sex: "male"
-    },
+    }
   });
-
   const onSubmitAccountInfo = (values: FormValues) => {
     setAccountData(values);
     setStep('skills');
   };
-
   const goToStep = (newStep: SignupStep) => {
     setStep(newStep);
   };
-
   const handleSignup = async () => {
     if (!accountData) return;
-    
     setLoading(true);
-    
     try {
       // Sign up with Supabase Auth
-      const { data: authData, error: signupError } = await supabase.auth.signUp({
+      const {
+        data: authData,
+        error: signupError
+      } = await supabase.auth.signUp({
         email: accountData.email,
-        password: accountData.password,
+        password: accountData.password
       });
-
       if (signupError) throw signupError;
-      
       if (!authData.user) {
         throw new Error('User creation failed');
       }
-      
-      // Create profile in profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          name: accountData.name,
-          email: accountData.email,
-          location: accountData.location,
-          sex: accountData.sex
-        });
 
+      // Create profile in profiles table
+      const {
+        error: profileError
+      } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        name: accountData.name,
+        email: accountData.email,
+        location: accountData.location,
+        sex: accountData.sex
+      });
       if (profileError) throw profileError;
-      
+
       // Add user skills
       if (selectedSkills.length > 0) {
         // First get skill IDs
-        const { data: skillsData, error: skillsError } = await supabase
-          .from('skills')
-          .select('id, name')
-          .in('name', selectedSkills);
-          
+        const {
+          data: skillsData,
+          error: skillsError
+        } = await supabase.from('skills').select('id, name').in('name', selectedSkills);
         if (skillsError) throw skillsError;
-        
         if (skillsData && skillsData.length > 0) {
           // Create user_skill entries
           const userSkills = skillsData.map(skill => ({
             user_id: authData.user!.id,
             skill_id: skill.id
           }));
-          
-          const { error: userSkillsError } = await supabase
-            .from('user_skills')
-            .insert(userSkills);
-            
+          const {
+            error: userSkillsError
+          } = await supabase.from('user_skills').insert(userSkills);
           if (userSkillsError) throw userSkillsError;
         }
       }
-      
+
       // Add user plan if not free
       if (selectedPlan !== 'free') {
         // Convert expiration date to ISO string format
         const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-        
-        const { error: planError } = await supabase
-          .from('user_plans')
-          .insert({
-            user_id: authData.user.id,
-            plan_type: selectedPlan,
-            expires_at: expiresAt,
-            promo_code: promoCode || null
-          });
-          
+        const {
+          error: planError
+        } = await supabase.from('user_plans').insert({
+          user_id: authData.user.id,
+          plan_type: selectedPlan,
+          expires_at: expiresAt,
+          promo_code: promoCode || null
+        });
         if (planError) throw planError;
       }
-      
       toast({
         title: "Account created successfully!",
-        description: "Welcome to Idea Forge.",
+        description: "Welcome to Idea Forge."
       });
-      
       setTimeout(() => {
         navigate('/explore');
       }, 1000);
-      
     } catch (error) {
       console.error('Error during signup:', error);
       toast({
         variant: "destructive",
         title: "Signup failed",
-        description: error instanceof Error ? error.message : "An error occurred during signup.",
+        description: error instanceof Error ? error.message : "An error occurred during signup."
       });
     } finally {
       setLoading(false);
     }
   };
-
   const renderStepIndicator = () => {
-    return (
-      <div className="flex items-center justify-center space-x-2 my-6">
-        <div 
-          className={`h-2 w-2 rounded-full ${
-            step === 'account' ? 'bg-primary' : 'bg-gray-300'
-          }`}
-        />
-        <div 
-          className={`h-2 w-2 rounded-full ${
-            step === 'skills' ? 'bg-primary' : 'bg-gray-300'
-          }`}
-        />
-        <div 
-          className={`h-2 w-2 rounded-full ${
-            step === 'plan' ? 'bg-primary' : 'bg-gray-300'
-          }`}
-        />
-      </div>
-    );
+    return;
   };
-
-  return (
-    <div className="flex items-center justify-center min-h-screen px-4 py-8">
+  return <div className="flex items-center justify-center min-h-screen px-4 py-8">
       {renderStepIndicator()}
       
       <Card className="border-none shadow-lg">
@@ -199,83 +161,64 @@ const Signup = () => {
         
         <CardContent>
           <AnimatePresence mode="wait">
-            {step === 'account' && (
-              <motion.div
-                key="account"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-              >
+            {step === 'account' && <motion.div key="account" initial={{
+            opacity: 0,
+            x: -20
+          }} animate={{
+            opacity: 1,
+            x: 0
+          }} exit={{
+            opacity: 0,
+            x: 20
+          }}>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmitAccountInfo)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="name" render={({
+                  field
+                }) => <FormItem>
                           <FormLabel>Name</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="email" render={({
+                  field
+                }) => <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input placeholder="john@example.com" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="password" render={({
+                  field
+                }) => <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="********" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="location" render={({
+                  field
+                }) => <FormItem>
                           <FormLabel>Location</FormLabel>
                           <FormControl>
                             <Input placeholder="New York, USA" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <FormField
-                      control={form.control}
-                      name="sex"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
+                    <FormField control={form.control} name="sex" render={({
+                  field
+                }) => <FormItem className="space-y-3">
                           <FormLabel>Gender</FormLabel>
                           <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex gap-6"
-                            >
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-6">
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
                                   <RadioGroupItem value="male" />
@@ -303,91 +246,64 @@ const Signup = () => {
                             </RadioGroup>
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-8"
-                    >
+                    <Button type="submit" className="w-full mt-8">
                       Continue to Skills
                     </Button>
                   </form>
                 </Form>
-              </motion.div>
-            )}
+              </motion.div>}
             
-            {step === 'skills' && (
-              <motion.div
-                key="skills"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
+            {step === 'skills' && <motion.div key="skills" initial={{
+            opacity: 0,
+            x: 20
+          }} animate={{
+            opacity: 1,
+            x: 0
+          }} exit={{
+            opacity: 0,
+            x: -20
+          }} className="space-y-6">
                 <div className="space-y-4">
                   <Label>Select your skills</Label>
-                  <SkillsetSelector 
-                    selectedSkills={selectedSkills} 
-                    onChange={setSelectedSkills} 
-                  />
+                  <SkillsetSelector selectedSkills={selectedSkills} onChange={setSelectedSkills} />
                   
                   <div className="flex justify-between mt-8">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => goToStep('account')}
-                      className="flex items-center"
-                    >
+                    <Button type="button" variant="outline" onClick={() => goToStep('account')} className="flex items-center">
                       <ChevronLeft className="mr-2 h-4 w-4" />
                       Back
                     </Button>
                     
-                    <Button 
-                      type="button" 
-                      onClick={() => goToStep('plan')}
-                      className="flex items-center"
-                    >
+                    <Button type="button" onClick={() => goToStep('plan')} className="flex items-center">
                       Continue
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              </motion.div>}
             
-            {step === 'plan' && (
-              <motion.div
-                key="plan"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
+            {step === 'plan' && <motion.div key="plan" initial={{
+            opacity: 0,
+            x: 20
+          }} animate={{
+            opacity: 1,
+            x: 0
+          }} exit={{
+            opacity: 0,
+            x: -20
+          }}>
                 <div className="space-y-6">
-                  <PlanSelectionStep 
-                    selectedPlan={selectedPlan}
-                    promoCode={promoCode}
-                    onPlanChange={setSelectedPlan}
-                    onPromoCodeChange={setPromoCode}
-                    onComplete={handleSignup}
-                    isLoading={loading}
-                  />
+                  <PlanSelectionStep selectedPlan={selectedPlan} promoCode={promoCode} onPlanChange={setSelectedPlan} onPromoCodeChange={setPromoCode} onComplete={handleSignup} isLoading={loading} />
                   
                   <div className="flex justify-between mt-8 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => goToStep('skills')}
-                      className="flex items-center"
-                    >
+                    <Button type="button" variant="outline" onClick={() => goToStep('skills')} className="flex items-center">
                       <ChevronLeft className="mr-2 h-4 w-4" />
                       Back
                     </Button>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              </motion.div>}
           </AnimatePresence>
         </CardContent>
         
@@ -401,8 +317,6 @@ const Signup = () => {
           </div>
         </CardFooter>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default Signup;
