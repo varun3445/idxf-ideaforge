@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -69,7 +68,6 @@ const Signup = () => {
     setStep(newStep);
   };
 
-  // Location detection
   const detectLocation = async () => {
     setDetectingLocation(true);
     try {
@@ -210,6 +208,29 @@ const Signup = () => {
             {step === 'skills' && "What skills do you have?"}
             {step === 'plan' && "Choose your plan"}
           </CardDescription>
+          
+          {step === 'skills' && (
+            <div className="flex justify-between mt-2 pt-2 relative z-10">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => goToStep('account')}
+                className="flex items-center"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={() => goToStep('plan')}
+                className="flex items-center"
+              >
+                Continue
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </CardHeader>
         
         <CardContent>
@@ -367,29 +388,8 @@ const Signup = () => {
               >
                 <div className="space-y-4">
                   <Label>Select your skills</Label>
-                  <div className="relative z-0">
+                  <div className="relative">
                     <SkillsetSelector selectedSkills={selectedSkills} onChange={setSelectedSkills} />
-                  </div>
-                  
-                  <div className="flex justify-between mt-8 pt-4 relative z-0">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => goToStep('account')}
-                      className="flex items-center"
-                    >
-                      <ChevronLeft className="mr-2 h-4 w-4" />
-                      Back
-                    </Button>
-                    
-                    <Button
-                      type="button"
-                      onClick={() => goToStep('plan')}
-                      className="flex items-center"
-                    >
-                      Continue
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -412,7 +412,7 @@ const Signup = () => {
                     isLoading={loading}
                   />
                   
-                  <div className="flex justify-between mt-8 pt-4">
+                  <div className="flex justify-start mt-4">
                     <Button
                       type="button"
                       variant="outline"
