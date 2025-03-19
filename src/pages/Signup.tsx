@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -145,8 +146,9 @@ const Signup = () => {
     }
   };
 
+  // Fix the return type issue - either return null or a React element
   const renderStepIndicator = () => {
-    return;
+    return null; // Return null instead of undefined
   };
 
   return <div className="flex items-center justify-center min-h-screen px-4 py-8">
