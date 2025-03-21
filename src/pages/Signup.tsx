@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -13,83 +12,70 @@ import AnimatedTransition from '@/components/AnimatedTransition';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
-
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string().min(8, 'Confirm password must be at least 8 characters'),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string().min(8, 'Confirm password must be at least 8 characters')
+}).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ["confirmPassword"]
 });
-
 type SignupFormValues = z.infer<typeof signupSchema>;
-
 const steps = ['account', 'skills'];
-
 const Signup = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signup } = useAuth(); // Changed from register to signup to match AuthContextType
+  const {
+    signup
+  } = useAuth(); // Changed from register to signup to match AuthContextType
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       name: '',
       email: '',
       password: '',
-      confirmPassword: '',
-    },
+      confirmPassword: ''
+    }
   });
-
   const nextStep = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
   };
-
   const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setCurrentStep(prev => Math.max(prev - 1, 0));
   };
-
   const onSubmit = async (values: SignupFormValues) => {
     if (currentStep < steps.length - 1) {
       return nextStep();
     }
-
     setIsSubmitting(true);
     try {
-      await signup(
-        values.name,
-        values.email,
-        values.password,
-        '', // location (empty for now)
-        selectedSkills,
-      );
-
+      await signup(values.name, values.email, values.password, '',
+      // location (empty for now)
+      selectedSkills);
       toast({
         title: 'Account created',
-        description: 'Your account has been created successfully',
+        description: 'Your account has been created successfully'
       });
-
       navigate('/explore');
     } catch (error) {
       console.error('Registration error:', error);
       toast({
         title: 'Registration failed',
         description: 'There was an error creating your account. Please try again.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  return (
-    <AnimatedTransition>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+  return <AnimatedTransition>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-zinc-950">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="text-2xl font-bold">
@@ -101,7 +87,7 @@ const Signup = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+          <div className="rounded-lg shadow-lg p-6 md:p-8 bg-zinc-950">
             <Tabs value={steps[currentStep]} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8">
                 <TabsTrigger value="account" disabled>
@@ -115,61 +101,45 @@ const Signup = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <TabsContent value="account" className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="name" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Name</FormLabel>
                           <FormControl>
                             <Input placeholder="Your name" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
 
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="email" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="your.email@example.com" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
 
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="password" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Create a password" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={form.control} name="confirmPassword" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="Confirm your password" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
 
                     <div className="flex justify-end pt-4">
                       <Button type="button" onClick={nextStep} disabled={!form.formState.isValid}>
@@ -187,26 +157,19 @@ const Signup = () => {
                       </Button>
                       
                       <Button type="submit" disabled={isSubmitting} className="mb-4">
-                        {isSubmitting ? (
-                          <>
+                        {isSubmitting ? <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Creating account...
-                          </>
-                        ) : (
-                          <>
+                          </> : <>
                             Finish
                             <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
+                          </>}
                       </Button>
                     </div>
                     
                     <div className="py-2">
                       <h3 className="text-lg font-medium mb-4">Select your skills</h3>
-                      <SkillsetSelector 
-                        selectedSkills={selectedSkills} 
-                        onChange={setSelectedSkills} 
-                      />
+                      <SkillsetSelector selectedSkills={selectedSkills} onChange={setSelectedSkills} />
                     </div>
                   </TabsContent>
                 </form>
@@ -222,8 +185,6 @@ const Signup = () => {
           </div>
         </div>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Signup;
