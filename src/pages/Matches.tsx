@@ -556,8 +556,8 @@ const Matches = () => {
                     </div>
                     
                     <div ref={profilesScrollRef} className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide scroll-smooth">
-                      {similarSkillsUsers.map(profile => <div key={profile.id} className="flex-shrink-0 w-64 border-b-3 border-border p-4 hover:border-primary transition-all duration-300 bg-white rounded-lg shadow-md">
-                          <div className="w-full aspect-square mb-4 bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden shadow-md">
+                      {similarSkillsUsers.map(profile => <div key={profile.id} className="flex-shrink-0 w-64 border-b-3 border-border p-4 hover:border-primary transition-all duration-300 rounded-lg shadow-md bg-zinc-900">
+                          <div className="w-full aspect-square mb-4 flex items-center justify-center rounded-lg overflow-hidden shadow-md bg-neutral-800">
                             {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <span className="text-3xl font-bold text-primary">{profile.name[0]}</span>}
                           </div>
                           <h3 className="font-bold text-base">{profile.name}</h3>
