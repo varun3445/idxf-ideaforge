@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Award, Heart, Globe } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
@@ -11,9 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useProject } from '../contexts/ProjectContext';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 interface PortfolioItem {
   id: string;
   title: string;
@@ -24,15 +20,10 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
-
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [activeTab, setActiveTab] = useState('projects');
-  const { projects, loading } = useProject();
-  const publishedProjects = projects.filter(project => project.is_published);
-  
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([{
     id: '1',
     title: 'AI-Powered Visual Design Assistant',
@@ -88,19 +79,15 @@ const Explore = () => {
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
   }]);
-  
   const {
     toast
   } = useToast();
-  
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
   const handleBackProject = (projectId: string, projectTitle: string) => {
     toast({
       title: "Project Backed",
@@ -108,19 +95,7 @@ const Explore = () => {
       variant: "success"
     });
   };
-  
-  const filteredPortfolioItems = portfolioItems.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-  
-  const filteredPublishedProjects = publishedProjects.filter(project => 
-    project.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
+  const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
   return <AnimatedTransition>
       <div className="page-container">
         <section className="py-6 sm:py-10 md:py-16">
@@ -128,9 +103,9 @@ const Explore = () => {
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore</h1>
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore Projects</h1>
             <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-left">
-              Discover innovative projects and connect with communities of creators.
+              Discover innovative projects and connect with talented creators.
             </p>
           </div>
 
@@ -139,94 +114,64 @@ const Explore = () => {
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
             <Label htmlFor="search" className="sr-only">
-              Search
+              Search projects
             </Label>
-            <Input 
-              type="search" 
-              id="search" 
-              placeholder="Search for projects or communities..." 
-              value={searchQuery} 
-              onChange={handleSearchChange} 
-              className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" 
-            />
+            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" />
           </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="mb-6">
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="communities">Communities</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="projects">
-              <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
-                {filteredPublishedProjects.length > 0 ? (
-                  filteredPublishedProjects.map(project => (
-                    <div key={project.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                      <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
-                        <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
-                          <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">
-                            {project.title}
-                          </h3>
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 text-xs sm:text-sm py-1 sm:py-[5px]">
-                            <Globe className="mr-1 h-3 w-3" />
-                            Published Project
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left flex-grow">
-                          {project.description}
-                        </p>
-                        
-                        <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:pt-4 md:pt-6 border-t border-border">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
-                              <Award className="h-3 w-3" />
-                              <span>{project.backers_count || 0} backers</span>
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center justify-end gap-2">
-                            <Link to={`/forge/${project.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
-                              <span>Explore</span>
-                              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                            </Link>
-                          </div>
-                        </div>
-                      </GlassmorphicCard>
+
+          <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
+            {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
+                  <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" />
+                  
+                  <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
+                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
+                    {item.category && <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px]">
+                        {item.category}
+                      </Badge>}
+                  </div>
+                  
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
+                    {item.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
+                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 text-primary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                        {tech}
+                      </span>)}
+                  </div>
+                  
+                  <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
+                    Created by <span className="font-medium text-foreground">{item.creator}</span>
+                  </p>
+                  
+                  <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:pt-4 md:pt-6 border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <Users size={16} className="bg-transparent" />
+                        <span className="text-center">{item.collaborators || 0}</span>
+                      </div>
+                      
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
+                        <Award className="h-3 w-3" />
+                        <span>24 backers</span>
+                      </Badge>
                     </div>
-                  ))
-                ) : loading ? (
-                  <div className="col-span-full flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    
+                    <div className="flex items-center justify-end gap-2">
+                      
+                    
+                      <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
+                        <span>Explore</span>
+                        <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    </div>
                   </div>
-                ) : (
-                  <div className="col-span-full">
-                    <GlassmorphicCard className="p-8 text-center">
-                      <h3 className="text-xl font-semibold mb-2">No published projects found</h3>
-                      <p className="text-muted-foreground mb-4">
-                        There are no published projects matching your search criteria.
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Try a different search or check back later as new projects are published.
-                      </p>
-                    </GlassmorphicCard>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="communities">
-              <div className="bg-muted/50 rounded-lg p-8 text-center">
-                <h3 className="text-xl font-semibold mb-2">Communities Coming Soon</h3>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                  We're working on building a vibrant community feature. Check back soon to create and join communities related to your interests!
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+                </GlassmorphicCard>
+              </div>)}
+          </div>
         </section>
       </div>
     </AnimatedTransition>;
 };
-
 export default Explore;
