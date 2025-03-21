@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -17,21 +18,23 @@ import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+
 interface ProjectDeadline {
   id: string;
   title: string;
   due_date: string;
   is_completed: boolean;
 }
+
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const {
     projects,
     loadProjects,
     createProject,
+    publishProject,
     loading
   } = useProject();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -47,10 +50,13 @@ const ProjectsList: React.FC = () => {
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
   const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
+  const [publishingProject, setPublishingProject] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     loadProjects();
     loadProjectsMetadata();
   }, []);
+
   const loadProjectsMetadata = async () => {
     const deadlinesMock: Record<string, ProjectDeadline[]> = {
       '1': [{
@@ -83,6 +89,7 @@ const ProjectsList: React.FC = () => {
     setProjectDeadlines(deadlinesMock);
     setProjectWaitlists(waitlistsMock);
   };
+
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
@@ -96,10 +103,12 @@ const ProjectsList: React.FC = () => {
       navigate(`/forge/${newProject.id}`);
     }
   };
+
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
+
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
@@ -141,6 +150,18 @@ const ProjectsList: React.FC = () => {
       setLoadingAI(false);
     }
   };
+
+  const handleTogglePublish = async (project: Project) => {
+    setPublishingProject(prev => ({ ...prev, [project.id]: true }));
+    try {
+      await publishProject(project.id, !project.is_published);
+    } catch (error) {
+      console.error('Error toggling publish state:', error);
+    } finally {
+      setPublishingProject(prev => ({ ...prev, [project.id]: false }));
+    }
+  };
+
   const handleBackProject = (projectId: string) => {
     setBackingProjects(prev => ({
       ...prev,
@@ -162,11 +183,13 @@ const ProjectsList: React.FC = () => {
       }));
     }, 2000);
   };
+
   const getNextDeadline = (projectId: string): ProjectDeadline | null => {
     const deadlines = projectDeadlines[projectId] || [];
     const upcomingDeadlines = deadlines.filter(d => !d.is_completed).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
     return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
   };
+
   const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -177,6 +200,7 @@ const ProjectsList: React.FC = () => {
       return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
     }
   };
+
   const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -187,8 +211,10 @@ const ProjectsList: React.FC = () => {
       return "default";
     }
   };
-  const ownedProjects = projects.filter(p => p.owner_id === 'user-1');
-  const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1');
+
+  const ownedProjects = projects.filter(p => p.owner_id === (supabase.auth.getSession() as any)?.data?.session?.user?.id);
+  const collaborativeProjects = projects.filter(p => p.owner_id !== (supabase.auth.getSession() as any)?.data?.session?.user?.id);
+
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
       return <Card>
@@ -211,10 +237,19 @@ const ProjectsList: React.FC = () => {
         const nextDeadline = getNextDeadline(project.id);
         const waitlistCount = projectWaitlists[project.id] || 0;
         const isBackingProject = backingProjects[project.id] || false;
+        const isPublishing = publishingProject[project.id] || false;
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
-                <CardTitle className="text-xl text-left">{project.title}</CardTitle>
-                {nextDeadline && project.owner_id === 'user-1' && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
+                <CardTitle className="text-xl text-left flex items-center justify-between">
+                  <span>{project.title}</span>
+                  {project.is_published && (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center">
+                      <Globe className="h-3 w-3 mr-1" />
+                      Published
+                    </Badge>
+                  )}
+                </CardTitle>
+                {nextDeadline && project.owner_id === (supabase.auth.getSession() as any)?.data?.session?.user?.id && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
                     <Clock className="mr-1 h-3 w-3" />
                     {getDeadlineDisplayText(nextDeadline)}
                   </Badge>}
@@ -248,7 +283,17 @@ const ProjectsList: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    
+                    {project.owner_id === (supabase.auth.getSession() as any)?.data?.session?.user?.id && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Publish</span>
+                        <Switch
+                          checked={project.is_published}
+                          disabled={isPublishing}
+                          onCheckedChange={() => handleTogglePublish(project)}
+                          className="data-[state=checked]:bg-green-500"
+                        />
+                      </div>
+                    )}
                     
                     <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={e => {
                   e.stopPropagation();
@@ -264,6 +309,7 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
+
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -341,6 +387,7 @@ const ProjectsList: React.FC = () => {
       <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
+
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -348,4 +395,5 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ProjectsWithProvider;

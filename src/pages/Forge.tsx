@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2 } from 'lucide-react';
+import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -12,6 +13,8 @@ import { useProject, ProjectProvider, ProjectStep } from '../contexts/ProjectCon
 import { useToast } from '../hooks/use-toast';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 
 const ForgeStyles = () => <style>
     {`
@@ -51,6 +54,7 @@ const ProjectContent: React.FC = () => {
     currentStep,
     setCurrentStep,
     updateProject,
+    publishProject,
     loading,
     error
   } = useProject();
@@ -58,6 +62,7 @@ const ProjectContent: React.FC = () => {
   const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
+  const [publishLoading, setPublishLoading] = useState(false);
   const stepsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,6 +91,31 @@ const ProjectContent: React.FC = () => {
       description: 'This feature allows you to link different project elements together',
       variant: 'default'
     });
+  };
+
+  const handleTogglePublish = async () => {
+    if (!currentProject) return;
+    
+    setPublishLoading(true);
+    try {
+      await publishProject(currentProject.id, !currentProject.is_published);
+      toast({
+        title: currentProject.is_published ? 'Project Unpublished' : 'Project Published',
+        description: currentProject.is_published 
+          ? 'Your project is now hidden from the explore page' 
+          : 'Your project is now visible on the explore page',
+        variant: 'default'
+      });
+    } catch (error) {
+      console.error('Error toggling publish state:', error);
+      toast({
+        title: 'Error',
+        description: `Failed to ${currentProject.is_published ? 'unpublish' : 'publish'} project`,
+        variant: 'destructive'
+      });
+    } finally {
+      setPublishLoading(false);
+    }
   };
 
   const handleSetCurrentFocus = (step: ProjectStep) => {
@@ -154,12 +184,27 @@ const ProjectContent: React.FC = () => {
           Back to Projects
         </Button>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
+          <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
-            {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
+            {currentProject.is_published && (
+              <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center">
+                <Globe className="h-3 w-3 mr-1" />
+                Published
+              </Badge>
+            )}
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex items-center gap-2 mr-2">
+              <span className="text-sm text-gray-600">Publish</span>
+              <Switch
+                checked={!!currentProject.is_published}
+                onCheckedChange={handleTogglePublish}
+                disabled={publishLoading}
+                className="data-[state=checked]:bg-green-500"
+              />
+            </div>
+            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -170,6 +215,8 @@ const ProjectContent: React.FC = () => {
             </Button>
           </div>
         </div>
+        
+        {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
         
         {currentStep && <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
             <CardHeader>
@@ -219,8 +266,6 @@ const ProjectContent: React.FC = () => {
             </Card> : <div className="space-y-4">
               {rootSteps.map(step => <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
                   <div className="flex items-start gap-2 mb-2">
-                    
-                    
                     <div className="flex-1">
                       <ProjectStepCard step={step} onAddSubstep={handleAddSubstep} isCurrentFocus={currentStep?.id === step.id} />
                     </div>

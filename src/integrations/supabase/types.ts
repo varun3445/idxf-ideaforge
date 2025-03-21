@@ -9,6 +9,118 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      communities: {
+        Row: {
+          banner_image: string | null
+          created_at: string
+          description: string | null
+          icon_image: string | null
+          id: string
+          member_count: number | null
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          icon_image?: string | null
+          id?: string
+          member_count?: number | null
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          icon_image?: string | null
+          id?: string
+          member_count?: number | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_members: {
+        Row: {
+          community_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          community_id: string
+          content: string | null
+          created_at: string
+          downvotes: number | null
+          id: string
+          title: string
+          updated_at: string
+          upvotes: number | null
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          content?: string | null
+          created_at?: string
+          downvotes?: number | null
+          id?: string
+          title: string
+          updated_at?: string
+          upvotes?: number | null
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          content?: string | null
+          created_at?: string
+          downvotes?: number | null
+          id?: string
+          title?: string
+          updated_at?: string
+          upvotes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       early_access: {
         Row: {
           created_at: string
@@ -267,6 +379,7 @@ export type Database = {
           current_step_id: string | null
           description: string | null
           id: string
+          is_published: boolean | null
           owner_id: string
           share_code: string | null
           title: string
@@ -278,6 +391,7 @@ export type Database = {
           current_step_id?: string | null
           description?: string | null
           id?: string
+          is_published?: boolean | null
           owner_id: string
           share_code?: string | null
           title: string
@@ -289,6 +403,7 @@ export type Database = {
           current_step_id?: string | null
           description?: string | null
           id?: string
+          is_published?: boolean | null
           owner_id?: string
           share_code?: string | null
           title?: string
