@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -50,7 +49,6 @@ export interface Project {
   current_step_id: string | null;
   share_code: string | null;
   backers_count?: number;
-  is_published?: boolean;
 }
 
 interface ProjectContextType {
@@ -64,7 +62,7 @@ interface ProjectContextType {
   stepAssignments: StepAssignment[];
   loadProjects: () => Promise<void>;
   loadProjectDetails: (projectId: string) => Promise<void>;
-  createProject: (title: string, description: string, isPublished?: boolean) => Promise<Project | null>;
+  createProject: (title: string, description: string) => Promise<Project | null>;
   updateProject: (project: Partial<Project> & { id: string }) => Promise<void>;
   createStep: (data: { title: string; description?: string; parent_step_id?: string | null }) => Promise<ProjectStep | null>;
   updateStep: (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => Promise<void>;
@@ -108,8 +106,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           updated_at: '2023-11-15T00:00:00Z',
           current_step_id: null,
           share_code: 'DESIGN1',
-          backers_count: 24,
-          is_published: true
+          backers_count: 24
         },
         {
           id: '2',
@@ -120,8 +117,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           updated_at: '2023-09-23T00:00:00Z',
           current_step_id: null,
           share_code: 'BLOCK1',
-          backers_count: 18,
-          is_published: false
+          backers_count: 18
         }
       ];
 
@@ -303,7 +299,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Create a new project
-  const createProject = async (title: string, description: string, isPublished: boolean = false): Promise<Project | null> => {
+  const createProject = async (title: string, description: string): Promise<Project | null> => {
     setLoading(true);
     setError(null);
     
@@ -318,8 +314,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         updated_at: new Date().toISOString(),
         current_step_id: null,
         share_code: `SHARE${Math.floor(Math.random() * 10000)}`,
-        backers_count: 0,
-        is_published: isPublished
+        backers_count: 0
       };
       
       setProjects(prev => [...prev, newProject]);
