@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Plus, RefreshCw, Search, Users } from 'lucide-react';
+import { Checkbox } from '../components/ui/checkbox';
 import CommunityCard, { Community } from '../components/community/CommunityCard';
 import { Badge } from '../components/ui/badge';
 
@@ -332,12 +333,15 @@ const Communities = () => {
                       />
                     </div>
                     <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         id="isPrivate"
                         checked={newCommunity.isPrivate}
-                        onChange={(e) => setNewCommunity({ ...newCommunity, isPrivate: e.target.checked })}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        onCheckedChange={(checked) => 
+                          setNewCommunity({ 
+                            ...newCommunity, 
+                            isPrivate: checked === true 
+                          })
+                        }
                       />
                       <Label htmlFor="isPrivate">Private Community</Label>
                     </div>

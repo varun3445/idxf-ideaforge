@@ -16,6 +16,7 @@ export type Database = {
           description: string | null
           icon_image: string | null
           id: string
+          is_private: boolean
           member_count: number | null
           name: string
           owner_id: string
@@ -27,6 +28,7 @@ export type Database = {
           description?: string | null
           icon_image?: string | null
           id?: string
+          is_private?: boolean
           member_count?: number | null
           name: string
           owner_id: string
@@ -38,6 +40,7 @@ export type Database = {
           description?: string | null
           icon_image?: string | null
           id?: string
+          is_private?: boolean
           member_count?: number | null
           name?: string
           owner_id?: string
