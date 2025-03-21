@@ -4,6 +4,16 @@ import { Link } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { 
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle
+} from "../components/ui/navigation-menu";
+import { Button } from "../components/ui/button";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -40,16 +50,86 @@ const Index = () => {
   return (
     <AnimatedTransition>
       <div className="min-h-screen bg-background">
+        {/* Navigation Bar */}
+        <nav className="py-4 px-6 border-b border-border/20">
+          <div className="container mx-auto flex justify-between items-center">
+            <Link to="/" className="text-2xl font-bold font-playfair">IdeaForge</Link>
+            
+            <div className="hidden md:flex items-center space-x-6">
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger>Features</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                        {features.map((feature) => (
+                          <li key={feature.title} className="row-span-3">
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={feature.path}
+                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                              >
+                                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center mb-4">
+                                  <feature.icon className="text-foreground" size={20} />
+                                </div>
+                                <div className="mb-2 mt-4 text-lg font-medium">
+                                  {feature.title}
+                                </div>
+                                <p className="text-sm leading-tight text-muted-foreground">
+                                  {feature.description}
+                                </p>
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Link to="/explore" className={navigationMenuTriggerStyle()}>
+                      Explore
+                    </Link>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Link to="/communities" className={navigationMenuTriggerStyle()}>
+                      Communities
+                    </Link>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+              
+              <div className="flex items-center space-x-4">
+                <Link to="/login" className="text-foreground hover:text-primary transition-colors">
+                  Log In
+                </Link>
+                <Button asChild variant="default">
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Mobile menu button */}
+            <Button variant="ghost" size="sm" className="md:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </Button>
+          </div>
+        </nav>
+        
         {/* Hero Section */}
         <section className="relative overflow-hidden py-10 md:py-20 lg:py-32 hero-section">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Connect, Collaborate, Create Amazing Things
+                An Exclusive Community of<br />Like-Minded Creators
               </h1>
               
               <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
-                Join our platform where creatives and innovators come together to build the next generation of projects
+                A platform where lifestyle meets influence making it
+                easier for brands and creators to grow together
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -57,14 +137,14 @@ const Index = () => {
                   to="/signup" 
                   className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
                 >
-                  Join as Creator
+                  Get Started
                 </Link>
                 
                 <Link 
-                  to="/signup" 
+                  to="/login" 
                   className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
                 >
-                  Sign Up as Business
+                  Log In
                 </Link>
               </div>
             </div>
@@ -111,7 +191,7 @@ const Index = () => {
           <div className="container mx-auto px-4 md:px-6 text-center">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">Ready to start your creative journey?</h2>
             <p className="text-foreground/70 mb-8 max-w-2xl mx-auto">
-              Join thousands of creators and innovators already using our platform to collaborate on amazing projects.
+              Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
@@ -124,7 +204,7 @@ const Index = () => {
                 to="/login" 
                 className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
               >
-                Sign In
+                Log In
               </Link>
             </div>
           </div>
