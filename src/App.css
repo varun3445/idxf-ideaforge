@@ -21,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #005BC5aa); /* Changed to blue */
+  filter: drop-shadow(0 0 2em #EDE27Eaa); /* Changed to yellow */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #005BC5aa); /* Changed to blue */
+  filter: drop-shadow(0 0 2em #EDE27Eaa); /* Changed to yellow */
 }
 
 @keyframes logo-spin {
@@ -44,24 +44,24 @@
 
 .card {
   padding: 1.5em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.05);
   border-radius: 8px;
   backdrop-filter: blur(8px);
-  background-color: rgba(3, 3, 3, 0.5);
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .read-the-docs {
-  color: #FFFFFF; /* Changed to white */
+  color: #121212; /* Changed to dark text */
 }
 
-/* Add button styles to ensure they use the correct colors */
+/* Button styles */
 .button-primary {
-  @apply bg-primary text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:bg-primary/90 font-medium transition-all duration-300 shadow-md border-2 border-primary/20;
+  @apply bg-primary text-primary-foreground px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:bg-primary/90 font-medium transition-all duration-300 shadow-sm border-2 border-primary/20;
 }
 
 .button-secondary {
-  @apply bg-background text-white border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-full hover:border-primary hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-secondary text-secondary-foreground border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
 }
 
 /* Mobile specific adjustments */
@@ -70,7 +70,7 @@
     @apply px-3 py-2 text-sm;
   }
   
-  /* Add top padding for mobile pages to account for the profile button */
+  /* Add top padding for mobile pages to account for the header */
   .mobile-page-padding {
     padding-top: 25px;
   }
@@ -107,7 +107,7 @@
 }
 
 .text-shadow {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .card-content {
@@ -115,14 +115,14 @@
 }
 
 .card-title {
-  @apply text-xl font-bold mb-2 tracking-wide;
+  @apply text-xl font-bold mb-2 tracking-wide font-playfair;
 }
 
 .card-description {
   @apply text-sm text-muted-foreground leading-relaxed;
 }
 
-/* Improved readability for text on dark backgrounds */
+/* Improved readability for text on light backgrounds */
 .improved-text-contrast {
   @apply tracking-wide leading-relaxed;
 }
@@ -130,4 +130,13 @@
 /* Card hover animations */
 .hover-lift {
   @apply transition-all duration-300 hover:translate-y-[-3px] hover:shadow-xl;
+}
+
+/* Hero text styles */
+.hero-headline {
+  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight font-playfair;
+}
+
+.hero-subheadline {
+  @apply text-base sm:text-lg md:text-xl text-foreground/80 mt-3 sm:mt-4 mb-6 sm:mb-8;
 }

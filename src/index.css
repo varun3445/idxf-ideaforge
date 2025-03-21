@@ -1,52 +1,51 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 0%; /* #000000 - pure black background */
-    --foreground: 0 0% 100%; /* #FFFFFF - white text */
-    --card: 0 0% 3%; /* Slightly lighter black for cards */
-    --card-foreground: 0 0% 100%; /* White */
-    --popover: 0 0% 3%; /* Slightly lighter black for popovers */
-    --popover-foreground: 0 0% 100%; /* White */
-    --primary: 213 100% 39%; /* Blue (#005BC5) */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 213 100% 29%; /* Darker blue for secondary elements */
-    --secondary-foreground: 0 0% 100%; /* White */
-    --muted: 0 0% 10%; /* Dark gray for muted areas */
-    --muted-foreground: 0 0% 70%; /* Light gray */
-    --accent: 213 100% 39%; /* Blue (#005BC5) */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 100% 50%; /* Red for destructive actions */
+    --background: 53 70% 89%; /* #F6F1D3 - cream background */
+    --foreground: 0 0% 7%; /* #121212 - dark text */
+    --card: 0 0% 100%; /* #FFFFFF - white cards */
+    --card-foreground: 0 0% 7%; /* #121212 - dark text */
+    --popover: 0 0% 100%; /* #FFFFFF - white popovers */
+    --popover-foreground: 0 0% 7%; /* #121212 - dark text */
+    --primary: 55 68% 71%; /* #EDE27E - yellow CTA */
+    --primary-foreground: 0 0% 7%; /* #121212 - dark text */
+    --secondary: 0 0% 100%; /* #FFFFFF - white secondary elements */
+    --secondary-foreground: 0 0% 7%; /* #121212 - dark text */
+    --muted: 53 30% 94%; /* Lighter version of background */
+    --muted-foreground: 0 0% 40%; /* Light gray */
+    --accent: 55 68% 71%; /* #EDE27E - yellow accent */
+    --accent-foreground: 0 0% 7%; /* #121212 - dark text */
+    --destructive: 0 85% 60%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 20%; /* Darker gray for borders */
-    --input: 0 0% 20%; /* Darker gray */
-    --ring: 213 100% 39%; /* Blue (#005BC5) */
+    --border: 53 15% 80%; /* Light border color */
+    --input: 53 15% 80%; /* Light input color */
+    --ring: 55 68% 71%; /* #EDE27E - yellow ring */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 0%; /* #000000 - pure black background */
-    --foreground: 0 0% 100%; /* #FFFFFF - white text */
-    --card: 0 0% 3%; /* Slightly lighter black for cards */
-    --card-foreground: 0 0% 100%; /* White */
-    --popover: 0 0% 3%; /* Slightly lighter black for popovers */
-    --popover-foreground: 0 0% 100%; /* White */
-    --primary: 213 100% 39%; /* Blue (#005BC5) */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 213 100% 29%; /* Darker blue for secondary elements */
-    --secondary-foreground: 0 0% 100%; /* White */
-    --muted: 0 0% 10%; /* Dark gray for muted areas */
-    --muted-foreground: 0 0% 70%; /* Light gray */
-    --accent: 213 100% 39%; /* Blue (#005BC5) */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 100% 50%; /* Red for destructive actions */
+    --background: 53 70% 89%; /* #F6F1D3 - cream background */
+    --foreground: 0 0% 7%; /* #121212 - dark text */
+    --card: 0 0% 100%; /* #FFFFFF - white cards */
+    --card-foreground: 0 0% 7%; /* #121212 - dark text */
+    --popover: 0 0% 100%; /* #FFFFFF - white popovers */
+    --popover-foreground: 0 0% 7%; /* #121212 - dark text */
+    --primary: 55 68% 71%; /* #EDE27E - yellow CTA */
+    --primary-foreground: 0 0% 7%; /* #121212 - dark text */
+    --secondary: 0 0% 100%; /* #FFFFFF - white secondary elements */
+    --secondary-foreground: 0 0% 7%; /* #121212 - dark text */
+    --muted: 53 30% 94%; /* Lighter version of background */
+    --muted-foreground: 0 0% 40%; /* Light gray */
+    --accent: 55 68% 71%; /* #EDE27E - yellow accent */
+    --accent-foreground: 0 0% 7%; /* #121212 - dark text */
+    --destructive: 0 85% 60%; /* Red for destructive actions */
     --destructive-foreground: 0 0% 100%; /* White */
-    --border: 0 0% 20%; /* Darker gray for borders */
-    --input: 0 0% 20%; /* Darker gray */
-    --ring: 213 100% 39%; /* Blue (#005BC5) */
+    --border: 53 15% 80%; /* Light border color */
+    --input: 53 15% 80%; /* Light input color */
+    --ring: 55 68% 71%; /* #EDE27E - yellow ring */
   }
 }
 
@@ -64,21 +63,29 @@
   }
   
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 50px;
     width: 6px;
     height: 6px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.3);
   }
   
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+
+  p, div, span, button, a {
+    @apply font-satoshi;
   }
   
   h1 {

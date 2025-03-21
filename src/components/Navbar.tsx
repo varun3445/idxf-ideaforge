@@ -2,15 +2,22 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Home, Compass, Heart, User, FolderKanban, Users } from 'lucide-react';
+import { Compass, Heart, FolderKanban, Users, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useState } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "./ui/sheet";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
     { name: 'Explore', path: '/explore', icon: <Compass className="h-5 w-5" /> },
@@ -26,89 +33,97 @@ const Navbar = () => {
   return (
     <>
       {isMobile ? (
-        <nav className="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-900 dark:border-gray-700">
-          <div className="grid h-full max-w-lg grid-cols-5 mx-auto">
-            {menuItems.map((item) => (
-              <button
-                key={item.name}
-                type="button"
-                className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                  isActive(item.path) ? 'text-primary' : 'text-gray-500 dark:text-gray-400'
-                }`}
-                onClick={() => navigate(item.path)}
-              >
-                {item.icon}
-                <span className="text-xs">{item.name}</span>
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                isActive('/profile') ? 'text-primary' : 'text-gray-500 dark:text-gray-400'
-              }`}
-              onClick={() => navigate('/profile')}
-            >
-              <Avatar className="h-5 w-5">
-                <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
-                <AvatarFallback className="text-xs">{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <span className="text-xs">Profile</span>
-            </button>
-          </div>
-        </nav>
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-secondary border-b border-border">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0">
+              <div className="flex flex-col h-full py-6">
+                <div className="px-6 mb-6">
+                  <div className="flex items-center">
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarImage src="/ideaforge-favicon.png" alt="IdeaForge" />
+                      <AvatarFallback>IF</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xl font-semibold font-playfair">IdeaForge</span>
+                  </div>
+                </div>
+                
+                <div className="px-3 space-y-1 flex-1">
+                  {menuItems.map((item) => (
+                    <Button
+                      key={item.name}
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        navigate(item.path);
+                        setIsOpen(false);
+                      }}
+                    >
+                      {item.icon}
+                      <span className="ml-2">{item.name}</span>
+                    </Button>
+                  ))}
+                </div>
+                
+                <div className="mt-auto pt-4 px-3 border-t border-border">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          
+          <div className="font-playfair font-bold text-lg">IdeaForge</div>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={() => navigate('/profile')}
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
+              <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </div>
       ) : (
-        <div className="left-0 top-0 z-50 w-64 h-screen bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-700 fixed">
+        <div className="left-0 top-0 z-50 w-64 h-screen bg-secondary border-r border-border fixed">
           <div className="px-3 py-4 h-full flex flex-col">
             <div className="flex items-center mb-6 px-2">
               <Avatar className="h-8 w-8 mr-2">
                 <AvatarImage src="/ideaforge-favicon.png" alt="IdeaForge" />
                 <AvatarFallback>IF</AvatarFallback>
               </Avatar>
-              <span className="text-xl font-semibold">IdeaForge</span>
+              <span className="text-xl font-semibold font-playfair">IdeaForge</span>
             </div>
             <ul className="space-y-2 flex-grow">
-              <li>
-                <Button
-                  variant={isActive('/explore') ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => navigate('/explore')}
-                >
-                  <Compass className="h-5 w-5 mr-2" />
-                  Explore
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant={isActive('/matches') ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => navigate('/matches')}
-                >
-                  <Heart className="h-5 w-5 mr-2" />
-                  Matches
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant={isActive('/projects') ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => navigate('/projects')}
-                >
-                  <FolderKanban className="h-5 w-5 mr-2" />
-                  Projects
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant={isActive('/communities') ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => navigate('/communities')}
-                >
-                  <Users className="h-5 w-5 mr-2" />
-                  Communities
-                </Button>
-              </li>
+              {menuItems.map((item) => (
+                <li key={item.name}>
+                  <Button
+                    variant={isActive(item.path) ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.name}</span>
+                  </Button>
+                </li>
+              ))}
             </ul>
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-4 border-t border-border">
               <Button
                 variant={isActive('/profile') ? 'default' : 'ghost'}
                 className="w-full justify-start"
@@ -122,7 +137,7 @@ const Navbar = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 mt-2"
+                className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-2"
                 onClick={() => logout()}
               >
                 Logout
