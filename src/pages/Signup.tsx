@@ -32,7 +32,7 @@ const Signup = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register } = useAuth();
+  const { signup } = useAuth(); // Changed from register to signup to match AuthContextType
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -61,12 +61,13 @@ const Signup = () => {
 
     setIsSubmitting(true);
     try {
-      await register({
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        skills: selectedSkills,
-      });
+      await signup(
+        values.name,
+        values.email,
+        values.password,
+        '', // location (empty for now)
+        selectedSkills,
+      );
 
       toast({
         title: 'Account created',
