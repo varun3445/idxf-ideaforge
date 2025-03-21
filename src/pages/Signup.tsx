@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -27,10 +28,16 @@ const formSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters."
   }),
+  confirmPassword: z.string().min(1, {
+    message: "Please confirm your password."
+  }),
   location: z.string().min(2, {
     message: "Location must be at least 2 characters."
   }),
   sex: z.enum(["male", "female", "other"])
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,6 +53,7 @@ const Signup = () => {
   const [accountData, setAccountData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
 
   const form = useForm<FormValues>({
@@ -54,6 +62,7 @@ const Signup = () => {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
       location: "",
       sex: "male"
     }
@@ -293,6 +302,35 @@ const Signup = () => {
                                 tabIndex={-1}
                               >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input 
+                                type={showConfirmPassword ? "text" : "password"} 
+                                placeholder="********" 
+                                {...field} 
+                                className="pr-10"
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                                tabIndex={-1}
+                              >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                               </button>
                             </div>
                           </FormControl>
