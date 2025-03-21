@@ -594,7 +594,7 @@ const Matches = () => {
                       {nearbyUsers.slice(0, 4).map(profile => <div key={profile.id} className="border-3 border-border/40 p-4 rounded-lg hover:shadow-xl transition-all duration-300 shadow-md bg-neutral-900">
                           <div className="flex items-start gap-4">
                             <div className="w-14 h-14 rounded-full overflow-hidden shadow-md">
-                              {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
+                              {profile.avatar ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover bg-neutral-700" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xl font-bold">
                                   {profile.name[0]}
                                 </div>}
                             </div>
