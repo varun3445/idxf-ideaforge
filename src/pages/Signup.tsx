@@ -16,7 +16,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Eye, EyeOff, MapPin } from 'lucide-react';
 import SkillsetSelector from '../components/SkillsetSelector';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
-import PlanSelectionStep from '../components/PlanSelectionStep';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -41,14 +40,12 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type SignupStep = 'account' | 'skills' | 'plan';
+type SignupStep = 'account' | 'skills';
 
 const Signup = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<string>('free');
-  const [promoCode, setPromoCode] = useState<string>('');
   const [step, setStep] = useState<SignupStep>('account');
   const [accountData, setAccountData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(false);
@@ -160,18 +157,17 @@ const Signup = () => {
         }
       }
 
-      if (selectedPlan !== 'free') {
-        const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-        const { error: planError } = await supabase
-          .from('user_plans')
-          .insert({
-            user_id: authData.user.id,
-            plan_type: selectedPlan,
-            expires_at: expiresAt,
-            promo_code: promoCode || null
-          });
-        if (planError) throw planError;
-      }
+      // Default to free plan with no plan selection step
+      const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: planError } = await supabase
+        .from('user_plans')
+        .insert({
+          user_id: authData.user.id,
+          plan_type: 'free',
+          expires_at: expiresAt,
+          promo_code: null
+        });
+      if (planError) throw planError;
 
       toast({
         title: "Account created successfully!",
@@ -195,7 +191,7 @@ const Signup = () => {
   const renderStepIndicator = () => {
     return (
       <div className="flex justify-center mb-4 space-x-2">
-        {['account', 'skills', 'plan'].map((stepName: string) => (
+        {['account', 'skills'].map((stepName: string) => (
           <div 
             key={stepName} 
             className={`h-2 w-12 rounded-full ${step === stepName ? 'bg-primary' : 'bg-gray-300'}`}
@@ -215,7 +211,6 @@ const Signup = () => {
           <CardDescription>
             {step === 'account' && "Enter your information to get started"}
             {step === 'skills' && "What skills do you have?"}
-            {step === 'plan' && "Choose your plan"}
           </CardDescription>
           
           {step === 'skills' && (
@@ -232,11 +227,11 @@ const Signup = () => {
               
               <Button
                 type="button"
-                onClick={() => goToStep('plan')}
+                onClick={handleSignup}
+                disabled={loading}
                 className="flex items-center"
               >
-                Continue
-                <ChevronRight className="ml-2 h-4 w-4" />
+                {loading ? 'Creating account...' : 'Create Account'}
               </Button>
             </div>
           )}
@@ -428,38 +423,6 @@ const Signup = () => {
                   <Label>Select your skills</Label>
                   <div className="relative">
                     <SkillsetSelector selectedSkills={selectedSkills} onChange={setSelectedSkills} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            
-            {step === 'plan' && (
-              <motion.div 
-                key="plan" 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <div className="space-y-6">
-                  <PlanSelectionStep
-                    selectedPlan={selectedPlan}
-                    promoCode={promoCode}
-                    onPlanChange={setSelectedPlan}
-                    onPromoCodeChange={setPromoCode}
-                    onComplete={handleSignup}
-                    isLoading={loading}
-                  />
-                  
-                  <div className="flex justify-start mt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => goToStep('skills')}
-                      className="flex items-center"
-                    >
-                      <ChevronLeft className="mr-2 h-4 w-4" />
-                      Back
-                    </Button>
                   </div>
                 </div>
               </motion.div>

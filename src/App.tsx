@@ -18,6 +18,8 @@ import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
 import JoinProject from './pages/JoinProject';
+import Communities from './pages/Communities';
+import CommunityDetailsPage from './components/community/CommunityDetailsPage';
 
 import './App.css';
 
@@ -92,6 +94,22 @@ const AppContent = () => {
             element={
               <ProtectedRoute>
                 <JoinProject />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/communities" 
+            element={
+              <ProtectedRoute>
+                <Communities />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/community/:id" 
+            element={
+              <ProtectedRoute>
+                <CommunityDetailsPage />
               </ProtectedRoute>
             } 
           />
