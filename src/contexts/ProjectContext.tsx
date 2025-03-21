@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -94,7 +93,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load all projects
   const loadProjects = async () => {
     setLoading(true);
     setError(null);
@@ -104,7 +102,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         throw new Error('User not authenticated');
       }
 
-      // Get projects owned by the user
       const { data: ownedProjects, error: ownedError } = await supabase
         .from('projects')
         .select('*')
@@ -112,7 +109,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (ownedError) throw ownedError;
 
-      // Get projects where user is a collaborator
       const { data: collaborations, error: collabError } = await supabase
         .from('project_collaborators')
         .select('project_id')
@@ -120,7 +116,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (collabError) throw collabError;
 
-      // If user is a collaborator on any projects, fetch those projects
       let collaborativeProjects: any[] = [];
       if (collaborations && collaborations.length > 0) {
         const projectIds = collaborations.map(collab => collab.project_id);
@@ -133,7 +128,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         collaborativeProjects = collabProjects || [];
       }
 
-      // Combine owned and collaborative projects
       const allProjects = [...(ownedProjects || []), ...collaborativeProjects];
       setProjects(allProjects);
       console.log('Projects loaded:', allProjects);
@@ -150,13 +144,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Load project details including steps, collaborators and assignments
   const loadProjectDetails = async (projectId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Get project details
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .select('*')
@@ -167,7 +159,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setCurrentProject(project);
       
-      // Get project steps
       const { data: steps, error: stepsError } = await supabase
         .from('project_steps')
         .select('*')
@@ -177,7 +168,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (stepsError) throw stepsError;
       setProjectSteps(steps || []);
       
-      // Get collaborators - Modified to fetch profiles separately
       const { data: collabs, error: collabsError } = await supabase
         .from('project_collaborators')
         .select('id, project_id, user_id, joined_at')
@@ -185,12 +175,10 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (collabsError) throw collabsError;
 
-      // Format collaborators with user details by fetching profiles separately
       const formattedCollabs: ProjectCollaborator[] = [];
       
       if (collabs && collabs.length > 0) {
         for (const collab of collabs) {
-          // Fetch profile data for each collaborator
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('name, avatar, email')
@@ -217,21 +205,18 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       setCollaborators(formattedCollabs);
       
-      // Get step assignments - Modified to fetch profiles separately
       if (project?.current_step_id) {
         const { data: assignments, error: assignmentsError } = await supabase
           .from('step_assignments')
           .select('id, step_id, user_id, assigned_at')
           .eq('step_id', project.current_step_id);
-  
+
         if (assignmentsError) throw assignmentsError;
-  
-        // Format assignments with user details by fetching profiles separately
+
         const formattedAssignments: StepAssignment[] = [];
         
         if (assignments && assignments.length > 0) {
           for (const assignment of assignments) {
-            // Fetch profile data for each assignment
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('name, avatar')
@@ -258,7 +243,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         setStepAssignments(formattedAssignments);
       }
       
-      // Set current step if project has one
       if (project.current_step_id) {
         const currentStep = (steps || []).find(step => step.id === project.current_step_id) || null;
         setCurrentStep(currentStep);
@@ -280,7 +264,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Create a new project
   const createProject = async (title: string, description: string): Promise<Project | null> => {
     setLoading(true);
     setError(null);
@@ -290,7 +273,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         throw new Error('User not authenticated');
       }
 
-      // Create project in database
+      console.log("Creating project with title:", title, "and description:", description);
+      
       const { data: newProject, error: projectError } = await supabase
         .from('projects')
         .insert({
@@ -302,7 +286,40 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         .select()
         .single();
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error("Error creating project:", projectError);
+        throw projectError;
+      }
+      
+      console.log("Project created successfully:", newProject);
+      
+      const { data: initialStep, error: stepError } = await supabase
+        .from('project_steps')
+        .insert({
+          project_id: newProject.id,
+          title: "Getting Started",
+          description: "This is your first project step. You can edit or delete it, and add more steps as needed.",
+          is_completed: false,
+          order_index: 0,
+          parent_step_id: null
+        })
+        .select()
+        .single();
+        
+      if (stepError) {
+        console.warn("Could not create initial step:", stepError);
+      } else {
+        console.log("Initial step created:", initialStep);
+        
+        const { error: updateError } = await supabase
+          .from('projects')
+          .update({ current_step_id: initialStep.id })
+          .eq('id', newProject.id);
+          
+        if (updateError) {
+          console.warn("Could not set current step:", updateError);
+        }
+      }
       
       setProjects(prev => [...prev, newProject]);
       
@@ -327,13 +344,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Publish or unpublish a project
   const publishProject = async (projectId: string, isPublished: boolean) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Update project publish status
       const { error: updateError } = await supabase
         .from('projects')
         .update({ is_published: isPublished })
@@ -341,7 +356,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (updateError) throw updateError;
       
-      // Update local state
       setProjects(prev => 
         prev.map(project => 
           project.id === projectId 
@@ -372,13 +386,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Update a project
   const updateProject = async (projectData: Partial<Project> & { id: string }) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Update project in database
       const { error: updateError } = await supabase
         .from('projects')
         .update({ ...projectData, updated_at: new Date().toISOString() })
@@ -386,7 +398,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (updateError) throw updateError;
       
-      // Update local state
       setProjects(prev => 
         prev.map(project => 
           project.id === projectData.id 
@@ -417,7 +428,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Create a new step
   const createStep = async (data: { title: string; description?: string; parent_step_id?: string | null }): Promise<ProjectStep | null> => {
     if (!currentProject) {
       toast({
@@ -432,13 +442,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Get order index (highest + 1)
       const existingSteps = projectSteps.filter(s => s.parent_step_id === data.parent_step_id);
       const orderIndex = existingSteps.length > 0 
         ? Math.max(...existingSteps.map(s => s.order_index)) + 1 
         : 0;
 
-      // Create step in database
       const { data: newStep, error: stepError } = await supabase
         .from('project_steps')
         .insert({
@@ -454,7 +462,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (stepError) throw stepError;
       
-      // Update local state
       setProjectSteps(prev => [...prev, newStep]);
       
       toast({
@@ -478,13 +485,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Update a step
   const updateStep = async (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Update step in database
       const { error: updateError } = await supabase
         .from('project_steps')
         .update(data)
@@ -492,7 +497,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (updateError) throw updateError;
       
-      // Update local state
       setProjectSteps(prev => 
         prev.map(step => 
           step.id === stepId 
@@ -523,22 +527,18 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Delete a step
   const deleteStep = async (stepId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Find step to delete and its substeps
       const stepToDelete = projectSteps.find(step => step.id === stepId);
       if (!stepToDelete) {
         throw new Error('Step not found');
       }
       
-      // Get all substeps
       const allStepIds = [stepId, ...projectSteps.filter(s => s.parent_step_id === stepId).map(s => s.id)];
       
-      // Delete steps from database
       const { error: deleteError } = await supabase
         .from('project_steps')
         .delete()
@@ -546,17 +546,13 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (deleteError) throw deleteError;
       
-      // Update local state
       setProjectSteps(prev => prev.filter(step => !allStepIds.includes(step.id)));
       
-      // Update current step if it was deleted
       if (allStepIds.includes(currentStep?.id || '')) {
         setCurrentStep(null);
       }
       
-      // Update project's current step if it was deleted
       if (currentProject?.current_step_id && allStepIds.includes(currentProject.current_step_id)) {
-        // Update project in database
         const { error: updateError } = await supabase
           .from('projects')
           .update({ current_step_id: null })
@@ -585,13 +581,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Mark a step as completed/uncompleted
   const completeStep = async (stepId: string, isCompleted: boolean) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Update step in database
       const { error: updateError } = await supabase
         .from('project_steps')
         .update({ is_completed: isCompleted })
@@ -599,7 +593,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (updateError) throw updateError;
       
-      // Update local state
       setProjectSteps(prev => 
         prev.map(step => 
           step.id === stepId 
@@ -630,7 +623,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Add a collaborator to the project
   const addCollaborator = async (email: string) => {
     if (!currentProject) {
       toast({
@@ -645,7 +637,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Find user by email
       const { data: users, error: userError } = await supabase
         .from('profiles')
         .select('id, name, avatar, email')
@@ -666,7 +657,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       const user = users[0];
       
-      // Check if already a collaborator
       const existingCollaborator = collaborators.find(c => c.user_id === user.id);
       if (existingCollaborator) {
         toast({
@@ -678,7 +668,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
       
-      // Add collaborator to database
       const { data: newCollaborator, error: insertError } = await supabase
         .from('project_collaborators')
         .insert({
@@ -690,7 +679,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (insertError) throw insertError;
       
-      // Update local state
       const formattedCollaborator = {
         ...newCollaborator,
         user: {
@@ -720,19 +708,16 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Remove a collaborator from the project
   const removeCollaborator = async (collaboratorId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Find collaborator
       const collaboratorToRemove = collaborators.find(c => c.id === collaboratorId);
       if (!collaboratorToRemove) {
         throw new Error('Collaborator not found');
       }
       
-      // Remove collaborator from database
       const { error: deleteError } = await supabase
         .from('project_collaborators')
         .delete()
@@ -740,15 +725,12 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (deleteError) throw deleteError;
       
-      // Update local state
       setCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
       
-      // Also remove any step assignments for this collaborator
       const assignmentsToRemove = stepAssignments.filter(a => a.user_id === collaboratorToRemove.user_id);
       if (assignmentsToRemove.length > 0) {
         const assignmentIds = assignmentsToRemove.map(a => a.id);
         
-        // Remove assignments from database
         const { error: assignmentError } = await supabase
           .from('step_assignments')
           .delete()
@@ -777,19 +759,16 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Assign a step to a collaborator
   const assignStep = async (stepId: string, userId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Check if step exists
       const step = projectSteps.find(s => s.id === stepId);
       if (!step) {
         throw new Error('Step not found');
       }
       
-      // Check if already assigned
       const existingAssignment = stepAssignments.find(a => a.step_id === stepId && a.user_id === userId);
       if (existingAssignment) {
         toast({
@@ -801,7 +780,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
       
-      // Create assignment in database
       const { data: newAssignment, error: assignError } = await supabase
         .from('step_assignments')
         .insert({
@@ -813,7 +791,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (assignError) throw assignError;
       
-      // Get user details
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('name, avatar')
@@ -822,7 +799,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (userError) throw userError;
       
-      // Update local state
       const formattedAssignment = {
         ...newAssignment,
         user: {
@@ -851,13 +827,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  // Unassign a step
   const unassignStep = async (assignmentId: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Remove assignment from database
       const { error: deleteError } = await supabase
         .from('step_assignments')
         .delete()
@@ -865,7 +839,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
       if (deleteError) throw deleteError;
       
-      // Update local state
       setStepAssignments(prev => prev.filter(a => a.id !== assignmentId));
       
       toast({

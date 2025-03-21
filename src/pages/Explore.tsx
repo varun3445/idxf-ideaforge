@@ -11,6 +11,7 @@ import { Clock, ExternalLink, Filter, Globe, Loader2, Search, Users } from 'luci
 import { supabase } from '../integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../AuthContext';
 
 interface Project {
   id: string;
@@ -20,6 +21,7 @@ interface Project {
   owner_id: string;
   backers_count: number;
   share_code: string;
+  is_published: boolean;
   owner?: {
     name: string;
     avatar: string | null;
@@ -29,6 +31,7 @@ interface Project {
 const Explore = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +48,7 @@ const Explore = () => {
       // Fetch published projects
       const { data, error } = await supabase
         .from('projects')
-        .select('id, title, description, created_at, owner_id, backers_count, share_code')
+        .select('id, title, description, created_at, owner_id, backers_count, share_code, is_published')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
@@ -69,6 +72,7 @@ const Explore = () => {
       );
 
       setProjects(projectsWithOwners);
+      console.log("Loaded published projects:", projectsWithOwners);
     } catch (error) {
       console.error('Error loading published projects:', error);
       toast({
@@ -122,62 +126,73 @@ const Explore = () => {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map(project => (
-          <Card key={project.id} className="hover:shadow-md transition-shadow overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
-                <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center">
-                  <Globe className="h-3 w-3 mr-1" />
-                  Published
-                </Badge>
-              </div>
-              <CardDescription className="line-clamp-2 text-sm text-gray-500">
-                {project.description}
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  {format(new Date(project.created_at), 'MMM d, yyyy')}
+        {filteredProjects.map(project => {
+          const isOwnedByCurrentUser = user && project.owner_id === user.id;
+          
+          return (
+            <Card key={project.id} className="hover:shadow-md transition-shadow overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center">
+                      <Globe className="h-3 w-3 mr-1" />
+                      Published
+                    </Badge>
+                    {isOwnedByCurrentUser && (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                        Your Project
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>{project.backers_count || 0} backers</span>
-                </div>
-              </div>
+                <CardDescription className="line-clamp-2 text-sm text-gray-500">
+                  {project.description}
+                </CardDescription>
+              </CardHeader>
               
-              <div className="flex items-center gap-2 mt-4">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {project.owner?.avatar ? (
-                    <img 
-                      src={project.owner.avatar} 
-                      alt={project.owner.name || 'User'} 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Users className="h-4 w-4 text-gray-500" />
-                  )}
+              <CardContent>
+                <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {format(new Date(project.created_at), 'MMM d, yyyy')}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>{project.backers_count || 0} backers</span>
+                  </div>
                 </div>
-                <div className="text-sm">{project.owner?.name || 'Anonymous'}</div>
-              </div>
-            </CardContent>
-            
-            <CardFooter className="border-t bg-gray-50 flex justify-end">
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="w-full"
-                onClick={() => navigate(`/project/${project.id}`)}
-              >
-                View Project
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+                
+                <div className="flex items-center gap-2 mt-4">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                    {project.owner?.avatar ? (
+                      <img 
+                        src={project.owner.avatar} 
+                        alt={project.owner.name || 'User'} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Users className="h-4 w-4 text-gray-500" />
+                    )}
+                  </div>
+                  <div className="text-sm">{project.owner?.name || 'Anonymous'}</div>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="border-t bg-gray-50 flex justify-end">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate(`/project/${project.id}`)}
+                >
+                  View Project
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     );
   };
