@@ -650,7 +650,7 @@ const Matches = () => {
                     </div>
                     
                     <div ref={projectsScrollRef} className="flex overflow-x-auto space-x-6 pb-6 scrollbar-hide scroll-smooth">
-                      {projectIdeas.map(project => <div key={project.id} className="flex-shrink-0 w-80 border border-border p-0 hover:border-primary transition-all duration-300 bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer" onClick={() => openProjectDetails(project)}>
+                      {projectIdeas.map(project => <div key={project.id} onClick={() => openProjectDetails(project)} className="flex-shrink-0 w-80 border border-border p-0 hover:border-primary transition-all duration-300 rounded-lg shadow-lg overflow-hidden cursor-pointer bg-neutral-900">
                           <div className="h-40 w-full overflow-hidden">
                             <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
                           </div>
