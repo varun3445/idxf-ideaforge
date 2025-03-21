@@ -45,12 +45,11 @@ const Index = () => {
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center max-w-4xl mx-auto">
               <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                An Exclusive Community of<br />Like-Minded Creators
+                Connect, Collaborate, Create Amazing Things
               </h1>
               
               <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
-                A platform where lifestyle meets influence making it
-                easier for brands and creators to grow together
+                Join our platform where creatives and innovators come together to build the next generation of projects
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -58,14 +57,14 @@ const Index = () => {
                   to="/signup" 
                   className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
                 >
-                  I'm a creator
+                  Join as Creator
                 </Link>
                 
                 <Link 
                   to="/signup" 
                   className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
                 >
-                  We're a business
+                  Sign Up as Business
                 </Link>
               </div>
             </div>
@@ -112,20 +111,20 @@ const Index = () => {
           <div className="container mx-auto px-4 md:px-6 text-center">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">Ready to start your creative journey?</h2>
             <p className="text-foreground/70 mb-8 max-w-2xl mx-auto">
-              Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
+              Join thousands of creators and innovators already using our platform to collaborate on amazing projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/signup" 
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
               >
-                Get Started For Free
+                Get Started
               </Link>
               <Link 
                 to="/login" 
                 className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
               >
-                Login
+                Sign In
               </Link>
             </div>
           </div>
