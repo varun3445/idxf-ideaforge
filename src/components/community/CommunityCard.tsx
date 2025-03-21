@@ -12,8 +12,8 @@ import { useAuth } from '../../AuthContext';
 export type Community = {
   id: string;
   name: string;
-  description: string;
-  member_count: number;
+  description: string | null;
+  member_count: number | null;
   created_at: string;
   icon_image?: string | null;
   banner_image?: string | null;
@@ -27,9 +27,10 @@ interface CommunityCardProps {
   community: Community;
   onJoin?: (communityId: string) => void;
   onLeave?: (communityId: string) => void;
+  disabled?: boolean;
 }
 
-const CommunityCard = ({ community, onJoin, onLeave }: CommunityCardProps) => {
+const CommunityCard = ({ community, onJoin, onLeave, disabled }: CommunityCardProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
@@ -164,7 +165,7 @@ const CommunityCard = ({ community, onJoin, onLeave }: CommunityCardProps) => {
             size="sm" 
             className="w-full"
             onClick={handleLeaveCommunity}
-            disabled={isLeaving}
+            disabled={isLeaving || disabled}
           >
             {isLeaving ? "Leaving..." : (
               <>
@@ -179,7 +180,7 @@ const CommunityCard = ({ community, onJoin, onLeave }: CommunityCardProps) => {
             size="sm" 
             className="w-full"
             onClick={handleJoinCommunity}
-            disabled={isJoining}
+            disabled={isJoining || disabled}
           >
             {isJoining ? "Joining..." : "Join Community"}
           </Button>

@@ -145,6 +145,17 @@ export const useAuthProvider = () => {
     }
   };
 
+  // This is an alias for login to maintain compatibility
+  const signIn = async (email: string, password: string) => {
+    try {
+      const result = await login(email, password);
+      if (result.error) throw result.error;
+    } catch (error: any) {
+      console.error('SignIn error:', error);
+      setError(error.message);
+    }
+  };
+
   const signup = async (
     name: string, 
     email: string, 
@@ -235,6 +246,17 @@ export const useAuthProvider = () => {
     }
   };
 
+  // This is an alias for signup to maintain compatibility
+  const signUp = async (email: string, password: string, name: string) => {
+    try {
+      const result = await signup(name, email, password, "");
+      if (result.error) throw result.error;
+    } catch (error: any) {
+      console.error('SignUp error:', error);
+      setError(error.message);
+    }
+  };
+
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -256,5 +278,7 @@ export const useAuthProvider = () => {
     login,
     signup,
     logout,
+    signIn,  // Add the alias
+    signUp,  // Add the alias
   };
 };

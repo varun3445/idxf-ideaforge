@@ -14,9 +14,6 @@ export interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
   error: string | null;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
   signup: (
@@ -29,4 +26,8 @@ export interface AuthContextType {
     plan?: string,
     promoCode?: string | null
   ) => Promise<{ error?: any }>;
+  logout: () => Promise<void>;
+  // Add these aliases to match the expected interface
+  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
 }

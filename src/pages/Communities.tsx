@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { Plus, RefreshCw, Search } from 'lucide-react';
+import { Plus, RefreshCw, Search, Users } from 'lucide-react';
 import CommunityCard, { Community } from '../components/community/CommunityCard';
 import { Badge } from '../components/ui/badge';
 
@@ -61,11 +61,16 @@ const Communities = () => {
 
               return {
                 ...community,
+                is_private: community.is_private || false, // Default to false if not present
                 isMember: !!memberData,
                 role: memberData?.role
-              };
+              } as Community;
             }
-            return { ...community, isMember: false };
+            return { 
+              ...community, 
+              is_private: community.is_private || false, // Default to false if not present
+              isMember: false 
+            } as Community;
           })
         );
 
@@ -113,9 +118,10 @@ const Communities = () => {
         if (communityData) {
           const myCommunitiesWithRole = communityData.map(community => ({
             ...community,
+            is_private: community.is_private || false, // Default to false if not present
             isMember: true,
             role: roleMap[community.id]
-          }));
+          })) as Community[];
           
           setMyCommunities(myCommunitiesWithRole);
         }
@@ -242,7 +248,7 @@ const Communities = () => {
 
   const filteredCommunities = communities.filter(community => 
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    community.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (community.description && community.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (community.tags && community.tags.some(tag => 
       tag.toLowerCase().includes(searchQuery.toLowerCase())
     ))
@@ -404,7 +410,12 @@ const Communities = () => {
                 <p className="text-muted-foreground text-center mb-4">
                   You haven't joined any communities yet
                 </p>
-                <Button onClick={() => document.querySelector('[data-value="discover"]')?.click()}>
+                <Button onClick={() => {
+                  const discoverTab = document.querySelector('[data-value="discover"]');
+                  if (discoverTab) {
+                    (discoverTab as HTMLElement).click();
+                  }
+                }}>
                   Discover Communities
                 </Button>
               </CardContent>

@@ -11,6 +11,7 @@ interface SkillsetSelectorProps {
   selectedSkills: string[];
   onChange: (skills: string[]) => void;
   availableSkills?: Skill[];
+  disabled?: boolean;
 }
 
 const defaultSkills: Skill[] = [
@@ -63,7 +64,7 @@ const getRandomColor = (): string => {
   return customSkillColors[randomIndex];
 };
 
-const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: SkillsetSelectorProps) => {
+const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [], disabled = false }: SkillsetSelectorProps) => {
   const [activeCategory, setActiveCategory] = useState(defaultCategories[0]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [customSkill, setCustomSkill] = useState("");
@@ -144,6 +145,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                   <button
                     onClick={() => handleRemoveSkill(skill)}
                     className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    disabled={disabled}
                   >
                     <X size={14} />
                   </button>
@@ -158,6 +160,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="button-secondary flex items-center justify-center gap-2 w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
+          disabled={disabled}
         >
           <Plus size={18} />
           <span>{isExpanded ? 'Close Skill Selector' : 'Add Skills'}</span>
@@ -173,6 +176,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                   className={`chip whitespace-nowrap px-4 py-1.5 ${
                     activeCategory === category ? 'chip-active' : ''
                   }`}
+                  disabled={disabled}
                 >
                   {category}
                 </button>
@@ -188,10 +192,12 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                     onKeyPress={handleCustomSkillKeyPress}
                     placeholder="Enter a custom skill..."
                     className="flex-1"
+                    disabled={disabled}
                   />
                   <button
                     onClick={handleAddCustomSkill}
                     className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                    disabled={disabled}
                   >
                     <PlusCircle size={20} />
                   </button>
@@ -213,6 +219,7 @@ const SkillsetSelector = ({ selectedSkills, onChange, availableSkills = [] }: Sk
                       text-left px-4 py-3 rounded-full transition-colors flex items-center gap-3
                       ${isSelected ? 'bg-primary/10 text-primary border border-primary/30' : 'hover:bg-secondary/10 border border-border'}
                     `}
+                    disabled={disabled}
                   >
                     <div className="flex-shrink-0">
                       <Circle size={20} className={isSelected ? "text-primary" : "text-muted-foreground"} />
