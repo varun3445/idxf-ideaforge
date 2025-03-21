@@ -177,59 +177,86 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       if (stepsError) throw stepsError;
       setProjectSteps(steps || []);
       
-      // Get collaborators
+      // Get collaborators - Modified to fetch profiles separately
       const { data: collabs, error: collabsError } = await supabase
         .from('project_collaborators')
-        .select(`
-          id,
-          project_id,
-          user_id,
-          joined_at,
-          user_id (
-            profiles (name, avatar, email)
-          )
-        `)
+        .select('id, project_id, user_id, joined_at')
         .eq('project_id', projectId);
 
       if (collabsError) throw collabsError;
 
-      // Format collaborators with user details
-      const formattedCollabs = (collabs || []).map(collab => ({
-        id: collab.id,
-        project_id: collab.project_id,
-        user_id: collab.user_id,
-        joined_at: collab.joined_at,
-        user: collab.user_id?.profiles?.[0] || null
-      }));
+      // Format collaborators with user details by fetching profiles separately
+      const formattedCollabs: ProjectCollaborator[] = [];
+      
+      if (collabs && collabs.length > 0) {
+        for (const collab of collabs) {
+          // Fetch profile data for each collaborator
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('name, avatar, email')
+            .eq('id', collab.user_id)
+            .single();
+            
+          if (!profileError && profileData) {
+            formattedCollabs.push({
+              ...collab,
+              user: {
+                name: profileData.name,
+                avatar: profileData.avatar,
+                email: profileData.email
+              }
+            });
+          } else {
+            formattedCollabs.push({
+              ...collab,
+              user: undefined
+            });
+          }
+        }
+      }
       
       setCollaborators(formattedCollabs);
       
-      // Get step assignments
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('step_assignments')
-        .select(`
-          id,
-          step_id,
-          user_id,
-          assigned_at,
-          user_id (
-            profiles (name, avatar)
-          )
-        `)
-        .eq('step_id', project?.current_step_id || '');
-
-      if (assignmentsError && project?.current_step_id) throw assignmentsError;
-
-      // Format assignments with user details
-      const formattedAssignments = (assignments || []).map(assignment => ({
-        id: assignment.id,
-        step_id: assignment.step_id,
-        user_id: assignment.user_id,
-        assigned_at: assignment.assigned_at,
-        user: assignment.user_id?.profiles?.[0] || null
-      }));
-      
-      setStepAssignments(formattedAssignments);
+      // Get step assignments - Modified to fetch profiles separately
+      if (project?.current_step_id) {
+        const { data: assignments, error: assignmentsError } = await supabase
+          .from('step_assignments')
+          .select('id, step_id, user_id, assigned_at')
+          .eq('step_id', project.current_step_id);
+  
+        if (assignmentsError) throw assignmentsError;
+  
+        // Format assignments with user details by fetching profiles separately
+        const formattedAssignments: StepAssignment[] = [];
+        
+        if (assignments && assignments.length > 0) {
+          for (const assignment of assignments) {
+            // Fetch profile data for each assignment
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('name, avatar')
+              .eq('id', assignment.user_id)
+              .single();
+              
+            if (!profileError && profileData) {
+              formattedAssignments.push({
+                ...assignment,
+                user: {
+                  name: profileData.name,
+                  avatar: profileData.avatar
+                }
+              });
+            } else {
+              formattedAssignments.push({
+                ...assignment,
+                user: undefined
+              });
+            }
+          }
+        }
+        
+        setStepAssignments(formattedAssignments);
+      }
       
       // Set current step if project has one
       if (project.current_step_id) {
@@ -239,12 +266,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         setCurrentStep(null);
       }
       
-      console.log('Project details loaded:', {
-        project,
-        steps,
-        collaborators: formattedCollabs,
-        assignments: formattedAssignments
-      });
+      console.log('Project details loaded successfully');
     } catch (error) {
       console.error('Error loading project details:', error);
       setError('Failed to load project details. Please try again later.');

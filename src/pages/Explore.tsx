@@ -45,30 +45,30 @@ const Explore = () => {
       // Fetch published projects
       const { data, error } = await supabase
         .from('projects')
-        .select(`
-          id, 
-          title, 
-          description, 
-          created_at, 
-          owner_id, 
-          backers_count,
-          share_code,
-          owner_id (
-            profiles (name, avatar)
-          )
-        `)
+        .select('id, title, description, created_at, owner_id, backers_count, share_code')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Format projects with owner details
-      const formattedProjects = data.map(project => ({
-        ...project,
-        owner: project.owner_id ? project.owner_id.profiles[0] : undefined
-      }));
+      // Fetch owner details separately
+      const projectsWithOwners = await Promise.all(
+        data.map(async (project) => {
+          // Get owner profile details
+          const { data: ownerData, error: ownerError } = await supabase
+            .from('profiles')
+            .select('name, avatar')
+            .eq('id', project.owner_id)
+            .single();
+          
+          return {
+            ...project,
+            owner: ownerError ? undefined : ownerData
+          };
+        })
+      );
 
-      setProjects(formattedProjects);
+      setProjects(projectsWithOwners);
     } catch (error) {
       console.error('Error loading published projects:', error);
       toast({
