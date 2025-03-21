@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -17,12 +17,15 @@ import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+
 interface ProjectDeadline {
   id: string;
   title: string;
   due_date: string;
   is_completed: boolean;
 }
+
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -32,6 +35,7 @@ const ProjectsList: React.FC = () => {
     projects,
     loadProjects,
     createProject,
+    updateProject,
     loading
   } = useProject();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -41,16 +45,20 @@ const ProjectsList: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublished, setIsPublished] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [suggestedSteps, setSuggestedSteps] = useState([]);
   const [teamSuggestions, setTeamSuggestions] = useState([]);
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
   const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
+  const [publishingProject, setPublishingProject] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     loadProjects();
     loadProjectsMetadata();
   }, []);
+
   const loadProjectsMetadata = async () => {
     const deadlinesMock: Record<string, ProjectDeadline[]> = {
       '1': [{
@@ -83,23 +91,62 @@ const ProjectsList: React.FC = () => {
     setProjectDeadlines(deadlinesMock);
     setProjectWaitlists(waitlistsMock);
   };
+
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       return;
     }
-    const newProject = await createProject(title.trim(), description.trim());
+    const newProject = await createProject(title.trim(), description.trim(), isPublished);
     if (newProject) {
       setTitle('');
       setDescription('');
+      setIsPublished(false);
       setCreateDialogOpen(false);
       navigate(`/forge/${newProject.id}`);
     }
   };
+
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
+
+  const handlePublishProject = async (project: Project) => {
+    setPublishingProject(prev => ({
+      ...prev,
+      [project.id]: true
+    }));
+    
+    try {
+      await updateProject({
+        id: project.id,
+        is_published: !project.is_published
+      });
+      
+      toast({
+        title: project.is_published ? "Project Unpublished" : "Project Published",
+        description: project.is_published 
+          ? "Your project is now private and won't appear on the explore page" 
+          : "Your project is now visible on the explore page",
+        variant: "success"
+      });
+      
+    } catch (error) {
+      console.error('Error publishing project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to publish project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setPublishingProject(prev => ({
+        ...prev,
+        [project.id]: false
+      }));
+    }
+  };
+
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
@@ -141,6 +188,7 @@ const ProjectsList: React.FC = () => {
       setLoadingAI(false);
     }
   };
+
   const handleBackProject = (projectId: string) => {
     setBackingProjects(prev => ({
       ...prev,
@@ -162,11 +210,13 @@ const ProjectsList: React.FC = () => {
       }));
     }, 2000);
   };
+
   const getNextDeadline = (projectId: string): ProjectDeadline | null => {
     const deadlines = projectDeadlines[projectId] || [];
     const upcomingDeadlines = deadlines.filter(d => !d.is_completed).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
     return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
   };
+
   const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -177,6 +227,7 @@ const ProjectsList: React.FC = () => {
       return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
     }
   };
+
   const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -187,8 +238,10 @@ const ProjectsList: React.FC = () => {
       return "default";
     }
   };
+
   const ownedProjects = projects.filter(p => p.owner_id === 'user-1');
   const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1');
+
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
       return <Card>
@@ -205,12 +258,15 @@ const ProjectsList: React.FC = () => {
           </CardContent>
         </Card>;
     }
+    
     return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projectsList.map(project => {
         const createdDate = new Date(project.created_at);
         const nextDeadline = getNextDeadline(project.id);
         const waitlistCount = projectWaitlists[project.id] || 0;
         const isBackingProject = backingProjects[project.id] || false;
+        const isPublishingProject = publishingProject[project.id] || false;
+        
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
@@ -245,10 +301,34 @@ const ProjectsList: React.FC = () => {
                         <Clock className="h-3 w-3" />
                         <span>{waitlistCount} waiting</span>
                       </Badge>}
+                      
+                    {project.is_published && <Badge variant="outline" className="flex items-center gap-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                        <Globe className="h-3 w-3" />
+                        <span>Published</span>
+                      </Badge>}
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    
+                    {project.owner_id === 'user-1' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePublishProject(project);
+                        }}
+                        disabled={isPublishingProject}
+                      >
+                        {isPublishingProject ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : project.is_published ? (
+                          <>Unpublish</>
+                        ) : (
+                          <>Publish</>
+                        )}
+                      </Button>
+                    )}
                     
                     <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={e => {
                   e.stopPropagation();
@@ -264,6 +344,7 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
+
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -308,6 +389,15 @@ const ProjectsList: React.FC = () => {
               <Label htmlFor="project-description">Description *</Label>
               <Textarea id="project-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter project description" rows={4} required />
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="publish-project"
+                checked={isPublished}
+                onCheckedChange={setIsPublished}
+              />
+              <Label htmlFor="publish-project">Publish to Explore page</Label>
+            </div>
 
             <Button type="button" variant="outline" className="w-full" onClick={handleGetAISuggestions} disabled={!title.trim() || !description.trim() || loadingAI}>
               {loadingAI ? <>
@@ -341,6 +431,7 @@ const ProjectsList: React.FC = () => {
       <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
+
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -348,4 +439,5 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ProjectsWithProvider;

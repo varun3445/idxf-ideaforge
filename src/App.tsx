@@ -1,112 +1,121 @@
 
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from './components/ui/toaster';
-import { AuthProvider, useAuth } from './AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
 import Navbar from './components/Navbar';
-import { useMediaQuery } from './hooks/useMediaQuery';
-
-import Index from './pages/Index';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Explore from './pages/Explore';
+import Index from './pages/Index';
 import Matches from './pages/Matches';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
-import BetaIndicator from './components/BetaIndicator';
-import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
+import Profile from './pages/Profile';
+import ProjectDetail from './pages/ProjectDetail';
+import NotFound from './pages/NotFound';
 import JoinProject from './pages/JoinProject';
-
-import './App.css';
-
-// Inner component that uses the auth context
-const AppContent = () => {
-  const { isAuthenticated, loading } = useAuth();
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const location = useLocation();
-  
-  // Hide navbar only on landing page
-  const showNavbar = location.pathname !== '/';
-
-  return (
-    <>
-      {showNavbar && isAuthenticated && <Navbar />}
-      {showNavbar && isAuthenticated && <BetaIndicator />}
-      <div className={`${isMobile && showNavbar && isAuthenticated ? "pb-16 mobile-page-padding" : showNavbar && isAuthenticated ? "fixed-nav-content" : ""}`}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route 
-            path="/explore" 
-            element={
-              <ProtectedRoute>
-                <Explore />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/matches" 
-            element={
-              <ProtectedRoute>
-                <Matches />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/project/:id" 
-            element={
-              <ProtectedRoute>
-                <ProjectDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/projects" 
-            element={
-              <ProtectedRoute>
-                <Projects />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/forge/:projectId" 
-            element={
-              <ProtectedRoute>
-                <Forge />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/join-project/:shareCode" 
-            element={
-              <ProtectedRoute>
-                <JoinProject />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-      <Toaster />
-    </>
-  );
-};
+import ExperimentLab from './pages/ExperimentLab';
+import { Toaster } from './components/ui/toaster';
+import Communities from './pages/Communities';
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/join/:shareCode" element={<JoinProject />} />
+            
+            <Route
+              path="/explore"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Explore />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/communities"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Communities />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/matches"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Matches />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Projects />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/forge/:projectId"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Forge />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/project/:projectId"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <ProjectDetail />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/experiments"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <ExperimentLab />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+          <Toaster />
+        </div>
+      </Router>
     </AuthProvider>
   );
 }
