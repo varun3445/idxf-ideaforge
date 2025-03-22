@@ -50,7 +50,7 @@ const Navbar = () => {
         </div>}
 
       {/* Mobile Bottom Navigation */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-2 py-2 backdrop-blur-md border-t border-border mx-[10px] bg-white - rounded 10">
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-2 py-2 backdrop-blur-md border-t border-border mx-[10px] bg-white">
           <div className="flex items-center justify-between max-w-xs w-full">
             {menuItems.map(item => <Button key={item.name} variant={isActive(item.path) ? "default" : "ghost"} size="sm" className="flex flex-col items-center py-1 px-2" onClick={() => navigate(item.path)}>
                 {item.icon}
