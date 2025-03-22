@@ -1,11 +1,14 @@
 
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import { useMediaQuery } from './hooks/useMediaQuery';
 
 import Index from './pages/Index';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Explore from './pages/Explore';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
@@ -21,7 +24,7 @@ import './App.css';
 
 // Inner component that uses the auth context
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const location = useLocation();
   
@@ -35,17 +38,72 @@ const AppContent = () => {
       <div className={`${isMobile && showNavbar && isAuthenticated ? "pb-16 mobile-page-padding" : showNavbar && isAuthenticated ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* Redirect login and signup routes to explore */}
-          <Route path="/login" element={<Navigate to="/explore" replace />} />
-          <Route path="/signup" element={<Navigate to="/explore" replace />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/matches" element={<Matches />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/forge/:projectId" element={<Forge />} />
-          <Route path="/join-project/:shareCode" element={<JoinProject />} />
-          <Route path="/communities" element={<Communities />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route 
+            path="/explore" 
+            element={
+              <ProtectedRoute>
+                <Explore />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/matches" 
+            element={
+              <ProtectedRoute>
+                <Matches />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/project/:id" 
+            element={
+              <ProtectedRoute>
+                <ProjectDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute>
+                <Projects />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/forge/:projectId" 
+            element={
+              <ProtectedRoute>
+                <Forge />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/join-project/:shareCode" 
+            element={
+              <ProtectedRoute>
+                <JoinProject />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/communities" 
+            element={
+              <ProtectedRoute>
+                <Communities />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

@@ -53,12 +53,13 @@ const Index = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  onClick={() => navigate('/explore')} 
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
-                >
+                <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
                   Get Started
-                </Button>
+                </Link>
+                
+                <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
+                  Log In
+                </Link>
               </div>
             </div>
           </div>
@@ -75,13 +76,7 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <div 
-                  key={index} 
-                  className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md"
-                  onClick={() => navigate(feature.path)}
-                  style={{ cursor: 'pointer' }}
-                >
+              {features.map((feature, index) => <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
                   <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <feature.icon className="text-foreground" size={20} />
                   </div>
@@ -91,12 +86,11 @@ const Index = () => {
                     {feature.description}
                   </p>
                   
-                  <div className="inline-flex items-center text-foreground font-medium hover:text-primary transition-colors">
+                  <Link to="/signup" className="inline-flex items-center text-foreground font-medium hover:text-primary transition-colors">
                     <span>Learn more</span>
                     <ArrowRight size={16} className="ml-2" />
-                  </div>
-                </div>
-              ))}
+                  </Link>
+                </div>)}
             </div>
           </div>
         </section>
@@ -109,12 +103,12 @@ const Index = () => {
               Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={() => navigate('/explore')} 
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
-              >
+              <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
                 Get Started
-              </Button>
+              </Link>
+              <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
+                Log In
+              </Link>
             </div>
           </div>
         </section>
