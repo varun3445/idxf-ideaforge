@@ -1,11 +1,10 @@
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
 import { Compass, Heart, FolderKanban, Users, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const Navbar = () => {
@@ -42,73 +41,39 @@ const Navbar = () => {
     return location.pathname === path;
   };
   
+  // Log visibility for debugging
+  useEffect(() => {
+    console.log('Navbar rendered, isMobile:', isMobile);
+  }, [isMobile]);
+
   return (
     <>
       {isMobile ? (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-secondary/80 backdrop-blur-md border-b border-border rounded-b-xl">
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[200px]">
-              <div className="flex flex-col h-full py-4">
-                <div className="px-4 mb-4">
-                  <div className="flex items-center py-[12px]">
-                    <Avatar className="h-7 w-7 mr-2">
-                      <AvatarImage src="/ideaforge-favicon.png" alt="IdeaForge" />
-                      <AvatarFallback>IF</AvatarFallback>
-                    </Avatar>
-                    <span className="text-lg font-semibold font-playfair">IdeaForge</span>
-                  </div>
-                </div>
-                
-                <div className="px-2 space-y-1 flex-1">
-                  {menuItems.map(item => (
-                    <Button 
-                      key={item.name} 
-                      variant={isActive(item.path) ? "default" : "ghost"} 
-                      className="w-full justify-start" 
-                      onClick={() => {
-                        navigate(item.path);
-                        setIsOpen(false);
-                      }}
-                    >
-                      <span className="mr-1.5">{item.icon}</span>
-                      {item.name}
-                    </Button>
-                  ))}
-                </div>
-                
-                <div className="mt-auto pt-4 px-2 border-t border-border">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10" 
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                  >
-                    Logout
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-          
-          <div className="font-playfair font-bold text-lg">IdeaForge</div>
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-secondary/80 backdrop-blur-md border-t border-border rounded-t-xl">
+          {menuItems.map((item, index) => (
+            <Button
+              key={item.name}
+              variant={isActive(item.path) ? "default" : "ghost"}
+              size="sm"
+              className="flex flex-col items-center py-1 px-2"
+              onClick={() => navigate(item.path)}
+            >
+              {item.icon}
+              <span className="text-xs mt-1">{item.name}</span>
+            </Button>
+          ))}
           
           <Button 
             variant="ghost" 
-            size="icon" 
-            className="rounded-full" 
+            size="sm"
+            className="flex flex-col items-center py-1 px-2 rounded-full" 
             onClick={() => navigate('/profile')}
           >
-            <Avatar className="h-7 w-7">
+            <Avatar className="h-5 w-5">
               <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
               <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
+            <span className="text-xs mt-1">Profile</span>
           </Button>
         </div>
       ) : (

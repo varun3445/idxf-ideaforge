@@ -1,4 +1,3 @@
-
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -70,9 +69,10 @@
     @apply px-3 py-2 text-sm;
   }
   
-  /* Add top padding for mobile pages to account for the header */
+  /* Add top and bottom padding for mobile pages to account for the header and footer */
   .mobile-page-padding {
-    padding-top: 25px;
+    padding-top: 56px;
+    padding-bottom: 60px; /* Increased to ensure content doesn't hide the navbar */
   }
 }
 
@@ -162,5 +162,10 @@
 @media (max-width: 768px) {
   .floating-nav {
     @apply fixed bottom-0 left-0 right-0 top-auto rounded-t-2xl rounded-b-none;
+  }
+  
+  /* Ensure content doesn't overlap with bottom navigation */
+  .fixed-nav-content-mobile {
+    padding-bottom: 70px;
   }
 }
