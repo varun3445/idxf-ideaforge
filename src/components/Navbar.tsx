@@ -1,11 +1,11 @@
 
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
 import { Compass, Heart, FolderKanban, Users, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -18,6 +18,12 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Make sure the component is mounted to avoid hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const menuItems = [
     { name: 'Explore', path: '/explore', icon: <Compass className="h-5 w-5" /> },
@@ -30,73 +36,35 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
+  if (!mounted) return null;
+
   return (
     <>
       {isMobile ? (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-secondary border-b border-border">
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0">
-              <div className="flex flex-col h-full py-6">
-                <div className="px-6 mb-6">
-                  <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarImage src="/ideaforge-favicon.png" alt="IdeaForge" />
-                      <AvatarFallback>IF</AvatarFallback>
-                    </Avatar>
-                    <span className="text-xl font-semibold font-playfair">IdeaForge</span>
-                  </div>
-                </div>
-                
-                <div className="px-3 space-y-1 flex-1">
-                  {menuItems.map((item) => (
-                    <Button
-                      key={item.name}
-                      variant={isActive(item.path) ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => {
-                        navigate(item.path);
-                        setIsOpen(false);
-                      }}
-                    >
-                      {item.icon}
-                      <span className="ml-2">{item.name}</span>
-                    </Button>
-                  ))}
-                </div>
-                
-                <div className="mt-auto pt-4 px-3 border-t border-border">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                  >
-                    Logout
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-          
-          <div className="font-playfair font-bold text-lg">IdeaForge</div>
-          
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-3 bg-secondary border-t border-border">
+          {menuItems.map((item) => (
+            <Button
+              key={item.name}
+              variant={isActive(item.path) ? "default" : "ghost"}
+              size="sm"
+              className="flex flex-col items-center justify-center"
+              onClick={() => navigate(item.path)}
+            >
+              {item.icon}
+              <span className="text-xs mt-1">{item.name}</span>
+            </Button>
+          ))}
           <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
+            variant={isActive('/profile') ? "default" : "ghost"}
+            size="sm"
+            className="flex flex-col items-center justify-center"
             onClick={() => navigate('/profile')}
           >
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-5 w-5">
               <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
               <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
+            <span className="text-xs mt-1">Profile</span>
           </Button>
         </div>
       ) : (

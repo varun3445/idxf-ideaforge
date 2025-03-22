@@ -1,270 +1,244 @@
 
-// Search with AI edge function - Enhanced with better location matching and natural language processing
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0';
 
-// CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+interface UserWithSkills {
+  id: string;
+  name: string;
+  location: string;
+  avatar: string | null;
+  skills: string[];
 }
 
-// Function to identify location keywords in a search query
-function extractLocationKeywords(query: string) {
-  const words = query.toLowerCase().split(/\s+/);
-  const locationKeywords = ['in', 'from', 'at', 'near', 'around'];
-  let locations = [];
-  
-  for (let i = 0; i < words.length - 1; i++) {
-    if (locationKeywords.includes(words[i])) {
-      locations.push(words[i+1]);
-      // Include potential multi-word location
-      if (i < words.length - 2) {
-        locations.push(`${words[i+1]} ${words[i+2]}`);
-      }
-    }
-  }
-  
-  // Common large countries/locations that might be mentioned
-  const commonLocations = [
-    'india', 'usa', 'uk', 'china', 'japan', 'australia', 'canada', 
-    'brazil', 'russia', 'germany', 'france', 'spain', 'italy', 
-    'london', 'tokyo', 'delhi', 'mumbai', 'new york', 'singapore'
-  ];
-  
-  for (const location of commonLocations) {
-    if (query.toLowerCase().includes(location)) {
-      locations.push(location);
-    }
-  }
-  
-  return [...new Set(locations)]; // remove duplicates
-}
-
-// Function to extract potential skills or roles from natural language query
-function extractSkillsAndRoles(query: string) {
-  // Common creative skills and roles
+// Function to extract skills or roles from a natural language query
+const extractSkillsOrRoles = (query: string): string[] => {
+  // Common skills or roles that might be mentioned in queries
   const commonSkills = [
-    'design', 'developer', 'writer', 'artist', 'photographer', 'videographer',
-    'marketing', 'illustrator', 'content creator', 'programmer', 'director',
-    'editor', 'producer', 'animator', 'ui', 'ux', 'graphic', 'web', 'mobile',
-    'react', 'javascript', 'typescript', 'python', 'php', 'ruby', 'coding',
-    'video', 'photo', 'social media', 'branding', 'strategy', 'product',
-    'project manager', 'consultant', 'advisor', 'mentor', 'coach', 'teacher',
-    'speaker', 'presenter', 'host', 'model', 'actor', 'actress', 'influencer'
+    'developer', 'designer', 'artist', 'writer', 'marketing', 
+    'react', 'javascript', 'typescript', 'python', 'java', 
+    'figma', 'illustrator', 'photoshop', 'ui', 'ux', 
+    'copywriting', 'content creation', 'video', 'photography',
+    'web', 'mobile', 'graphic design', 'branding', 'illustration'
   ];
   
   const queryLower = query.toLowerCase();
-  return commonSkills.filter(skill => queryLower.includes(skill));
-}
+  return commonSkills.filter(skill => queryLower.includes(skill.toLowerCase()));
+};
 
-function locationMatchScore(profile: any, locations: string[]) {
-  if (!profile.location || !locations.length) return 0;
-
-  const profileLocation = profile.location.toLowerCase();
-  
-  for (const loc of locations) {
-    if (profileLocation.includes(loc.toLowerCase())) {
-      return 100; // Perfect location match
-    }
-  }
-  
-  // Partial matches
-  for (const loc of locations) {
-    const parts = loc.split(/\s+/);
-    for (const part of parts) {
-      if (part.length > 2 && profileLocation.includes(part.toLowerCase())) {
-        return 70; // Partial location match
-      }
-    }
-  }
-  
-  return 0;
-}
-
-// Process natural language queries to extract intent
-function processNaturalLanguageQuery(query: string) {
+// Detect the intent of the query
+const detectQueryIntent = (query: string): 'skill' | 'location' | 'name' | 'general' => {
   const queryLower = query.toLowerCase();
   
-  // Check for intent patterns
-  const findCollaboratorPatterns = [
-    'looking for', 'need a', 'find me', 'who can', 'searching for',
-    'want to work with', 'collaborate with', 'partner with'
-  ];
+  if (queryLower.includes('skill') || 
+      queryLower.includes('good at') || 
+      queryLower.includes('expertise') ||
+      queryLower.includes('who can') ||
+      queryLower.includes('who knows')) {
+    return 'skill';
+  }
   
-  const isCollaboratorQuery = findCollaboratorPatterns.some(pattern => 
-    queryLower.includes(pattern)
-  );
+  if (queryLower.includes('location') || 
+      queryLower.includes('based in') || 
+      queryLower.includes('live in') ||
+      queryLower.includes('from')) {
+    return 'location';
+  }
   
-  const locations = extractLocationKeywords(query);
-  const skills = extractSkillsAndRoles(query);
+  if (queryLower.includes('name') || 
+      queryLower.includes('called') || 
+      queryLower.includes('named')) {
+    return 'name';
+  }
   
-  console.log('Query intent analysis:', {
-    isCollaboratorQuery,
-    extractedLocations: locations,
-    extractedSkills: skills
-  });
-  
-  return {
-    isCollaboratorQuery,
-    locations,
-    skills
-  };
-}
+  return 'general';
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
   }
 
   try {
-    const { query, profiles, userLocation, potentialLocations } = await req.json()
-    
-    if (!query) {
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Setup OpenAI
+    const configuration = new Configuration({
+      apiKey: Deno.env.get("OPENAI_API_KEY"),
+    });
+    const openai = new OpenAIApi(configuration);
+
+    // Extract the search query from the request
+    const { query } = await req.json();
+
+    if (!query || typeof query !== 'string') {
       return new Response(
-        JSON.stringify({
-          matchingProfiles: [],
-          searchExplanation: "Please enter a search query to find matching creatives."
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+        JSON.stringify({ error: 'Query parameter is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (!Array.isArray(profiles) || profiles.length === 0) {
-      return new Response(
-        JSON.stringify({
-          matchingProfiles: [],
-          searchExplanation: "No creative profiles are available to search."
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Detect query intent and extract any explicit skills
+    const queryIntent = detectQueryIntent(query);
+    const extractedSkills = extractSkillsOrRoles(query);
+    
+    // Fetch all users with their skills
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, location, avatar');
+      
+    if (profilesError) {
+      throw profilesError;
     }
 
-    console.log(`Search query: "${query}" with ${profiles.length} profiles`)
-    
-    // Process natural language query
-    const { isCollaboratorQuery, locations, skills } = processNaturalLanguageQuery(query);
-    
-    // Use extracted locations or fallback to provided potentialLocations
-    let searchLocations = locations.length > 0 ? locations : (potentialLocations || []);
-    console.log("Detected locations:", searchLocations);
-    console.log("Detected skills:", skills);
-    
-    // Simple scoring algorithm with natural language understanding
-    const queryTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 2);
-    
-    const results = profiles.map(profile => {
-      let score = 0;
-      let matchReasons = [];
+    const { data: userSkills, error: skillsError } = await supabase
+      .from('user_skills')
+      .select('user_id, skills(name)');
       
-      // Skill matching - enhanced with extracted skills
-      const profileSkills = profile.skills || [];
-      
-      // Check explicit skills mentioned in the query
-      if (skills.length > 0) {
-        for (const skill of skills) {
-          if (profileSkills.some(ps => ps.toLowerCase().includes(skill.toLowerCase()))) {
-            score += 40;
-            matchReasons.push(`Has "${skill}" skill that matches your query`);
-          }
-        }
-      }
-      
-      // Also check for general term matches in skills
-      for (const skill of profileSkills) {
-        for (const term of queryTerms) {
-          if (term.length > 2 && skill.toLowerCase().includes(term)) {
-            score += 20;
-            matchReasons.push(`Has skill matching "${term}"`);
-            break;
-          }
-        }
-      }
-      
-      // Check for direct role/profession mentions
-      if (profileSkills && profileSkills.length > 0) {
-        const mainSkill = profileSkills[0].toLowerCase();
-        if (query.toLowerCase().includes(mainSkill)) {
-          score += 30;
-          matchReasons.push(`Primary skill "${mainSkill}" matches query`);
-        }
-      }
-      
-      // Special handling for "anyone" or "everyone" queries
-      if (query.toLowerCase().includes("anyone") || query.toLowerCase().includes("everyone")) {
-        score = Math.max(score, 20); // Give some base score
-        matchReasons.push("Matched general search for anyone");
-      }
-      
-      // Add bonus for collaborator-intent queries with matching skills
-      if (isCollaboratorQuery && score > 0) {
-        score += 15;
-        matchReasons.push("Matches collaboration intent");
-      }
-      
-      // Location matching (boosted priority)
-      if (searchLocations.length > 0) {
-        const locationScore = locationMatchScore(profile, searchLocations);
-        if (locationScore > 0) {
-          score += locationScore;
-          matchReasons.push(`Location "${profile.location}" matches search location`);
-        }
-      }
-      
-      // Normalize score to 0-100 range
-      score = Math.min(100, score);
-      
+    if (skillsError) {
+      throw skillsError;
+    }
+
+    // Combine profiles with their skills
+    const usersWithSkills: UserWithSkills[] = profiles.map(profile => {
+      const skills = userSkills
+        .filter(skill => skill.user_id === profile.id)
+        .map(skill => skill.skills.name);
+        
       return {
-        id: profile.id,
-        matchScore: score,
-        matchReasons
+        ...profile,
+        skills,
       };
     });
-    
-    // Filter out low-scoring results and sort by score
-    const matchingProfiles = results
-      .filter(result => result.matchScore > 0)
-      .sort((a, b) => b.matchScore - a.matchScore);
-    
-    // Generate an explanation based on the query and analysis
-    let searchExplanation = "";
-    
-    if (matchingProfiles.length === 0) {
-      searchExplanation = `No creatives found matching "${query}". Try different keywords, skills, or phrasing your question differently.`;
-    } else if (isCollaboratorQuery) {
-      searchExplanation = `Showing potential collaborators matching "${query}" based on the skills and expertise you're looking for.`;
-    } else if (searchLocations.length > 0) {
-      searchExplanation = `Showing creatives matching "${query}" with priority on location${searchLocations.length > 1 ? 's' : ''}: ${searchLocations.join(", ")}`;
-    } else if (skills.length > 0) {
-      searchExplanation = `Showing creatives with skills in: ${skills.join(", ")}`;
-    } else if (query.toLowerCase().includes("anyone") || query.toLowerCase().includes("everyone")) {
-      searchExplanation = `Showing all available creatives${searchLocations.length > 0 ? ' with priority on location matches' : ''}.`;
-    } else {
-      searchExplanation = `Showing creatives matching "${query}" based on skills and expertise.`;
-    }
-    
-    console.log(`Found ${matchingProfiles.length} matching profiles`);
 
-    // Return the sorted and filtered profiles along with an explanation
+    // Use OpenAI to process the query and rank users
+    let prompt = `I need to search for users matching the query: "${query}".\n\n`;
+    prompt += `Here is a list of users with their skills and locations:\n\n`;
+    
+    usersWithSkills.forEach(user => {
+      prompt += `User ID: ${user.id}\n`;
+      prompt += `Name: ${user.name}\n`;
+      prompt += `Location: ${user.location}\n`;
+      prompt += `Skills: ${user.skills.join(', ')}\n\n`;
+    });
+    
+    prompt += `Based on the query, rank the top 5 most relevant users in order of relevance. `;
+    prompt += `Return their IDs in a JSON array format like this: ["id1", "id2", "id3", "id4", "id5"]. `;
+    prompt += `If fewer than 5 users are relevant, return fewer IDs.`;
+
+    const completion = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt,
+      max_tokens: 400,
+      temperature: 0.3,
+    });
+
+    let rankedUserIds = [];
+
+    try {
+      // Try to extract the JSON array from the completion
+      const text = completion.data.choices[0].text?.trim() || '';
+      const match = text.match(/\[.*?\]/s);
+      
+      if (match) {
+        rankedUserIds = JSON.parse(match[0]);
+      }
+    } catch (error) {
+      console.error('Error parsing OpenAI output:', error);
+    }
+
+    // As a fallback or to improve results, do our own scoring
+    // This improves results and handles cases where OpenAI output isn't properly formatted
+    const scoredUsers = usersWithSkills.map(user => {
+      let score = 0;
+      
+      // Score based on intent
+      if (queryIntent === 'skill') {
+        extractedSkills.forEach(skill => {
+          if (user.skills.some(userSkill => 
+            userSkill.toLowerCase().includes(skill.toLowerCase()))) {
+            score += 5;
+          }
+        });
+      } else if (queryIntent === 'location') {
+        const locationTerms = query.toLowerCase().split(/\s+/);
+        if (locationTerms.some(term => 
+          user.location.toLowerCase().includes(term) && term.length > 2)) {
+          score += 5;
+        }
+      } else if (queryIntent === 'name') {
+        const nameTerms = query.toLowerCase().split(/\s+/);
+        if (nameTerms.some(term => 
+          user.name.toLowerCase().includes(term) && term.length > 2)) {
+          score += 5;
+        }
+      }
+      
+      // Generic matching (lower priority than intent-based matching)
+      const queryLower = query.toLowerCase();
+      if (user.name.toLowerCase().includes(queryLower)) {
+        score += 3;
+      }
+      
+      if (user.location.toLowerCase().includes(queryLower)) {
+        score += 2;
+      }
+      
+      user.skills.forEach(skill => {
+        if (skill.toLowerCase().includes(queryLower)) {
+          score += 3;
+        }
+      });
+      
+      return { user, score };
+    });
+    
+    // Sort users by score descending
+    scoredUsers.sort((a, b) => b.score - a.score);
+    
+    // Get top 10 users by score
+    const topScoredUsers = scoredUsers
+      .filter(item => item.score > 0)
+      .slice(0, 10)
+      .map(item => item.user.id);
+    
+    // Merge OpenAI rankings with our own scoring
+    let finalRankedIds = [...new Set([...rankedUserIds, ...topScoredUsers])].slice(0, 10);
+
+    // Get the full user data for the ranked IDs
+    const rankedUsers = finalRankedIds.map(id => 
+      usersWithSkills.find(user => user.id === id)
+    ).filter(Boolean);
+
     return new Response(
-      JSON.stringify({
-        matchingProfiles,
-        searchExplanation
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (error) {
-    console.error('Error in search-with-ai function:', error);
-    return new Response(
-      JSON.stringify({
-        error: 'An error occurred while processing your search',
-        details: error.message
-      }),
+      JSON.stringify({ users: rankedUsers }),
       { 
-        status: 500,
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
+  } catch (error) {
+    console.error('Error:', error);
+    
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
-})
+});

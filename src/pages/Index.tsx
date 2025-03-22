@@ -1,16 +1,24 @@
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Grid, Heart, Lightbulb, ArrowRight, Menu, Users } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "../components/ui/navigation-menu";
 import { Button } from "../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
+import { useAuth } from '../AuthContext';
+
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  
   useEffect(() => {
     setIsVisible(true);
   }, []);
+  
   const features = [{
     title: 'Explore',
     description: 'Discover projects and connect with creative professionals from around the world.',
@@ -30,6 +38,7 @@ const Index = () => {
     path: '/lab',
     delay: 300
   }];
+  
   return <AnimatedTransition>
       <div className="min-h-screen bg-background">
         {/* Navigation Bar */}
@@ -74,23 +83,123 @@ const Index = () => {
               </NavigationMenu>
               
               <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-foreground hover:text-primary transition-colors">
-                  Log In
-                </Link>
-                <Button asChild variant="default">
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/explore" className="text-foreground hover:text-primary transition-colors">
+                      Dashboard
+                    </Link>
+                    <Button asChild variant="default">
+                      <Link to="/profile">Profile</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="text-foreground hover:text-primary transition-colors">
+                      Log In
+                    </Link>
+                    <Button asChild variant="default">
+                      <Link to="/signup">Sign Up</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
             
             {/* Mobile menu button */}
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </Button>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0">
+                <div className="flex flex-col h-full py-6">
+                  <div className="px-6 mb-6">
+                    <div className="flex items-center">
+                      <span className="text-xl font-semibold font-playfair">IdeaForge</span>
+                    </div>
+                  </div>
+                  
+                  <div className="px-3 space-y-1 flex-1">
+                    {features.map((item) => (
+                      <Button
+                        key={item.title}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => {
+                          navigate(item.path);
+                          setIsOpen(false);
+                        }}
+                      >
+                        <item.icon className="h-5 w-5 mr-2" />
+                        <span>{item.title}</span>
+                      </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        navigate('/communities');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <Users className="h-5 w-5 mr-2" />
+                      <span>Communities</span>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 px-3 border-t border-border">
+                    {isAuthenticated ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/explore');
+                            setIsOpen(false);
+                          }}
+                        >
+                          Dashboard
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/profile');
+                            setIsOpen(false);
+                          }}
+                        >
+                          Profile
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/login');
+                            setIsOpen(false);
+                          }}
+                        >
+                          Log In
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => {
+                            navigate('/signup');
+                            setIsOpen(false);
+                          }}
+                        >
+                          Sign Up
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </nav>
         
@@ -170,4 +279,5 @@ const Index = () => {
       </div>
     </AnimatedTransition>;
 };
+
 export default Index;
