@@ -35,7 +35,7 @@ const Index = () => {
         {/* Navigation Bar */}
         <nav className="py-4 px-6 border-b border-border/20">
           <div className="container mx-auto flex justify-between items-center">
-            
+            <Link to="/" className="text-2xl font-bold font-playfair">IdeaForge</Link>
             
             <div className="hidden md:flex items-center space-x-6">
               <NavigationMenu>
@@ -63,9 +63,7 @@ const Index = () => {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <Link to="/explore" className={navigationMenuTriggerStyle()}>
-                      Explore
-                    </Link>
+                    
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Link to="/communities" className={navigationMenuTriggerStyle()}>
