@@ -45,10 +45,7 @@ const Index = () => {
                 An Exclusive Community of<br />Like-Minded Creators
               </h1>
               
-              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
-                A platform where lifestyle meets influence making it
-                easier for brands and creators to grow together
-              </p>
+              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">Empowering aspiring creators, innovators, and entrepreneurs establish their identity.</p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
