@@ -1,61 +1,41 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Heart, Lightbulb, ArrowRight, Menu, X } from 'lucide-react';
+import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle
-} from "../components/ui/navigation-menu";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "../components/ui/navigation-menu";
 import { Button } from "../components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
-
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
-  const features = [
-    {
-      title: 'Explore',
-      description: 'Discover projects and connect with creative professionals from around the world.',
-      icon: Grid,
-      path: '/explore',
-      delay: 100
-    }, 
-    {
-      title: 'Matches',
-      description: 'Find collaborators with complementary skills for your next project.',
-      icon: Heart,
-      path: '/matches',
-      delay: 200
-    }, 
-    {
-      title: 'Experiment Lab',
-      description: 'Get inspired and develop your ideas through guided creative exercises.',
-      icon: Lightbulb,
-      path: '/lab',
-      delay: 300
-    }
-  ];
-
-  return (
-    <AnimatedTransition>
+  const features = [{
+    title: 'Explore',
+    description: 'Discover projects and connect with creative professionals from around the world.',
+    icon: Grid,
+    path: '/explore',
+    delay: 100
+  }, {
+    title: 'Matches',
+    description: 'Find collaborators with complementary skills for your next project.',
+    icon: Heart,
+    path: '/matches',
+    delay: 200
+  }, {
+    title: 'Experiment Lab',
+    description: 'Get inspired and develop your ideas through guided creative exercises.',
+    icon: Lightbulb,
+    path: '/lab',
+    delay: 300
+  }];
+  return <AnimatedTransition>
       <div className="min-h-screen bg-background">
         {/* Navigation Bar */}
         <nav className="py-4 px-6 border-b border-border/20">
           <div className="container mx-auto flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold font-playfair">IdeaForge</Link>
+            
             
             <div className="hidden md:flex items-center space-x-6">
               <NavigationMenu>
@@ -64,13 +44,9 @@ const Index = () => {
                     <NavigationMenuTrigger>Features</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                        {features.map((feature) => (
-                          <li key={feature.title} className="row-span-3">
+                        {features.map(feature => <li key={feature.title} className="row-span-3">
                             <NavigationMenuLink asChild>
-                              <Link
-                                to={feature.path}
-                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                              >
+                              <Link to={feature.path} className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md">
                                 <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center mb-4">
                                   <feature.icon className="text-foreground" size={20} />
                                 </div>
@@ -82,8 +58,7 @@ const Index = () => {
                                 </p>
                               </Link>
                             </NavigationMenuLink>
-                          </li>
-                        ))}
+                          </li>)}
                       </ul>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
@@ -111,40 +86,13 @@ const Index = () => {
             </div>
             
             {/* Mobile menu button */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[250px] sm:w-[300px]">
-                <div className="flex flex-col h-full py-6">
-                  <div className="px-3 space-y-3 flex-1">
-                    <Link to="/explore" className="block py-2 px-3 hover:bg-muted rounded-md">
-                      Explore
-                    </Link>
-                    <Link to="/matches" className="block py-2 px-3 hover:bg-muted rounded-md">
-                      Matches
-                    </Link>
-                    <Link to="/lab" className="block py-2 px-3 hover:bg-muted rounded-md">
-                      Experiment Lab
-                    </Link>
-                    <Link to="/communities" className="block py-2 px-3 hover:bg-muted rounded-md">
-                      Communities
-                    </Link>
-                  </div>
-                  
-                  <div className="mt-auto pt-4 px-3 border-t border-border flex flex-col gap-2">
-                    <Button asChild variant="outline" className="w-full">
-                      <Link to="/login">Log In</Link>
-                    </Button>
-                    <Button asChild className="w-full">
-                      <Link to="/signup">Sign Up</Link>
-                    </Button>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+            <Button variant="ghost" size="sm" className="md:hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </Button>
           </div>
         </nav>
         
@@ -162,17 +110,11 @@ const Index = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link 
-                  to="/signup" 
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
-                >
+                <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
                   Get Started
                 </Link>
                 
-                <Link 
-                  to="/login" 
-                  className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
-                >
+                <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
                   Log In
                 </Link>
               </div>
@@ -191,11 +133,7 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <div 
-                  key={index} 
-                  className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md"
-                >
+              {features.map((feature, index) => <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
                   <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <feature.icon className="text-foreground" size={20} />
                   </div>
@@ -209,8 +147,7 @@ const Index = () => {
                     <span>Learn more</span>
                     <ArrowRight size={16} className="ml-2" />
                   </Link>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </section>
@@ -223,24 +160,16 @@ const Index = () => {
               Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                to="/signup" 
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors"
-              >
+              <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
                 Get Started
               </Link>
-              <Link 
-                to="/login" 
-                className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors"
-              >
+              <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
                 Log In
               </Link>
             </div>
           </div>
         </section>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default Index;
