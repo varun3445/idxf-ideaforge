@@ -151,22 +151,7 @@ const Index = () => {
         </section>
         
         {/* CTA Section */}
-        <section className="py-16 md:py-24 bg-background">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">Ready to start your creative journey?</h2>
-            <p className="text-foreground/70 mb-8 max-w-2xl mx-auto">
-              Join thousands of creators and innovators already using Idea Forge to collaborate on amazing projects.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
-                Get Started
-              </Link>
-              <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
-                Log In
-              </Link>
-            </div>
-          </div>
-        </section>
+        
       </div>
     </AnimatedTransition>;
 };
