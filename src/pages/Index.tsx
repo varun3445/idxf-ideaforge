@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
+import { Grid, Heart, Lightbulb, ArrowRight, Menu, X } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { 
@@ -14,9 +14,11 @@ import {
   navigationMenuTriggerStyle
 } from "../components/ui/navigation-menu";
 import { Button } from "../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
   
   useEffect(() => {
@@ -109,13 +111,40 @@ const Index = () => {
             </div>
             
             {/* Mobile menu button */}
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </Button>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+                <div className="flex flex-col h-full py-6">
+                  <div className="px-3 space-y-3 flex-1">
+                    <Link to="/explore" className="block py-2 px-3 hover:bg-muted rounded-md">
+                      Explore
+                    </Link>
+                    <Link to="/matches" className="block py-2 px-3 hover:bg-muted rounded-md">
+                      Matches
+                    </Link>
+                    <Link to="/lab" className="block py-2 px-3 hover:bg-muted rounded-md">
+                      Experiment Lab
+                    </Link>
+                    <Link to="/communities" className="block py-2 px-3 hover:bg-muted rounded-md">
+                      Communities
+                    </Link>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 px-3 border-t border-border flex flex-col gap-2">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/login">Log In</Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link to="/signup">Sign Up</Link>
+                    </Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </nav>
         
