@@ -1,18 +1,17 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Compass, Heart, FolderKanban, Users, Menu } from 'lucide-react';
+import { Compass, Heart, FolderKanban, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [isOpen, setIsOpen] = useState(false);
   
   const menuItems = [
     {
@@ -48,33 +47,40 @@ const Navbar = () => {
 
   return (
     <>
-      {isMobile ? (
-        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-secondary/80 backdrop-blur-md border-t border-border rounded-t-xl">
-          {menuItems.map((item, index) => (
-            <Button
-              key={item.name}
-              variant={isActive(item.path) ? "default" : "ghost"}
-              size="sm"
-              className="flex flex-col items-center py-1 px-2"
-              onClick={() => navigate(item.path)}
-            >
-              {item.icon}
-              <span className="text-xs mt-1">{item.name}</span>
-            </Button>
-          ))}
-          
+      {/* Profile Button (Top Right on Mobile) */}
+      {isMobile && (
+        <div className="fixed top-2 right-2 z-50">
           <Button 
             variant="ghost" 
             size="sm"
-            className="flex flex-col items-center py-1 px-2 rounded-full" 
+            className="rounded-full p-1"
             onClick={() => navigate('/profile')}
           >
-            <Avatar className="h-5 w-5">
+            <Avatar className="h-8 w-8">
               <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
               <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <span className="text-xs mt-1">Profile</span>
           </Button>
+        </div>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile ? (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-2 py-2 bg-secondary/90 backdrop-blur-md border-t border-border">
+          <div className="flex items-center justify-between max-w-xs w-full">
+            {menuItems.map((item) => (
+              <Button
+                key={item.name}
+                variant={isActive(item.path) ? "default" : "ghost"}
+                size="sm"
+                className="flex flex-col items-center py-1 px-2"
+                onClick={() => navigate(item.path)}
+              >
+                {item.icon}
+                <span className="text-xs mt-1">{item.name}</span>
+              </Button>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
@@ -94,7 +100,7 @@ const Navbar = () => {
                     className="w-full justify-start" 
                     onClick={() => navigate(item.path)}
                   >
-                    <span className="mr-1.5">{item.icon}</span>
+                    <span className="mr-1">{item.icon}</span>
                     {item.name}
                   </Button>
                 </li>
@@ -106,7 +112,7 @@ const Navbar = () => {
                 className="w-full justify-start" 
                 onClick={() => navigate('/profile')}
               >
-                <Avatar className="h-5 w-5 mr-1.5">
+                <Avatar className="h-5 w-5 mr-1">
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
                   <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>

@@ -71,8 +71,8 @@
   
   /* Add top and bottom padding for mobile pages to account for the header and footer */
   .mobile-page-padding {
-    padding-top: 56px;
-    padding-bottom: 60px; /* Increased to ensure content doesn't hide the navbar */
+    padding-top: 70px; /* Increased for profile button */
+    padding-bottom: 60px; /* For bottom navbar */
   }
 }
 
