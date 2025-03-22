@@ -32,7 +32,7 @@ const AppContent = () => {
     <>
       {showNavbar && isAuthenticated && <Navbar />}
       {showNavbar && isAuthenticated && <BetaIndicator />}
-      <div className={`${isMobile && showNavbar && isAuthenticated ? "pb-16 mobile-page-padding" : showNavbar && isAuthenticated ? "fixed-nav-content" : ""}`}>
+      <div className={`${isMobile && showNavbar && isAuthenticated ? "pt-16 pb-16 mobile-page-padding" : showNavbar && isAuthenticated ? "fixed-nav-content" : ""}`}>
         <Routes>
           <Route path="/" element={<Index />} />
           {/* Redirect login and signup routes to explore */}
