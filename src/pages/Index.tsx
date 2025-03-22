@@ -14,6 +14,7 @@ const Index = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
     setIsVisible(true);
