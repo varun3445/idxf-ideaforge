@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Tag, Code, Award, Clock, Heart, MessageSquare, Bell } from 'lucide-react';
@@ -11,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import ProjectFeedback from '@/components/ProjectFeedback';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '../AuthContext';
-
 interface ProjectDetails {
   id: string;
   title: string;
@@ -28,25 +26,31 @@ interface ProjectDetails {
   backersCount: number;
   waitlistCount: number;
 }
-
 interface ProjectUpdate {
   id: string;
   title: string;
   content: string;
   date: string;
 }
-
 const ProjectDetail = () => {
-  const { id } = useParams<{ id: string; }>();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isBackingProject, setIsBackingProject] = useState(false);
   const [isCollaborating, setIsCollaborating] = useState(false);
   const [hasUserBackedProject, setHasUserBackedProject] = useState(false);
-  const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
-  
+  const {
+    toast
+  } = useToast();
+  const {
+    user,
+    isAuthenticated
+  } = useAuth();
   useEffect(() => {
     const mockProjects: Record<string, ProjectDetails> = {
       '1': {
@@ -146,34 +150,29 @@ const ProjectDetail = () => {
         waitlistCount: 20
       }
     };
-    
     setTimeout(() => {
       if (id && mockProjects[id]) {
         setProject(mockProjects[id]);
-        
+
         // Generate mock updates for the project
-        const mockUpdates: ProjectUpdate[] = [
-          {
-            id: '1',
-            title: 'Development Milestone Reached',
-            content: 'We are excited to announce that we have completed the core functionality of our product. The team has been working tirelessly to ensure that everything works seamlessly. We are now moving to the testing phase where we will be looking for bugs and user experience issues.',
-            date: '2023-12-01'
-          },
-          {
-            id: '2',
-            title: 'New Team Members',
-            content: 'We are pleased to welcome two new developers to our team. They bring extensive experience in AI and machine learning which will be invaluable as we develop the intelligent features of our platform.',
-            date: '2023-11-15'
-          },
-          {
-            id: '3',
-            title: 'Funding Update',
-            content: 'Thanks to your support, we have reached our initial funding goal! This will allow us to accelerate development and add some of the stretch features that many of you have been requesting.',
-            date: '2023-10-20'
-          }
-        ];
+        const mockUpdates: ProjectUpdate[] = [{
+          id: '1',
+          title: 'Development Milestone Reached',
+          content: 'We are excited to announce that we have completed the core functionality of our product. The team has been working tirelessly to ensure that everything works seamlessly. We are now moving to the testing phase where we will be looking for bugs and user experience issues.',
+          date: '2023-12-01'
+        }, {
+          id: '2',
+          title: 'New Team Members',
+          content: 'We are pleased to welcome two new developers to our team. They bring extensive experience in AI and machine learning which will be invaluable as we develop the intelligent features of our platform.',
+          date: '2023-11-15'
+        }, {
+          id: '3',
+          title: 'Funding Update',
+          content: 'Thanks to your support, we have reached our initial funding goal! This will allow us to accelerate development and add some of the stretch features that many of you have been requesting.',
+          date: '2023-10-20'
+        }];
         setUpdates(mockUpdates);
-        
+
         // Check if current user has backed the project (mock implementation)
         if (isAuthenticated && user) {
           // In a real app, this would be a database check
@@ -184,7 +183,6 @@ const ProjectDetail = () => {
       setIsLoading(false);
     }, 500);
   }, [id, isAuthenticated, user]);
-  
   const handleCollaborate = () => {
     if (project) {
       setIsCollaborating(true);
@@ -198,7 +196,6 @@ const ProjectDetail = () => {
       setTimeout(() => setIsCollaborating(false), 2000);
     }
   };
-  
   const handleBackProject = () => {
     if (project) {
       setIsBackingProject(true);
@@ -213,7 +210,7 @@ const ProjectDetail = () => {
         ...prev,
         backersCount: prev.backersCount + 1
       } : prev);
-      
+
       // Set user as a backer
       setHasUserBackedProject(true);
 
@@ -221,18 +218,13 @@ const ProjectDetail = () => {
       setTimeout(() => setIsBackingProject(false), 2000);
     }
   };
-  
   if (isLoading) {
-    return (
-      <div className="page-container flex justify-center items-center min-h-[60vh]">
+    return <div className="page-container flex justify-center items-center min-h-[60vh]">
         <div className="animate-pulse text-xl">Loading project details...</div>
-      </div>
-    );
+      </div>;
   }
-  
   if (!project) {
-    return (
-      <div className="page-container">
+    return <div className="page-container">
         <div className="text-center py-20">
           <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
           <p className="mb-8">The project you're looking for doesn't exist or may have been removed.</p>
@@ -240,14 +232,10 @@ const ProjectDetail = () => {
             <Button>Return to Explore</Button>
           </Link>
         </div>
-      </div>
-    );
+      </div>;
   }
-  
   const formattedDate = format(new Date(project.createdAt), 'dd-MM-yyyy');
-  
-  return (
-    <AnimatedTransition>
+  return <AnimatedTransition>
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
           <Link to="/explore" className="inline-flex items-center gap-2 text-black hover:underline px-0 py-0">
@@ -263,7 +251,7 @@ const ProjectDetail = () => {
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
             
             <div className="flex flex-wrap gap-3 mb-8">
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-primary/30 text-primary border-primary/50 px-4 py-2 rounded-full">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium text-primary border-primary/50 px-4 py-2 rounded-full bg-neutral-50">
                 <Tag size={14} />
                 {project.category}
               </Badge>
@@ -276,29 +264,23 @@ const ProjectDetail = () => {
                 <Award size={14} />
                 {project.backersCount} backers
               </Badge>
-              {project.waitlistCount > 0 && (
-                <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
+              {project.waitlistCount > 0 && <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium bg-amber-100 text-amber-800 border-amber-200 px-4 py-2 rounded-full">
                   <Clock size={14} />
                   {project.waitlistCount} in waitlist
-                </Badge>
-              )}
+                </Badge>}
             </div>
             
             <Tabs defaultValue="overview" className="w-full mb-8">
               <TabsList className="mb-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                {hasUserBackedProject && (
-                  <TabsTrigger value="updates" className="inline-flex items-center">
+                {hasUserBackedProject && <TabsTrigger value="updates" className="inline-flex items-center">
                     <Bell className="mr-2 h-4 w-4" />
                     Updates
-                  </TabsTrigger>
-                )}
-                {hasUserBackedProject && (
-                  <TabsTrigger value="feedback" className="inline-flex items-center">
+                  </TabsTrigger>}
+                {hasUserBackedProject && <TabsTrigger value="feedback" className="inline-flex items-center">
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Feedback
-                  </TabsTrigger>
-                )}
+                  </TabsTrigger>}
               </TabsList>
               
               <TabsContent value="overview" className="space-y-6">
@@ -307,24 +289,19 @@ const ProjectDetail = () => {
                 <div>
                   <h3 className="text-xl font-semibold mb-4">Project Goals</h3>
                   <ul className="list-disc pl-5 space-y-2">
-                    {project.goals.map((goal, index) => (
-                      <li key={index} className="text-muted-foreground">{goal}</li>
-                    ))}
+                    {project.goals.map((goal, index) => <li key={index} className="text-muted-foreground">{goal}</li>)}
                   </ul>
                 </div>
                 
                 <div>
                   <h3 className="text-xl font-semibold mb-4">Technical Challenges</h3>
                   <ul className="list-disc pl-5 space-y-2">
-                    {project.challenges.map((challenge, index) => (
-                      <li key={index} className="text-muted-foreground">{challenge}</li>
-                    ))}
+                    {project.challenges.map((challenge, index) => <li key={index} className="text-muted-foreground">{challenge}</li>)}
                   </ul>
                 </div>
               </TabsContent>
               
-              {hasUserBackedProject && (
-                <TabsContent value="updates" className="space-y-6">
+              {hasUserBackedProject && <TabsContent value="updates" className="space-y-6">
                   <div className="bg-muted/30 p-4 rounded-md mb-6">
                     <p className="text-sm text-muted-foreground">
                       <Bell className="inline-block mr-2 h-4 w-4" />
@@ -332,8 +309,7 @@ const ProjectDetail = () => {
                     </p>
                   </div>
                   
-                  {updates.map((update) => (
-                    <div key={update.id} className="border border-border rounded-lg p-6 mb-4">
+                  {updates.map(update => <div key={update.id} className="border border-border rounded-lg p-6 mb-4">
                       <div className="flex justify-between items-center mb-3">
                         <h3 className="text-xl font-semibold">{update.title}</h3>
                         <span className="text-sm text-muted-foreground">
@@ -341,21 +317,16 @@ const ProjectDetail = () => {
                         </span>
                       </div>
                       <p className="text-muted-foreground">{update.content}</p>
-                    </div>
-                  ))}
-                </TabsContent>
-              )}
+                    </div>)}
+                </TabsContent>}
               
-              {hasUserBackedProject && (
-                <TabsContent value="feedback">
+              {hasUserBackedProject && <TabsContent value="feedback">
                   {id && <ProjectFeedback projectId={id} />}
-                </TabsContent>
-              )}
+                </TabsContent>}
             </Tabs>
             
             {/* Show feedback prompt for non-backers to encourage backing */}
-            {!hasUserBackedProject && (
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-8">
+            {!hasUserBackedProject && <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-8">
                 <div className="flex items-center gap-4">
                   <MessageSquare className="h-10 w-10 text-primary" />
                   <div>
@@ -367,8 +338,7 @@ const ProjectDetail = () => {
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
           
           <div>
@@ -384,36 +354,26 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => (
-                      <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
+                    {project.techStack.map((tech, index) => <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
                         <Code size={14} />
                         {tech}
-                      </Badge>
-                    ))}
+                      </Badge>)}
                   </div>
                 </div>
                 
                 <div className="pt-6 border-t border-border space-y-3">
-                  {!hasUserBackedProject ? (
-                    <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
-                      {isBackingProject ? (
-                        <span className="flex items-center gap-2">
+                  {!hasUserBackedProject ? <Button className="w-full flex items-center justify-center gap-2" onClick={handleBackProject} variant="secondary" disabled={isBackingProject}>
+                      {isBackingProject ? <span className="flex items-center gap-2">
                           <Heart className="h-4 w-4 fill-current" />
                           Backing...
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
+                        </span> : <span className="flex items-center gap-2">
                           <Heart className="h-4 w-4" />
                           Back This Project
-                        </span>
-                      )}
-                    </Button>
-                  ) : (
-                    <div className="bg-green-100 text-green-800 px-4 py-3 rounded-full text-center flex items-center justify-center">
+                        </span>}
+                    </Button> : <div className="bg-green-100 text-green-800 px-4 py-3 rounded-full text-center flex items-center justify-center">
                       <Heart className="h-4 w-4 fill-current mr-2" />
                       You're backing this project
-                    </div>
-                  )}
+                    </div>}
                   
                   <Button className="w-full" onClick={handleCollaborate} disabled={isCollaborating}>
                     {isCollaborating ? "Request Sent!" : "Request to Collaborate"}
@@ -424,8 +384,6 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
-
 export default ProjectDetail;
