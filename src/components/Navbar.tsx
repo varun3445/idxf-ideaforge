@@ -2,7 +2,7 @@
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Compass, Heart, FolderKanban, Users, Menu } from 'lucide-react';
+import { Compass, Heart, FolderKanban, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useState, useEffect } from 'react';
@@ -17,7 +17,6 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Make sure the component is mounted to avoid hydration issues
@@ -41,7 +40,7 @@ const Navbar = () => {
   return (
     <>
       {isMobile ? (
-        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-3 bg-secondary border-t border-border">
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-3 glassmorphic-card rounded-t-xl border-t border-border">
           {menuItems.map((item) => (
             <Button
               key={item.name}
@@ -68,7 +67,7 @@ const Navbar = () => {
           </Button>
         </div>
       ) : (
-        <div className="left-0 top-0 z-50 w-64 h-screen bg-secondary border-r border-border fixed">
+        <div className="fixed left-4 top-4 z-50 w-60 h-[calc(100vh-2rem)] glassmorphic-card rounded-2xl">
           <div className="px-3 py-4 h-full flex flex-col">
             <div className="flex items-center mb-6 px-2">
               <Avatar className="h-8 w-8 mr-2">
@@ -82,7 +81,7 @@ const Navbar = () => {
                 <li key={item.name}>
                   <Button
                     variant={isActive(item.path) ? 'default' : 'ghost'}
-                    className="w-full justify-start"
+                    className="w-full justify-start rounded-xl"
                     onClick={() => navigate(item.path)}
                   >
                     {item.icon}
@@ -91,10 +90,10 @@ const Navbar = () => {
                 </li>
               ))}
             </ul>
-            <div className="pt-4 border-t border-border">
+            <div className="mt-auto pt-4 border-t border-border">
               <Button
                 variant={isActive('/profile') ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                className="w-full justify-start rounded-xl"
                 onClick={() => navigate('/profile')}
               >
                 <Avatar className="h-5 w-5 mr-2">
@@ -105,7 +104,7 @@ const Navbar = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-2"
+                className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-2 rounded-xl"
                 onClick={() => logout()}
               >
                 Logout
