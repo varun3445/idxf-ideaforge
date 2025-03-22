@@ -239,7 +239,7 @@ const ProjectDetail = () => {
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
           <Link to="/explore" className="inline-flex items-center gap-2 text-black hover:underline px-0 py-0">
-            <ArrowLeft size={18} />
+            <ArrowLeft size={18} className="bg-zinc-800" />
             <span className="text-left px-[2px] mx-0">Back to Explore</span>
           </Link>
         </div>
