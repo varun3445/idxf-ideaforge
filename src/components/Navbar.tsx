@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
@@ -6,7 +5,6 @@ import { Compass, Heart, FolderKanban, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useState, useEffect } from 'react';
-
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,7 +32,6 @@ const Navbar = () => {
     path: '/projects',
     icon: <FolderKanban className="h-5 w-5" />
   }];
-
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -43,7 +40,6 @@ const Navbar = () => {
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
-
   return <>
       {/* Profile Button (Top Right on Mobile) */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -56,7 +52,7 @@ const Navbar = () => {
         </div>}
 
       {/* Mobile Bottom Navigation */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-2 py-2 backdrop-blur-md border-t border-border mx-[10px] bg-white rounded-t-xl">
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center px-2 py-2 backdrop-blur-md border-t border-border mx-[10px] rounded-t-xl my-[5px] bg-neutral-50">
           <div className="flex items-center justify-between max-w-[280px] w-full">
             {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-1.5 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                 {item.icon}
@@ -96,5 +92,4 @@ const Navbar = () => {
         </div>}
     </>;
 };
-
 export default Navbar;
