@@ -1,4 +1,3 @@
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
@@ -53,7 +52,7 @@ const Navbar = () => {
         </div>}
 
       {/* Mobile Bottom Navigation */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border mx-[10px] rounded-t-xl my-[5px] bg-neutral-50 px-0 py-[10px]">
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border mx-[10px] rounded-t-xl my-[5px] px-0 py-[10px] bg-transparent">
           <div className="flex items-center justify-between max-w-[320px] w-full px-4">
             {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-3 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                 {item.icon}
