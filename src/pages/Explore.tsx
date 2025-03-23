@@ -126,7 +126,7 @@ const Explore = () => {
                   
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
                     <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
-                    {item.category && <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px]">
+                    {item.category && <Badge variant="outline" className="text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px] bg-zinc-900">
                         {item.category}
                       </Badge>}
                   </div>
