@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
 interface PortfolioItem {
   id: string;
   title: string;
@@ -21,7 +20,6 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
-
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,19 +79,15 @@ const Explore = () => {
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
   }]);
-
   const {
     toast
   } = useToast();
-
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-
   const handleBackProject = (projectId: string, projectTitle: string) => {
     toast({
       title: "Project Backed",
@@ -101,18 +95,16 @@ const Explore = () => {
       variant: "success"
     });
   };
-
   const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
-
   return <AnimatedTransition>
-      <div className="page-container bg-white text-black">
+      <div className="page-container">
         <section className="py-6 sm:py-10 md:py-16">
           <div className={`
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left text-black">Explore Projects</h1>
-            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-left text-gray-800">
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore Projects</h1>
+            <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-left">
               Discover innovative projects and connect with talented creators.
             </p>
           </div>
@@ -124,45 +116,38 @@ const Explore = () => {
             <Label htmlFor="search" className="sr-only">
               Search projects
             </Label>
-            <Input 
-              type="search" 
-              id="search" 
-              placeholder="Search for projects..." 
-              value={searchQuery} 
-              onChange={handleSearchChange} 
-              className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8 bg-white text-black border-gray-300" 
-            />
+            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" />
           </div>
 
           <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
             {filteredPortfolioItems.map(item => <div key={item.id} className={`transition-all duration-700 delay-${100} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8 bg-white shadow-lg">
+                <GlassmorphicCard className="h-full flex flex-col p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
                   <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" />
                   
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
-                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left text-black">{item.title}</h3>
-                    {item.category && <Badge variant="outline" className="text-black border-gray-300 text-xs sm:text-sm py-1 sm:py-[5px] bg-gray-100">
+                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
+                    {item.category && <Badge variant="outline" className="text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px] bg-zinc-900">
                         {item.category}
                       </Badge>}
                   </div>
                   
-                  <p className="text-gray-700 text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-4 sm:mb-6 md:mb-8 text-left">
                     {item.description}
                   </p>
                   
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
-                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-gray-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-black">
+                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-neutral-950">
                         {tech}
                       </span>)}
                   </div>
                   
-                  <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
-                    Created by <span className="font-medium text-black">{item.creator}</span>
+                  <p className="text-muted-foreground text-xs sm:text-sm mb-4 sm:mb-6 md:mb-8 text-left">
+                    Created by <span className="font-medium text-foreground">{item.creator}</span>
                   </p>
                   
-                  <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:pt-4 md:pt-6 border-t border-gray-200">
+                  <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:pt-4 md:pt-6 border-t border-border">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600">
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                         <Users size={16} className="bg-transparent" />
                         <span className="text-center">{item.collaborators || 0}</span>
                       </div>
@@ -174,7 +159,9 @@ const Explore = () => {
                     </div>
                     
                     <div className="flex items-center justify-end gap-2">
-                      <Link to={`/project/${item.id}`} className="flex items-center font-medium text-blue-600 hover:underline gap-1 sm:gap-2 group">
+                      
+                    
+                      <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
                         <span>Explore</span>
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                       </Link>
@@ -187,5 +174,4 @@ const Explore = () => {
       </div>
     </AnimatedTransition>;
 };
-
 export default Explore;
