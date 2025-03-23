@@ -21,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #EBEFA0aa); /* Changed to new CTA color */
+  filter: drop-shadow(0 0 2em #EBEFA0aa); /* CTA color */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #EBEFA0aa); /* Changed to new CTA color */
+  filter: drop-shadow(0 0 2em #EBEFA0aa); /* CTA color */
 }
 
 @keyframes logo-spin {
@@ -44,15 +44,15 @@
 
 .card {
   padding: 1.5em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 2px solid rgba(235, 239, 160, 0.15);
   border-radius: 8px;
   backdrop-filter: blur(8px);
-  background-color: rgba(10, 51, 43, 0.7);
+  background-color: rgba(253, 253, 245, 0.7);
 }
 
 .read-the-docs {
-  color: #FDFDF5; /* Changed to new text color */
+  color: #0A332B; /* Changed to new text color */
 }
 
 /* Button styles */
@@ -122,7 +122,7 @@
 }
 
 .text-shadow {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .card-content {

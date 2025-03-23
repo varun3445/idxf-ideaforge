@@ -4,47 +4,47 @@
 
 @layer base {
   :root {
-    --background: 164 65% 12%; /* #0A332B - dark teal background */
-    --foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --card: 164 65% 16%; /* Slightly lighter than background */
-    --card-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --popover: 164 65% 16%; /* Slightly lighter than background */
-    --popover-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --background: 60 57% 98%; /* #FDFDF5 - off-white background */
+    --foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --card: 60 30% 96%; /* Slightly darker than background */
+    --card-foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --popover: 60 30% 96%; /* Slightly darker than background */
+    --popover-foreground: 164 65% 12%; /* #0A332B - dark teal text */
     --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
     --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
-    --secondary: 164 65% 22%; /* Lighter version of background for secondary elements */
-    --secondary-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --muted: 164 30% 25%; /* Muted version of background */
-    --muted-foreground: 60 10% 80%; /* Muted off-white */
+    --secondary: 60 20% 92%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --muted: 60 10% 88%; /* Muted version of background */
+    --muted-foreground: 164 20% 30%; /* Muted teal */
     --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
     --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
     --destructive: 0 85% 60%; /* Red for destructive actions */
     --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --border: 164 30% 25%; /* Darker border color */
-    --input: 164 30% 25%; /* Darker input color */
+    --border: 60 10% 85%; /* Lighter border color */
+    --input: 60 10% 85%; /* Lighter input color */
     --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 164 65% 12%; /* #0A332B - dark teal background */
-    --foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --card: 164 65% 16%; /* Slightly lighter than background */
-    --card-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --popover: 164 65% 16%; /* Slightly lighter than background */
-    --popover-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --background: 60 57% 98%; /* #FDFDF5 - off-white background */
+    --foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --card: 60 30% 96%; /* Slightly darker than background */
+    --card-foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --popover: 60 30% 96%; /* Slightly darker than background */
+    --popover-foreground: 164 65% 12%; /* #0A332B - dark teal text */
     --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
     --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
-    --secondary: 164 65% 22%; /* Lighter version of background for secondary elements */
-    --secondary-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --muted: 164 30% 25%; /* Muted version of background */
-    --muted-foreground: 60 10% 80%; /* Muted off-white */
+    --secondary: 60 20% 92%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 164 65% 12%; /* #0A332B - dark teal text */
+    --muted: 60 10% 88%; /* Muted version of background */
+    --muted-foreground: 164 20% 30%; /* Muted teal */
     --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
     --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
     --destructive: 0 85% 60%; /* Red for destructive actions */
     --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --border: 164 30% 25%; /* Darker border color */
-    --input: 164 30% 25%; /* Darker input color */
+    --border: 60 10% 85%; /* Lighter border color */
+    --input: 60 10% 85%; /* Lighter input color */
     --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
   }
 }
