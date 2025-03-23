@@ -1,52 +1,51 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 53 70% 89%; /* #F6F1D3 - cream background */
-    --foreground: 0 0% 7%; /* #121212 - dark text */
-    --card: 0 0% 100%; /* #FFFFFF - white cards */
-    --card-foreground: 0 0% 7%; /* #121212 - dark text */
-    --popover: 0 0% 100%; /* #FFFFFF - white popovers */
-    --popover-foreground: 0 0% 7%; /* #121212 - dark text */
-    --primary: 55 68% 71%; /* #EDE27E - yellow CTA */
-    --primary-foreground: 0 0% 7%; /* #121212 - dark text */
-    --secondary: 0 0% 100%; /* #FFFFFF - white secondary elements */
-    --secondary-foreground: 0 0% 7%; /* #121212 - dark text */
-    --muted: 53 30% 94%; /* Lighter version of background */
-    --muted-foreground: 0 0% 40%; /* Light gray */
-    --accent: 55 68% 71%; /* #EDE27E - yellow accent */
-    --accent-foreground: 0 0% 7%; /* #121212 - dark text */
+    --background: 164 65% 12%; /* #0A332B - dark teal background */
+    --foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --card: 164 65% 16%; /* Slightly lighter than background */
+    --card-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --popover: 164 65% 16%; /* Slightly lighter than background */
+    --popover-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
+    --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
+    --secondary: 164 65% 22%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --muted: 164 30% 25%; /* Muted version of background */
+    --muted-foreground: 60 10% 80%; /* Muted off-white */
+    --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
+    --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
     --destructive: 0 85% 60%; /* Red for destructive actions */
-    --destructive-foreground: 0 0% 100%; /* White */
-    --border: 53 15% 80%; /* Light border color */
-    --input: 53 15% 80%; /* Light input color */
-    --ring: 55 68% 71%; /* #EDE27E - yellow ring */
+    --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --border: 164 30% 25%; /* Darker border color */
+    --input: 164 30% 25%; /* Darker input color */
+    --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 53 70% 89%; /* #F6F1D3 - cream background */
-    --foreground: 0 0% 7%; /* #121212 - dark text */
-    --card: 0 0% 100%; /* #FFFFFF - white cards */
-    --card-foreground: 0 0% 7%; /* #121212 - dark text */
-    --popover: 0 0% 100%; /* #FFFFFF - white popovers */
-    --popover-foreground: 0 0% 7%; /* #121212 - dark text */
-    --primary: 55 68% 71%; /* #EDE27E - yellow CTA */
-    --primary-foreground: 0 0% 7%; /* #121212 - dark text */
-    --secondary: 0 0% 100%; /* #FFFFFF - white secondary elements */
-    --secondary-foreground: 0 0% 7%; /* #121212 - dark text */
-    --muted: 53 30% 94%; /* Lighter version of background */
-    --muted-foreground: 0 0% 40%; /* Light gray */
-    --accent: 55 68% 71%; /* #EDE27E - yellow accent */
-    --accent-foreground: 0 0% 7%; /* #121212 - dark text */
+    --background: 164 65% 12%; /* #0A332B - dark teal background */
+    --foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --card: 164 65% 16%; /* Slightly lighter than background */
+    --card-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --popover: 164 65% 16%; /* Slightly lighter than background */
+    --popover-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
+    --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
+    --secondary: 164 65% 22%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --muted: 164 30% 25%; /* Muted version of background */
+    --muted-foreground: 60 10% 80%; /* Muted off-white */
+    --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
+    --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
     --destructive: 0 85% 60%; /* Red for destructive actions */
-    --destructive-foreground: 0 0% 100%; /* White */
-    --border: 53 15% 80%; /* Light border color */
-    --input: 53 15% 80%; /* Light input color */
-    --ring: 55 68% 71%; /* #EDE27E - yellow ring */
+    --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
+    --border: 164 30% 25%; /* Darker border color */
+    --input: 164 30% 25%; /* Darker input color */
+    --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
   }
 }
 
@@ -78,7 +77,7 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    scrollbar-color: rgba(235, 239, 160, 0.2) transparent;
   }
   
   h1, h2, h3, h4, h5, h6 {

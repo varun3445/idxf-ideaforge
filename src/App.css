@@ -21,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #EDE27Eaa); /* Changed to yellow */
+  filter: drop-shadow(0 0 2em #EBEFA0aa); /* Changed to new CTA color */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #EDE27Eaa); /* Changed to yellow */
+  filter: drop-shadow(0 0 2em #EBEFA0aa); /* Changed to new CTA color */
 }
 
 @keyframes logo-spin {
@@ -44,15 +44,15 @@
 
 .card {
   padding: 1.5em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(235, 239, 160, 0.15);
   border-radius: 8px;
   backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(10, 51, 43, 0.7);
 }
 
 .read-the-docs {
-  color: #121212; /* Changed to dark text */
+  color: #FDFDF5; /* Changed to new text color */
 }
 
 /* Button styles */
@@ -106,7 +106,7 @@
 
 /* QR Code styles */
 .qr-code-container {
-  background-color: white;
+  background-color: #FDFDF5;
   padding: 16px;
   border-radius: 8px;
   display: inline-block;
@@ -122,7 +122,7 @@
 }
 
 .text-shadow {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .card-content {
@@ -137,7 +137,7 @@
   @apply text-sm text-muted-foreground leading-relaxed;
 }
 
-/* Improved readability for text on light backgrounds */
+/* Improved readability for text on dark backgrounds */
 .improved-text-contrast {
   @apply tracking-wide leading-relaxed;
 }
@@ -158,11 +158,11 @@
 
 /* Added Glassmorphism and floating styles */
 .floating-card {
-  @apply rounded-2xl bg-card/70 backdrop-blur-md border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply rounded-2xl bg-card/70 backdrop-blur-md border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300;
 }
 
 .glass-effect {
-  @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl shadow-md;
+  @apply bg-white/10 backdrop-blur-lg border border-primary/20 rounded-2xl shadow-md;
 }
 
 .floating-nav {
@@ -180,4 +180,3 @@
     padding-bottom: 70px;
   }
 }
-
