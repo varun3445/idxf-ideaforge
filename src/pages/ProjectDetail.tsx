@@ -239,7 +239,7 @@ const ProjectDetail = () => {
       <div className="page-container">
         <div className="w-full flex justify-start mb-8">
           <Link to="/explore" className="inline-flex items-center gap-2 text-black hover:underline px-0 py-0">
-            <ArrowLeft size={18} className="bg-zinc-900" />
+            <ArrowLeft size={18} className="bg-transparent" />
             <span className="text-left px-[2px] mx-0">Back to Explore</span>
           </Link>
         </div>
@@ -251,7 +251,7 @@ const ProjectDetail = () => {
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
             
             <div className="flex flex-wrap gap-3 mb-8">
-              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium text-primary border-primary/50 px-4 py-2 rounded-full bg-neutral-50">
+              <Badge variant="outline" className="inline-flex items-center gap-1 text-sm font-medium text-primary border-primary/50 px-4 py-2 rounded-full bg-neutral-900">
                 <Tag size={14} />
                 {project.category}
               </Badge>
@@ -354,7 +354,7 @@ const ProjectDetail = () => {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm bg-primary/30 text-primary border-primary/50 px-3 py-1.5 rounded-full">
+                    {project.techStack.map((tech, index) => <Badge key={index} variant="outline" className="inline-flex items-center gap-1 text-sm text-primary border-primary/50 px-3 py-1.5 rounded-full bg-neutral-900">
                         <Code size={14} />
                         {tech}
                       </Badge>)}
