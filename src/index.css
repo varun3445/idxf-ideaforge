@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: 60 57% 98%; /* #FDFDF5 - off-white background */
-    --foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --card: 60 30% 96%; /* Slightly darker than background */
-    --card-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --popover: 60 30% 96%; /* Slightly darker than background */
-    --popover-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
-    --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
-    --secondary: 60 20% 92%; /* Lighter version of background for secondary elements */
-    --secondary-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --muted: 60 10% 88%; /* Muted version of background */
-    --muted-foreground: 164 20% 30%; /* Muted teal */
-    --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
-    --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
+    --background: 0 0% 7%; /* #121212 - dark background */
+    --foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --card: 0 0% 10%; /* Slightly lighter than background */
+    --card-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --popover: 0 0% 10%; /* Slightly lighter than background */
+    --popover-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --primary: 224 100% 50%; /* #002AFF - blue CTA */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --secondary: 0 0% 15%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --muted: 0 0% 20%; /* Muted version of background */
+    --muted-foreground: 0 0% 70%; /* Muted white */
+    --accent: 224 100% 50%; /* #002AFF - blue accent */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF - white text */
     --destructive: 0 85% 60%; /* Red for destructive actions */
-    --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --border: 60 10% 85%; /* Lighter border color */
-    --input: 60 10% 85%; /* Lighter input color */
-    --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --border: 0 0% 20%; /* Slightly lighter border color */
+    --input: 0 0% 20%; /* Slightly lighter input color */
+    --ring: 224 100% 50%; /* #002AFF - blue ring */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 60 57% 98%; /* #FDFDF5 - off-white background */
-    --foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --card: 60 30% 96%; /* Slightly darker than background */
-    --card-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --popover: 60 30% 96%; /* Slightly darker than background */
-    --popover-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --primary: 65 64% 77%; /* #EBEFA0 - light yellow-green CTA */
-    --primary-foreground: 164 65% 12%; /* #0A332B - dark teal */
-    --secondary: 60 20% 92%; /* Lighter version of background for secondary elements */
-    --secondary-foreground: 164 65% 12%; /* #0A332B - dark teal text */
-    --muted: 60 10% 88%; /* Muted version of background */
-    --muted-foreground: 164 20% 30%; /* Muted teal */
-    --accent: 65 64% 77%; /* #EBEFA0 - light yellow-green accent */
-    --accent-foreground: 164 65% 12%; /* #0A332B - dark teal */
+    --background: 0 0% 7%; /* #121212 - dark background */
+    --foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --card: 0 0% 10%; /* Slightly lighter than background */
+    --card-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --popover: 0 0% 10%; /* Slightly lighter than background */
+    --popover-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --primary: 224 100% 50%; /* #002AFF - blue CTA */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --secondary: 0 0% 15%; /* Lighter version of background for secondary elements */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --muted: 0 0% 20%; /* Muted version of background */
+    --muted-foreground: 0 0% 70%; /* Muted white */
+    --accent: 224 100% 50%; /* #002AFF - blue accent */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF - white text */
     --destructive: 0 85% 60%; /* Red for destructive actions */
-    --destructive-foreground: 60 57% 98%; /* #FDFDF5 - off-white text */
-    --border: 60 10% 85%; /* Lighter border color */
-    --input: 60 10% 85%; /* Lighter input color */
-    --ring: 65 64% 77%; /* #EBEFA0 - light yellow-green ring */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF - white text */
+    --border: 0 0% 20%; /* Slightly lighter border color */
+    --input: 0 0% 20%; /* Slightly lighter input color */
+    --ring: 224 100% 50%; /* #002AFF - blue ring */
   }
 }
 

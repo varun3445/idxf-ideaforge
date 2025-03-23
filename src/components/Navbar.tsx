@@ -6,6 +6,7 @@ import { Compass, Heart, FolderKanban, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useState, useEffect } from 'react';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
