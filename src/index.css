@@ -1,11 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 7%; /* #121212 - dark background */
+    --background: 0 0% 0%; /* #000000 - black background */
     --foreground: 0 0% 100%; /* #FFFFFF - white text */
     --card: 0 0% 10%; /* Slightly lighter than background */
     --card-foreground: 0 0% 100%; /* #FFFFFF - white text */
@@ -28,7 +27,7 @@
   }
 
   .dark {
-    --background: 0 0% 7%; /* #121212 - dark background */
+    --background: 0 0% 0%; /* #000000 - black background */
     --foreground: 0 0% 100%; /* #FFFFFF - white text */
     --card: 0 0% 10%; /* Slightly lighter than background */
     --card-foreground: 0 0% 100%; /* #FFFFFF - white text */
@@ -319,3 +318,4 @@
     @apply scrollbar-hide;
   }
 }
+
