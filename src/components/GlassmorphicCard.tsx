@@ -1,35 +1,27 @@
 
-import { ReactNode } from 'react';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
-interface GlassmorphicCardProps {
-  children: ReactNode;
-  className?: string;
+interface GlassmorphicCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
   hoverEffect?: boolean;
-  onClick?: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
+  className?: string;
 }
 
-const GlassmorphicCard = ({ 
+const GlassmorphicCard: React.FC<GlassmorphicCardProps> = ({ 
   children, 
-  className = "", 
-  hoverEffect = true,
-  onClick,
-  onMouseEnter,
-  onMouseLeave
-}: GlassmorphicCardProps) => {
+  hoverEffect = false, 
+  className, 
+  ...props 
+}) => {
   return (
-    <div
-      className={`
-        rounded-xl shadow-md bg-card/80 backdrop-blur-sm 
-        border-2 border-border/30 p-6
-        ${hoverEffect ? 'hover:shadow-xl hover:bg-card/90 hover:border-primary/40 hover:translate-y-[-3px] transition-all duration-300' : ''}
-        ${onClick ? 'cursor-pointer' : ''}
-        ${className}
-      `}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+    <div 
+      className={cn(
+        "rounded-xl border border-gray-200 bg-white shadow-md p-6",
+        hoverEffect && "transition-all duration-300 hover:shadow-lg hover:border-gray-300",
+        className
+      )}
+      {...props}
     >
       {children}
     </div>
