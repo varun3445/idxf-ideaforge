@@ -452,7 +452,7 @@ const Matches = () => {
     return descriptions[Math.floor(Math.random() * descriptions.length)];
   };
   return <AnimatedTransition>
-      <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4 bg-zinc-950">
+      <div className="container mx-auto flex flex-col min-h-screen pb-8 mt-4 px-4">
         <div className="mb-6 mt-2">
           <h1 className="page-header text-left">Find and be found</h1>
           
