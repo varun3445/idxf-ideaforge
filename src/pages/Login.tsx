@@ -95,7 +95,7 @@ const Login = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight">
-              Welcome to <span className="text-[121212] text-[#121212]">Idea Forge</span>
+              Welcome to <span className="text-[121212] text-white">Idea Forge</span>
             </h1>
             <p className="mt-2 text-muted-foreground">
               Sign in to your account to continue
