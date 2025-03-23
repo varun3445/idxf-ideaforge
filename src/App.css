@@ -74,6 +74,11 @@
     padding-top: 70px; /* Increased for profile button */
     padding-bottom: 60px; /* For bottom navbar */
   }
+
+  /* Mobile navbar specific styles */
+  .mobile-navbar {
+    @apply rounded-t-xl border border-border/30 shadow-lg;
+  }
 }
 
 /* Highlight animation for steps */
