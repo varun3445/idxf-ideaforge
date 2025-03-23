@@ -116,7 +116,7 @@ const Explore = () => {
             <Label htmlFor="search" className="sr-only">
               Search projects
             </Label>
-            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8" />
+            <Input type="search" id="search" placeholder="Search for projects..." value={searchQuery} onChange={handleSearchChange} className="text-base md:text-lg py-3 md:py-6 rounded-full shadow-md px-4 md:px-8 bg-[t#] bg-white" />
           </div>
 
           <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 lg:gap-8`}>
@@ -136,7 +136,7 @@ const Explore = () => {
                   </p>
                   
                   <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
-                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[#002aff]">
+                    {item.techStack?.map((tech, index) => <span key={index} className="text-xs sm:text-sm bg-primary/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-neutral-950">
                         {tech}
                       </span>)}
                   </div>
