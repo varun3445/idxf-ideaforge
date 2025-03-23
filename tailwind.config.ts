@@ -20,8 +20,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				inter: ['Inter', 'sans-serif'],
+				sans: ['Satoshi', 'sans-serif'],
+				satoshi: ['Satoshi', 'sans-serif'],
 				playfair: ['"Playfair Display"', 'serif'],
 			},
 			colors: {
