@@ -20,9 +20,10 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Satoshi', 'sans-serif'],
+				sans: ['Inter', 'sans-serif'],
 				satoshi: ['Satoshi', 'sans-serif'],
 				playfair: ['"Playfair Display"', 'serif'],
+				inter: ['Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
