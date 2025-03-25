@@ -1,8 +1,7 @@
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Compass, Heart, FolderKanban, Users, User, LogOut, Home } from 'lucide-react';
+import { Compass, Heart, FolderKanban, Users, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
@@ -24,7 +23,7 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Swapped Communities and Projects positions in the array for mobile
+  // Mobile menu items - added Profile to the mobile nav
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -41,7 +40,12 @@ const Navbar = () => {
     name: 'Communities',
     path: '/communities',
     icon: <Users className="h-5 w-5" />
+  }, {
+    name: 'Profile',
+    path: '/profile-page',
+    icon: <User className="h-5 w-5" />
   }];
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -52,7 +56,7 @@ const Navbar = () => {
   }, [isMobile]);
   
   return <>
-      {/* Profile Button (Top Right on Mobile) */}
+      {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -66,10 +70,6 @@ const Navbar = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile-page')}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => logout()}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -78,9 +78,18 @@ const Navbar = () => {
           </DropdownMenu>
         </div>}
 
+      {/* Mobile center logo */}
+      {isMobile && (
+        <div className="fixed top-2 left-0 right-0 z-50 flex justify-center">
+          <div className="h-8 w-16">
+            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
+          </div>
+        </div>
+      )}
+
       {/* Mobile Bottom Navigation */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border mx-[10px] rounded-t-xl my-[5px] px-0 py-[10px] bg-background/90">
-          <div className="flex items-center justify-between max-w-[320px] w-full px-4">
+          <div className="flex items-center justify-between max-w-[370px] w-full px-4">
             {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-3 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                 {item.icon}
                 <span className="text-xs mt-0.5">{item.name}</span>
@@ -89,14 +98,12 @@ const Navbar = () => {
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
             <div className="flex items-center mb-6 px-2">
-              <Avatar className="h-7 w-7 mr-2">
-                <AvatarImage src="/ideaforge-favicon.png" alt="IdeaForge" />
-                <AvatarFallback>IF</AvatarFallback>
-              </Avatar>
-              <span className="text-lg font-semibold font-playfair">IdeaForge</span>
+              <div className="h-7 w-16 mr-2">
+                <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
+              </div>
             </div>
             <ul className="space-y-1 flex-grow">
-              {menuItems.map(item => <li key={item.name}>
+              {menuItems.slice(0, 4).map(item => <li key={item.name}>
                   <Button variant={isActive(item.path) ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate(item.path)}>
                     <span className="mr-1">{item.icon}</span>
                     {item.name}
