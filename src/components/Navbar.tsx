@@ -1,12 +1,12 @@
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Users, Plus, MessageSquare } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Users, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,7 +16,7 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - renamed Communities to Talk and updated icon
+  // Mobile menu items - using Users icon for Talk section
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -32,20 +32,21 @@ const Navbar = () => {
   }, {
     name: 'Talk',
     path: '/communities',
-    icon: <MessageSquare className="h-5 w-5" />
+    icon: <Users className="h-5 w-5" />
   }, {
     name: 'Profile',
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  // Log visibility for debugging
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
+
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -64,22 +65,26 @@ const Navbar = () => {
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation - improved spacing and rounded corners */}
+      {/* Mobile Bottom Navigation - improved spacing for even distribution and centered Create button */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
           <div className="flex items-center justify-between w-full px-2">
             {menuItems.map((item, index) => {
-          // Special styling for Create button
-          if (item.name === 'Create') {
-            return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 px-0 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
-                    {item.icon}
-                    <span className="text-xs mt-0.5">{item.name}</span>
-                  </Button>;
-          }
-          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-2 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
+              const isMiddleItem = index === Math.floor(menuItems.length / 2);
+              const isActiveItem = isActive(item.path);
+              
+              return (
+                <Button 
+                  key={item.name} 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`flex flex-col items-center justify-center py-1 ${isMiddleItem ? 'px-3' : 'px-2'} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} 
+                  onClick={() => navigate(item.path)}
+                >
                   {item.icon}
-                  <span className="text-xs mt-0.5">{item.name}</span>
-                </Button>;
-        })}
+                  <span className="text-xs mt-1">{item.name}</span>
+                </Button>
+              );
+            })}
           </div>
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
