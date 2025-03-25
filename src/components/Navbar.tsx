@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,15 +37,12 @@ const Navbar = () => {
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
-
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
-
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -61,30 +57,21 @@ const Navbar = () => {
       {/* Mobile center logo */}
       {isMobile && <div className="fixed top-3 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full object-scale-down" />
+            
           </div>
         </div>}
 
       {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
           <div className="w-full flex justify-between px-4">
-            {menuItems.map((item) => {
-              const isActiveItem = isActive(item.path);
-              const isCreateButton = item.name === 'Create';
-              
-              return (
-                <Button 
-                  key={item.name} 
-                  variant="ghost" 
-                  size="sm" 
-                  className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} 
-                  onClick={() => navigate(item.path)}
-                >
+            {menuItems.map(item => {
+          const isActiveItem = isActive(item.path);
+          const isCreateButton = item.name === 'Create';
+          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>
-                </Button>
-              );
-            })}
+                </Button>;
+        })}
           </div>
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
