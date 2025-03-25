@@ -2,10 +2,18 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Compass, Heart, FolderKanban, Users } from 'lucide-react';
+import { Compass, Heart, FolderKanban, Users, User, LogOut, Home } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -42,15 +50,32 @@ const Navbar = () => {
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
+  
   return <>
       {/* Profile Button (Top Right on Mobile) */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
-          <Button variant="ghost" size="sm" className="rounded-full p-1" onClick={() => navigate('/profile')}>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
-              <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="rounded-full p-1">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
+                  <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/profile-page')}>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => logout()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>}
 
       {/* Mobile Bottom Navigation */}
@@ -79,7 +104,7 @@ const Navbar = () => {
                 </li>)}
             </ul>
             <div className="pt-4 border-t border-border">
-              <Button variant={isActive('/profile') ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate('/profile')}>
+              <Button variant={isActive('/profile-page') ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate('/profile-page')}>
                 <Avatar className="h-5 w-5 mr-1">
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
                   <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
@@ -87,6 +112,7 @@ const Navbar = () => {
                 Profile
               </Button>
               <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-1" onClick={() => logout()}>
+                <LogOut className="h-4 w-4 mr-1" />
                 Logout
               </Button>
             </div>

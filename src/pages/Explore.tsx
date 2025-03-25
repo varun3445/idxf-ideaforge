@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from 'react-router-dom';
-import { ArrowRight, Users, Award, Heart } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart, MessageSquare, Bell } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 interface PortfolioItem {
   id: string;
   title: string;
@@ -20,10 +27,13 @@ interface PortfolioItem {
   category?: string;
   techStack?: string[];
 }
+
 const Explore = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { toast } = useToast();
+  
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([{
     id: '1',
     title: 'AI-Powered Visual Design Assistant',
@@ -79,15 +89,15 @@ const Explore = () => {
     category: 'Accessibility',
     techStack: ['React', 'TypeScript', 'ARIA', 'Storybook']
   }]);
-  const {
-    toast
-  } = useToast();
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+
   const handleBackProject = (projectId: string, projectTitle: string) => {
     toast({
       title: "Project Backed",
@@ -95,15 +105,50 @@ const Explore = () => {
       variant: "success"
     });
   };
+
+  const showNotification = () => {
+    toast({
+      title: "Notifications",
+      description: "You have no new notifications",
+    });
+  };
+
   const filteredPortfolioItems = portfolioItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.description.toLowerCase().includes(searchQuery.toLowerCase()) || item.creator.toLowerCase().includes(searchQuery.toLowerCase()) || item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
+
   return <AnimatedTransition>
       <div className="page-container">
         <section className="py-6 sm:py-10 md:py-16">
+          <div className="fixed z-30 top-4 left-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <Bell size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem>No new notifications</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="fixed z-30 top-4 right-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <MessageSquare size={20} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>No new messages</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
           <div className={`
             transition-all duration-1000
             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
           `}>
-            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left">Explore Projects</h1>
+            <h1 className="page-header text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-6 text-left font-playfair">Explore Projects</h1>
             <p className="page-subheader text-base md:text-lg max-w-3xl mx-auto py-0 text-left">
               Discover innovative projects and connect with talented creators.
             </p>
@@ -125,7 +170,7 @@ const Explore = () => {
                   <img src={item.imageUrl} alt={item.title} className="aspect-video w-full rounded-lg mb-4 sm:mb-6 md:mb-8 shadow-md object-cover" />
                   
                   <div className="flex flex-col items-start mb-3 sm:mb-4 md:mb-6">
-                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left">{item.title}</h3>
+                    <h3 className="text-xl md:text-2xl font-semibold leading-tight mb-2 text-left font-playfair">{item.title}</h3>
                     {item.category && <Badge variant="outline" className="text-primary border-primary/20 text-xs sm:text-sm py-1 sm:py-[5px] bg-zinc-900">
                         {item.category}
                       </Badge>}
@@ -159,8 +204,6 @@ const Explore = () => {
                     </div>
                     
                     <div className="flex items-center justify-end gap-2">
-                      
-                    
                       <Link to={`/project/${item.id}`} className="flex items-center font-medium text-primary hover:underline gap-1 sm:gap-2 group">
                         <span>Explore</span>
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
@@ -174,4 +217,5 @@ const Explore = () => {
       </div>
     </AnimatedTransition>;
 };
+
 export default Explore;
