@@ -50,12 +50,7 @@ const Navbar = () => {
       {isMobile && <div className="fixed top-2 right-2 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="rounded-full p-1">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
-                  <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-              </Button>
+              
             </DropdownMenuTrigger>
             
           </DropdownMenu>
