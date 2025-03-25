@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
@@ -5,36 +6,60 @@ import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "../components/ui/navigation-menu";
 import { Button } from "../components/ui/button";
+import Footer from '../components/Footer';
+
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  const features = [{
-    title: 'Explore',
-    description: 'Discover projects and connect with creative professionals from around the world.',
-    icon: Grid,
-    path: '/explore',
-    delay: 100
-  }, {
-    title: 'Matches',
-    description: 'Find collaborators with complementary skills for your next project.',
-    icon: Heart,
-    path: '/matches',
-    delay: 200
-  }, {
-    title: 'Experiment Lab',
-    description: 'Get inspired and develop your ideas through guided creative exercises.',
-    icon: Lightbulb,
-    path: '/lab',
-    delay: 300
-  }];
-  return <AnimatedTransition>
-      <div className="min-h-screen bg-background">
+  
+  const features = [
+    {
+      title: 'Explore',
+      description: 'Discover projects and connect with creative professionals from around the world.',
+      icon: Grid,
+      path: '/explore',
+      delay: 100
+    }, 
+    {
+      title: 'Matches',
+      description: 'Find collaborators with complementary skills for your next project.',
+      icon: Heart,
+      path: '/matches',
+      delay: 200
+    }, 
+    {
+      title: 'Experiment Lab',
+      description: 'Get inspired and develop your ideas through guided creative exercises.',
+      icon: Lightbulb,
+      path: '/lab',
+      delay: 300
+    }
+  ];
+  
+  return (
+    <AnimatedTransition>
+      <div className="min-h-screen bg-background flex flex-col">
         {/* Navigation Bar */}
-        <nav className="py-4 px-6 border-b border-border/20">
-          
+        <nav className="py-4 px-6 border-b border-border/20 flex justify-between items-center">
+          <div className="flex items-center">
+            <img 
+              src="/lovable-uploads/4e4b3c3d-9ef2-4e5f-8850-d3b647902ecb.png" 
+              alt="IDXF Logo" 
+              className="h-8" 
+            />
+          </div>
+          <div className="flex gap-4">
+            <Link to="/login" className="text-foreground hover:text-primary transition-colors">
+              Login
+            </Link>
+            <Link to="/signup" className="text-foreground hover:text-primary transition-colors">
+              Sign Up
+            </Link>
+          </div>
         </nav>
         
         {/* Hero Section */}
@@ -45,7 +70,9 @@ const Index = () => {
                 An Exclusive Community of<br />Like-Minded Creators
               </h1>
               
-              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">Empowering aspiring creators, innovators, and entrepreneurs establish their identity.</p>
+              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
+                Empowering aspiring creators, innovators, and entrepreneurs establish their identity.
+              </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
@@ -71,7 +98,8 @@ const Index = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, index) => <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
+              {features.map((feature, index) => (
+                <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
                   <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                     <feature.icon className="text-foreground" size={20} />
                   </div>
@@ -85,14 +113,19 @@ const Index = () => {
                     <span>Learn more</span>
                     <ArrowRight size={16} className="ml-2" />
                   </Link>
-                </div>)}
+                </div>
+              ))}
             </div>
           </div>
         </section>
         
-        {/* CTA Section */}
-        
+        {/* Footer */}
+        <div className="mt-auto">
+          <Footer />
+        </div>
       </div>
-    </AnimatedTransition>;
+    </AnimatedTransition>
+  );
 };
+
 export default Index;
