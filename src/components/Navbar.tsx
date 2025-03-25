@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Users } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Users, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,7 +28,7 @@ const Navbar = () => {
   }, {
     name: 'Create',
     path: '/projects',
-    icon: <Bell className="h-5 w-5" />
+    icon: <Plus className="h-5 w-5" />
   }, {
     name: 'Communities',
     path: '/communities',
@@ -59,17 +60,43 @@ const Navbar = () => {
       {/* Mobile center logo */}
       {isMobile && <div className="fixed top-3 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            
+            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
           </div>
         </div>}
 
       {/* Mobile Bottom Navigation - improved spacing and rounded corners */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
           <div className="flex items-center justify-between w-full px-2">
-            {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-2 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
-                {item.icon}
-                <span className="text-xs mt-0.5">{item.name}</span>
-              </Button>)}
+            {menuItems.map((item, index) => {
+              // Special styling for Create button
+              if (item.name === 'Create') {
+                return (
+                  <Button 
+                    key={item.name} 
+                    variant="ghost" 
+                    size="sm" 
+                    className={`flex flex-col items-center justify-center py-1 px-0 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} 
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.icon}
+                    <span className="text-xs mt-0.5">{item.name}</span>
+                  </Button>
+                );
+              }
+              
+              return (
+                <Button 
+                  key={item.name} 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`flex flex-col items-center py-1 px-2 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} 
+                  onClick={() => navigate(item.path)}
+                >
+                  {item.icon}
+                  <span className="text-xs mt-0.5">{item.name}</span>
+                </Button>
+              );
+            })}
           </div>
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
@@ -103,4 +130,5 @@ const Navbar = () => {
         </div>}
     </>;
 };
+
 export default Navbar;
