@@ -59,7 +59,7 @@ const Navbar = () => {
       {/* Mobile center logo */}
       {isMobile && <div className="fixed top-2 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
+            
           </div>
         </div>}
 
