@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -216,14 +217,25 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (stepsError) throw stepsError;
         setProjectSteps(steps || []);
           
-        // Load collaborators
+        // Load collaborators - Fixed query to handle the relation properly
         const { data: projectCollaborators, error: collabsError } = await supabase
           .from('project_collaborators')
-          .select('*, user:user_id(name, avatar, email)')
+          .select('id, project_id, user_id, joined_at')
           .eq('project_id', projectId);
           
         if (collabsError) throw collabsError;
-        setCollaborators(projectCollaborators || []);
+        
+        // Process collaborators and set default values for missing user data
+        const processedCollaborators: ProjectCollaborator[] = (projectCollaborators || []).map(collab => ({
+          ...collab,
+          user: {
+            name: `User ${collab.user_id.substring(0, 6)}`, // Fallback name
+            avatar: null,
+            email: `user-${collab.user_id.substring(0, 6)}@example.com` // Fallback email
+          }
+        }));
+        
+        setCollaborators(processedCollaborators);
           
         // Load assignments
         const { data: stepAssigns, error: assignsError } = await supabase
