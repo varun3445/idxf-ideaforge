@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, Award, Heart, MessageSquare, Bell } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2 } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ const Explore = () => {
 
   const loadPublishedProjects = async () => {
     setLoading(true);
+    console.log("Loading published projects...");
     
     try {
       // Get published projects from Supabase
@@ -59,10 +60,15 @@ const Explore = () => {
         .select('*')
         .eq('is_published', true);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase query error:", error);
+        throw error;
+      }
+      
+      console.log("Published projects data:", data);
       
       // Process and format the data
-      if (data) {
+      if (data && data.length > 0) {
         const formattedItems: PortfolioItem[] = data.map(project => ({
           id: project.id,
           title: project.title,
@@ -77,6 +83,20 @@ const Explore = () => {
         }));
         
         setPortfolioItems(formattedItems);
+      } else {
+        console.log("No published projects found, using fallback data");
+        // Fallback to mock data if no published projects
+        setPortfolioItems([{
+          id: '1',
+          title: 'AI-Powered Visual Design Assistant',
+          description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
+          imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
+          creator: 'Alice Wonderland',
+          collaborators: 5,
+          category: 'AI & Design',
+          techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
+          created_at: '2023-11-15T00:00:00Z'
+        }]);
       }
     } catch (error) {
       console.error('Error loading published projects:', error);
@@ -176,7 +196,7 @@ const Explore = () => {
 
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : filteredPortfolioItems.length === 0 ? (
             <div className="text-center py-12">

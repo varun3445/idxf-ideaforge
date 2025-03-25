@@ -4,7 +4,7 @@ import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award,
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,6 +46,7 @@ const ProjectsList: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loadingAI, setLoadingAI] = useState(false);
+  const [creatingProject, setCreatingProject] = useState(false);
   const [suggestedSteps, setSuggestedSteps] = useState([]);
   const [teamSuggestions, setTeamSuggestions] = useState([]);
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
@@ -93,17 +94,28 @@ const ProjectsList: React.FC = () => {
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please provide both title and description',
+        variant: 'destructive'
+      });
       return;
     }
     
     try {
+      setCreatingProject(true);
+      console.log("Creating project with title:", title, "and description:", description);
+      
       const newProject = await createProject(title.trim(), description.trim());
+      console.log("New project created:", newProject);
       
       if (newProject) {
         setTitle('');
         setDescription('');
         setCreateDialogOpen(false);
         navigate(`/forge/${newProject.id}`);
+      } else {
+        throw new Error('Failed to create project');
       }
     } catch (error) {
       console.error('Error creating project:', error);
@@ -112,6 +124,8 @@ const ProjectsList: React.FC = () => {
         description: 'Failed to create project. Please try again.',
         variant: 'destructive'
       });
+    } finally {
+      setCreatingProject(false);
     }
   };
   
@@ -305,7 +319,7 @@ const ProjectsList: React.FC = () => {
       </div>
       
       {loading ? <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div> : <Tabs defaultValue="owned" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="owned">Projects You Own</TabsTrigger>
@@ -323,6 +337,9 @@ const ProjectsList: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Fill in the details to create your new project
+            </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleCreateProject} className="space-y-4 py-4">
@@ -350,8 +367,9 @@ const ProjectsList: React.FC = () => {
               <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!title.trim() || !description.trim()} className="py-0 my-[10px]">
-                Create Project
+              <Button type="submit" disabled={!title.trim() || !description.trim() || creatingProject}>
+                {creatingProject ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                {creatingProject ? 'Creating...' : 'Create Project'}
               </Button>
             </DialogFooter>
           </form>
