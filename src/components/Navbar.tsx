@@ -1,7 +1,8 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Users, Plus } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Users, Plus, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
@@ -15,7 +16,7 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - updated icons for Explore and Communities
+  // Mobile menu items - renamed Communities to Talk and updated icon
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -29,9 +30,9 @@ const Navbar = () => {
     path: '/projects',
     icon: <Plus className="h-5 w-5" />
   }, {
-    name: 'Communities',
+    name: 'Talk',
     path: '/communities',
-    icon: <Users className="h-5 w-5" />
+    icon: <MessageSquare className="h-5 w-5" />
   }, {
     name: 'Profile',
     path: '/profile-page',
