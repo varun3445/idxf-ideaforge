@@ -1,3 +1,4 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
@@ -6,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,15 +65,23 @@ const Navbar = () => {
 
       {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
-          <div className="w-full flex justify-between px-4">
+          <div className="w-full grid grid-cols-5 gap-0">
             {menuItems.map(item => {
-          const isActiveItem = isActive(item.path);
-          const isCreateButton = item.name === 'Create';
-          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
+              const isActiveItem = isActive(item.path);
+              const isCreateButton = item.name === 'Create';
+              return (
+                <Button 
+                  key={item.name} 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} 
+                  onClick={() => navigate(item.path)}
+                >
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>
-                </Button>;
-        })}
+                </Button>
+              );
+            })}
           </div>
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
