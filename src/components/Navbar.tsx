@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,7 +37,6 @@ const Navbar = () => {
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
-  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -47,7 +45,6 @@ const Navbar = () => {
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
-  
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -62,7 +59,7 @@ const Navbar = () => {
       {/* Mobile center logo */}
       {isMobile && <div className="fixed top-3 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
+            
           </div>
         </div>}
 
@@ -106,5 +103,4 @@ const Navbar = () => {
         </div>}
     </>;
 };
-
 export default Navbar;
