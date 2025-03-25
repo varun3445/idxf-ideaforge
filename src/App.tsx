@@ -1,5 +1,5 @@
 
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider, useAuth } from './AuthContext';
 import Navbar from './components/Navbar';
@@ -18,9 +18,24 @@ import JoinProject from './pages/JoinProject';
 import Communities from './pages/Communities';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import ProtectedRoute from './components/ProtectedRoute';
 
 import './App.css';
+
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
 
 // Inner component that uses the auth context
 const AppContent = () => {
@@ -28,9 +43,10 @@ const AppContent = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const location = useLocation();
   
-  // Only hide navbar on landing page
+  // Only hide navbar on landing page and auth pages
   const isLandingPage = location.pathname === '/';
-  const showNavbar = !isLandingPage && isAuthenticated;
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const showNavbar = !isLandingPage && !isAuthPage && isAuthenticated;
 
   return (
     <>
@@ -42,15 +58,51 @@ const AppContent = () => {
           <Route path="/signup" element={<Signup />} />
           
           {/* Protected routes */}
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/matches" element={<Matches />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile-page" element={<ProfilePage />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/forge/:projectId" element={<Forge />} />
-          <Route path="/join-project/:shareCode" element={<JoinProject />} />
-          <Route path="/communities" element={<Communities />} />
+          <Route path="/explore" element={
+            <ProtectedRoute>
+              <Explore />
+            </ProtectedRoute>
+          } />
+          <Route path="/matches" element={
+            <ProtectedRoute>
+              <Matches />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile-page" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/project/:id" element={
+            <ProtectedRoute>
+              <ProjectDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/projects" element={
+            <ProtectedRoute>
+              <Projects />
+            </ProtectedRoute>
+          } />
+          <Route path="/forge/:projectId" element={
+            <ProtectedRoute>
+              <Forge />
+            </ProtectedRoute>
+          } />
+          <Route path="/join-project/:shareCode" element={
+            <ProtectedRoute>
+              <JoinProject />
+            </ProtectedRoute>
+          } />
+          <Route path="/communities" element={
+            <ProtectedRoute>
+              <Communities />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
