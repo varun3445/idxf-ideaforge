@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../AuthContext';
 
 export interface ProjectStep {
   id: string;
@@ -49,6 +50,7 @@ export interface Project {
   current_step_id: string | null;
   share_code: string | null;
   backers_count?: number;
+  is_published?: boolean;
 }
 
 interface ProjectContextType {
@@ -72,6 +74,7 @@ interface ProjectContextType {
   removeCollaborator: (collaboratorId: string) => Promise<void>;
   assignStep: (stepId: string, userId: string) => Promise<void>;
   unassignStep: (assignmentId: string) => Promise<void>;
+  publishProject: (projectId: string, isPublished: boolean) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -88,6 +91,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Load all projects
   const loadProjects = async () => {
@@ -95,34 +99,83 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Temporarily using mock data
-      const mockProjects: Project[] = [
-        {
-          id: '1',
-          title: 'AI-Powered Visual Design Assistant',
-          description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
-          owner_id: 'user-1',
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          current_step_id: null,
-          share_code: 'DESIGN1',
-          backers_count: 24
-        },
-        {
-          id: '2',
-          title: 'Decentralized Creative Marketplace',
-          description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
-          owner_id: 'user-1',
-          created_at: '2023-09-23T00:00:00Z',
-          updated_at: '2023-09-23T00:00:00Z',
-          current_step_id: null,
-          share_code: 'BLOCK1',
-          backers_count: 18
+      // Load projects from Supabase
+      if (user) {
+        // Load user's own projects
+        const { data: ownProjects, error: ownProjectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('owner_id', user.id);
+          
+        if (ownProjectsError) throw ownProjectsError;
+          
+        // Load projects where user is a collaborator
+        const { data: collabProjects, error: collabProjectsError } = await supabase
+          .from('project_collaborators')
+          .select('project_id')
+          .eq('user_id', user.id);
+          
+        if (collabProjectsError) throw collabProjectsError;
+          
+        // Load public projects for the Explore page
+        const { data: publicProjects, error: publicProjectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('is_published', true);
+          
+        if (publicProjectsError) throw publicProjectsError;
+          
+        // Combine all projects
+        const allProjects = [...(ownProjects || [])];
+          
+        // Add collaborative projects if any
+        if (collabProjects && collabProjects.length > 0) {
+          const projectIds = collabProjects.map(c => c.project_id);
+          const { data: projectsData, error: projectsError } = await supabase
+            .from('projects')
+            .select('*')
+            .in('id', projectIds);
+            
+          if (projectsError) throw projectsError;
+          if (projectsData) {
+            allProjects.push(...projectsData);
+          }
         }
-      ];
+          
+        setProjects(allProjects);
+      } else {
+        // Fallback to mock data if not authenticated
+        const mockProjects: Project[] = [
+          {
+            id: '1',
+            title: 'AI-Powered Visual Design Assistant',
+            description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
+            owner_id: 'user-1',
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            current_step_id: null,
+            share_code: 'DESIGN1',
+            backers_count: 24,
+            is_published: true
+          },
+          {
+            id: '2',
+            title: 'Decentralized Creative Marketplace',
+            description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
+            owner_id: 'user-1',
+            created_at: '2023-09-23T00:00:00Z',
+            updated_at: '2023-09-23T00:00:00Z',
+            current_step_id: null,
+            share_code: 'BLOCK1',
+            backers_count: 18,
+            is_published: false
+          }
+        ];
 
-      setProjects(mockProjects);
-      console.log('Projects loaded:', mockProjects);
+        setProjects(mockProjects);
+      }
+      
+      console.log('Projects loaded successfully');
     } catch (error) {
       console.error('Error loading projects:', error);
       setError('Failed to load projects. Please try again later.');
@@ -142,149 +195,197 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Mock project details for development
-      const project = projects.find(p => p.id === projectId) || {
-        id: projectId,
-        title: 'Mock Project',
-        description: 'This is a mock project for development',
-        owner_id: 'user-1',
-        created_at: '2023-11-15T00:00:00Z',
-        updated_at: '2023-11-15T00:00:00Z',
-        current_step_id: null,
-        share_code: 'MOCK1'
-      };
-      
-      setCurrentProject(project);
-      
-      // Mock steps
-      const mockSteps: ProjectStep[] = [
-        {
-          id: 'step-1',
-          project_id: projectId,
-          title: 'Research and Planning',
-          description: 'Define project scope and research similar solutions',
-          is_completed: true,
-          order_index: 0,
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
-        },
-        {
-          id: 'step-2',
-          project_id: projectId,
-          title: 'Design Phase',
-          description: 'Create wireframes and design mockups',
-          is_completed: false,
-          order_index: 1,
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
-        },
-        {
-          id: 'step-2-1',
-          project_id: projectId,
-          title: 'Wireframing',
-          description: 'Create low-fidelity wireframes',
-          is_completed: false,
-          order_index: 0,
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: 'step-2'
-        },
-        {
-          id: 'step-2-2',
-          project_id: projectId,
-          title: 'Visual Design',
-          description: 'Create high-fidelity mockups',
-          is_completed: false,
-          order_index: 1,
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: 'step-2'
-        },
-        {
-          id: 'step-3',
-          project_id: projectId,
-          title: 'Development',
-          description: 'Build the application',
-          is_completed: false,
-          order_index: 2,
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          parent_step_id: null
+      if (user) {
+        // Load project from Supabase
+        const { data: project, error: projectError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .single();
+          
+        if (projectError) throw projectError;
+        setCurrentProject(project);
+          
+        // Load steps
+        const { data: steps, error: stepsError } = await supabase
+          .from('project_steps')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('order_index', { ascending: true });
+          
+        if (stepsError) throw stepsError;
+        setProjectSteps(steps || []);
+          
+        // Load collaborators
+        const { data: projectCollaborators, error: collabsError } = await supabase
+          .from('project_collaborators')
+          .select('*, user:user_id(name, avatar, email)')
+          .eq('project_id', projectId);
+          
+        if (collabsError) throw collabsError;
+        setCollaborators(projectCollaborators || []);
+          
+        // Load assignments
+        const { data: stepAssigns, error: assignsError } = await supabase
+          .from('step_assignments')
+          .select('*, user:user_id(name, avatar)')
+          .eq('step_id', projectId);
+          
+        if (assignsError) throw assignsError;
+        setStepAssignments(stepAssigns || []);
+          
+        // Set current step if project has one
+        if (project.current_step_id) {
+          const currentStep = steps?.find(step => step.id === project.current_step_id) || null;
+          setCurrentStep(currentStep);
+        } else {
+          setCurrentStep(null);
         }
-      ];
-      
-      setProjectSteps(mockSteps);
-      
-      // Mock collaborators
-      const mockCollaborators: ProjectCollaborator[] = [
-        {
-          id: 'collab-1',
-          project_id: projectId,
-          user_id: 'user-2',
-          joined_at: '2023-11-15T00:00:00Z',
-          user: {
-            name: 'Jane Smith',
-            avatar: null,
-            email: 'jane@example.com'
-          }
-        },
-        {
-          id: 'collab-2',
-          project_id: projectId,
-          user_id: 'user-3',
-          joined_at: '2023-11-15T00:00:00Z',
-          user: {
-            name: 'Bob Johnson',
-            avatar: null,
-            email: 'bob@example.com'
-          }
-        }
-      ];
-      
-      setCollaborators(mockCollaborators);
-      
-      // Mock assignments
-      const mockAssignments: StepAssignment[] = [
-        {
-          id: 'assign-1',
-          step_id: 'step-2-1',
-          user_id: 'user-2',
-          assigned_at: '2023-11-15T00:00:00Z',
-          user: {
-            name: 'Jane Smith',
-            avatar: null
-          }
-        },
-        {
-          id: 'assign-2',
-          step_id: 'step-2-2',
-          user_id: 'user-3',
-          assigned_at: '2023-11-15T00:00:00Z',
-          user: {
-            name: 'Bob Johnson',
-            avatar: null
-          }
-        }
-      ];
-      
-      setStepAssignments(mockAssignments);
-      
-      // Set current step if project has one
-      if (project.current_step_id) {
-        const currentStep = mockSteps.find(step => step.id === project.current_step_id) || null;
-        setCurrentStep(currentStep);
       } else {
-        setCurrentStep(null);
+        // Fallback to mock data if not authenticated
+        const project = projects.find(p => p.id === projectId) || {
+          id: projectId,
+          title: 'Mock Project',
+          description: 'This is a mock project for development',
+          owner_id: 'user-1',
+          created_at: '2023-11-15T00:00:00Z',
+          updated_at: '2023-11-15T00:00:00Z',
+          current_step_id: null,
+          share_code: 'MOCK1'
+        };
+        
+        setCurrentProject(project);
+        
+        // Mock steps
+        const mockSteps: ProjectStep[] = [
+          {
+            id: 'step-1',
+            project_id: projectId,
+            title: 'Research and Planning',
+            description: 'Define project scope and research similar solutions',
+            is_completed: true,
+            order_index: 0,
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            parent_step_id: null
+          },
+          {
+            id: 'step-2',
+            project_id: projectId,
+            title: 'Design Phase',
+            description: 'Create wireframes and design mockups',
+            is_completed: false,
+            order_index: 1,
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            parent_step_id: null
+          },
+          {
+            id: 'step-2-1',
+            project_id: projectId,
+            title: 'Wireframing',
+            description: 'Create low-fidelity wireframes',
+            is_completed: false,
+            order_index: 0,
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            parent_step_id: 'step-2'
+          },
+          {
+            id: 'step-2-2',
+            project_id: projectId,
+            title: 'Visual Design',
+            description: 'Create high-fidelity mockups',
+            is_completed: false,
+            order_index: 1,
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            parent_step_id: 'step-2'
+          },
+          {
+            id: 'step-3',
+            project_id: projectId,
+            title: 'Development',
+            description: 'Build the application',
+            is_completed: false,
+            order_index: 2,
+            created_at: '2023-11-15T00:00:00Z',
+            updated_at: '2023-11-15T00:00:00Z',
+            parent_step_id: null
+          }
+        ];
+        
+        setProjectSteps(mockSteps);
+        
+        // Mock collaborators
+        const mockCollaborators: ProjectCollaborator[] = [
+          {
+            id: 'collab-1',
+            project_id: projectId,
+            user_id: 'user-2',
+            joined_at: '2023-11-15T00:00:00Z',
+            user: {
+              name: 'Jane Smith',
+              avatar: null,
+              email: 'jane@example.com'
+            }
+          },
+          {
+            id: 'collab-2',
+            project_id: projectId,
+            user_id: 'user-3',
+            joined_at: '2023-11-15T00:00:00Z',
+            user: {
+              name: 'Bob Johnson',
+              avatar: null,
+              email: 'bob@example.com'
+            }
+          }
+        ];
+        
+        setCollaborators(mockCollaborators);
+        
+        // Mock assignments
+        const mockAssignments: StepAssignment[] = [
+          {
+            id: 'assign-1',
+            step_id: 'step-2-1',
+            user_id: 'user-2',
+            assigned_at: '2023-11-15T00:00:00Z',
+            user: {
+              name: 'Jane Smith',
+              avatar: null
+            }
+          },
+          {
+            id: 'assign-2',
+            step_id: 'step-2-2',
+            user_id: 'user-3',
+            assigned_at: '2023-11-15T00:00:00Z',
+            user: {
+              name: 'Bob Johnson',
+              avatar: null
+            }
+          }
+        ];
+        
+        setStepAssignments(mockAssignments);
+        
+        // Set current step if project has one
+        if (project.current_step_id) {
+          const currentStep = mockSteps.find(step => step.id === project.current_step_id) || null;
+          setCurrentStep(currentStep);
+        } else {
+          setCurrentStep(null);
+        }
+        
+        console.log('Project details loaded:', {
+          project,
+          steps: mockSteps,
+          collaborators: mockCollaborators,
+          assignments: mockAssignments
+        });
       }
-      
-      console.log('Project details loaded:', {
-        project,
-        steps: mockSteps,
-        collaborators: mockCollaborators,
-        assignments: mockAssignments
-      });
     } catch (error) {
       console.error('Error loading project details:', error);
       setError('Failed to load project details. Please try again later.');
@@ -304,52 +405,60 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Mock creating a project
-      const newProject: Project = {
-        id: `project-${Date.now()}`,
-        title,
-        description,
-        owner_id: 'user-1',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        current_step_id: null,
-        share_code: `SHARE${Math.floor(Math.random() * 10000)}`,
-        backers_count: 0
-      };
-      
-      setProjects(prev => [...prev, newProject]);
-      
-      // Try to generate steps using AI
-      try {
-        const { data, error } = await supabase.functions.invoke('project-ai-assistant', {
-          body: { title, description, requestType: 'steps' }
+      if (user) {
+        // Create project in Supabase
+        const { data: newProject, error: createError } = await supabase
+          .from('projects')
+          .insert([{ 
+            title,
+            description,
+            owner_id: user.id,
+            is_published: false,
+            backers_count: 0
+          }])
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+          
+        if (newProject) {
+          setProjects(prev => [...prev, newProject]);
+          
+          toast({
+            title: 'Success',
+            description: 'Project created successfully',
+            variant: 'default'
+          });
+          
+          return newProject;
+        }
+      } else {
+        // Fallback to mock data if not authenticated
+        const newProject: Project = {
+          id: `project-${Date.now()}`,
+          title,
+          description,
+          owner_id: 'user-1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          current_step_id: null,
+          share_code: `SHARE${Math.floor(Math.random() * 10000)}`,
+          backers_count: 0,
+          is_published: false
+        };
+        
+        setProjects(prev => [...prev, newProject]);
+        
+        toast({
+          title: 'Success',
+          description: 'Project created successfully',
+          variant: 'default'
         });
         
-        if (error) {
-          console.error('Error generating AI steps:', error);
-        } else if (data?.steps?.length) {
-          // Create steps from AI suggestions
-          for (let i = 0; i < data.steps.length; i++) {
-            const step = data.steps[i];
-            await createStep({
-              title: step.title,
-              description: step.description,
-              parent_step_id: null
-            });
-          }
-        }
-      } catch (aiError) {
-        console.error('Error with AI step generation:', aiError);
-        // Continue without AI-generated steps
+        return newProject;
       }
       
-      toast({
-        title: 'Success',
-        description: 'Project created successfully',
-        variant: 'default'
-      });
-      
-      return newProject;
+      return null;
     } catch (error) {
       console.error('Error creating project:', error);
       setError('Failed to create project. Please try again later.');
@@ -370,7 +479,20 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Mock updating a project
+      if (user) {
+        // Update project in Supabase
+        const { error: updateError } = await supabase
+          .from('projects')
+          .update({ 
+            ...projectData,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', projectData.id);
+          
+        if (updateError) throw updateError;
+      }
+      
+      // Update local state
       setProjects(prev => 
         prev.map(project => 
           project.id === projectData.id 
@@ -401,6 +523,56 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  // Publish/unpublish a project
+  const publishProject = async (projectId: string, isPublished: boolean) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (user) {
+        // Update project in Supabase
+        const { error: updateError } = await supabase
+          .from('projects')
+          .update({ 
+            is_published: isPublished,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', projectId);
+          
+        if (updateError) throw updateError;
+      }
+      
+      // Update local state
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId 
+            ? { ...project, is_published: isPublished, updated_at: new Date().toISOString() } 
+            : project
+        )
+      );
+      
+      if (currentProject?.id === projectId) {
+        setCurrentProject(prev => prev ? { ...prev, is_published: isPublished, updated_at: new Date().toISOString() } : prev);
+      }
+      
+      toast({
+        title: 'Success',
+        description: isPublished ? 'Project published successfully' : 'Project unpublished successfully',
+        variant: 'default'
+      });
+    } catch (error) {
+      console.error('Error updating project publish status:', error);
+      setError('Failed to update project. Please try again later.');
+      toast({
+        title: 'Error',
+        description: 'Failed to update project. Please try again later.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Create a new step
   const createStep = async (data: { title: string; description?: string; parent_step_id?: string | null }): Promise<ProjectStep | null> => {
     if (!currentProject) {
@@ -416,28 +588,63 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
-      // Mock creating a step
-      const newStep: ProjectStep = {
-        id: `step-${Date.now()}`,
-        project_id: currentProject.id,
-        title: data.title,
-        description: data.description || null,
-        is_completed: false,
-        order_index: projectSteps.filter(s => s.parent_step_id === data.parent_step_id).length,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        parent_step_id: data.parent_step_id || null
-      };
+      if (user) {
+        // Calculate order index
+        const orderIndex = projectSteps.filter(s => s.parent_step_id === data.parent_step_id).length;
+        
+        // Create step in Supabase
+        const { data: newStep, error: createError } = await supabase
+          .from('project_steps')
+          .insert([{ 
+            project_id: currentProject.id,
+            title: data.title,
+            description: data.description || null,
+            parent_step_id: data.parent_step_id || null,
+            is_completed: false,
+            order_index: orderIndex
+          }])
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+          
+        if (newStep) {
+          setProjectSteps(prev => [...prev, newStep]);
+          
+          toast({
+            title: 'Success',
+            description: 'Step created successfully',
+            variant: 'default'
+          });
+          
+          return newStep;
+        }
+      } else {
+        // Fallback to mock data if not authenticated
+        const newStep: ProjectStep = {
+          id: `step-${Date.now()}`,
+          project_id: currentProject.id,
+          title: data.title,
+          description: data.description || null,
+          is_completed: false,
+          order_index: projectSteps.filter(s => s.parent_step_id === data.parent_step_id).length,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          parent_step_id: data.parent_step_id || null
+        };
+        
+        setProjectSteps(prev => [...prev, newStep]);
+        
+        toast({
+          title: 'Success',
+          description: 'Step created successfully',
+          variant: 'default'
+        });
+        
+        return newStep;
+      }
       
-      setProjectSteps(prev => [...prev, newStep]);
-      
-      toast({
-        title: 'Success',
-        description: 'Step created successfully',
-        variant: 'default'
-      });
-      
-      return newStep;
+      return null;
     } catch (error) {
       console.error('Error creating step:', error);
       setError('Failed to create step. Please try again later.');
@@ -763,6 +970,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         removeCollaborator,
         assignStep,
         unassignStep,
+        publishProject,
         loading,
         error
       }}

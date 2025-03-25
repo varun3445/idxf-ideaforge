@@ -17,23 +17,27 @@ import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
 import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../AuthContext';
+
 interface ProjectDeadline {
   id: string;
   title: string;
   due_date: string;
   is_completed: boolean;
 }
+
 const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  
   const {
     projects,
     loadProjects,
     createProject,
     loading
   } = useProject();
+  
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [suggestedStepsDialogOpen, setSuggestedStepsDialogOpen] = useState(false);
@@ -47,10 +51,12 @@ const ProjectsList: React.FC = () => {
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
   const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
+  
   useEffect(() => {
     loadProjects();
     loadProjectsMetadata();
   }, []);
+  
   const loadProjectsMetadata = async () => {
     const deadlinesMock: Record<string, ProjectDeadline[]> = {
       '1': [{
@@ -83,23 +89,37 @@ const ProjectsList: React.FC = () => {
     setProjectDeadlines(deadlinesMock);
     setProjectWaitlists(waitlistsMock);
   };
+  
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       return;
     }
-    const newProject = await createProject(title.trim(), description.trim());
-    if (newProject) {
-      setTitle('');
-      setDescription('');
-      setCreateDialogOpen(false);
-      navigate(`/forge/${newProject.id}`);
+    
+    try {
+      const newProject = await createProject(title.trim(), description.trim());
+      
+      if (newProject) {
+        setTitle('');
+        setDescription('');
+        setCreateDialogOpen(false);
+        navigate(`/forge/${newProject.id}`);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create project. Please try again.',
+        variant: 'destructive'
+      });
     }
   };
+  
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
     setShareDialogOpen(true);
   };
+  
   const handleGetAISuggestions = async () => {
     if (!title.trim() || !description.trim()) {
       return;
@@ -141,6 +161,7 @@ const ProjectsList: React.FC = () => {
       setLoadingAI(false);
     }
   };
+  
   const handleBackProject = (projectId: string) => {
     setBackingProjects(prev => ({
       ...prev,
@@ -162,11 +183,13 @@ const ProjectsList: React.FC = () => {
       }));
     }, 2000);
   };
+  
   const getNextDeadline = (projectId: string): ProjectDeadline | null => {
     const deadlines = projectDeadlines[projectId] || [];
     const upcomingDeadlines = deadlines.filter(d => !d.is_completed).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
     return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
   };
+  
   const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -177,6 +200,7 @@ const ProjectsList: React.FC = () => {
       return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
     }
   };
+  
   const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
     const dueDate = new Date(deadline.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) {
@@ -187,8 +211,10 @@ const ProjectsList: React.FC = () => {
       return "default";
     }
   };
-  const ownedProjects = projects.filter(p => p.owner_id === 'user-1');
-  const collaborativeProjects = projects.filter(p => p.owner_id !== 'user-1');
+  
+  const ownedProjects = projects.filter(p => p.owner_id === (user?.id || 'user-1'));
+  const collaborativeProjects = projects.filter(p => p.owner_id !== (user?.id || 'user-1'));
+  
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
       return <Card>
@@ -264,6 +290,7 @@ const ProjectsList: React.FC = () => {
       })}
       </div>;
   };
+  
   return <div className="page-container">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
@@ -341,6 +368,7 @@ const ProjectsList: React.FC = () => {
       <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
     </div>;
 };
+
 const ProjectsWithProvider: React.FC = () => {
   return <AnimatedTransition>
       <ProjectProvider>
@@ -348,4 +376,5 @@ const ProjectsWithProvider: React.FC = () => {
       </ProjectProvider>
     </AnimatedTransition>;
 };
+
 export default ProjectsWithProvider;

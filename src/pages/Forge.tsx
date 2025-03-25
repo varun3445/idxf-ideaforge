@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2 } from 'lucide-react';
+import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedTransition from '@/components/AnimatedTransition';
@@ -12,6 +13,7 @@ import { useProject, ProjectProvider, ProjectStep } from '../contexts/ProjectCon
 import { useToast } from '../hooks/use-toast';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 
 const ForgeStyles = () => <style>
     {`
@@ -51,6 +53,7 @@ const ProjectContent: React.FC = () => {
     currentStep,
     setCurrentStep,
     updateProject,
+    publishProject,
     loading,
     error
   } = useProject();
@@ -80,12 +83,27 @@ const ProjectContent: React.FC = () => {
     setShareDialogOpen(true);
   };
 
-  const handleConnectElements = () => {
-    toast({
-      title: 'Connect Elements',
-      description: 'This feature allows you to link different project elements together',
-      variant: 'default'
-    });
+  const handleTogglePublish = async () => {
+    if (!currentProject) return;
+    
+    try {
+      await publishProject(currentProject.id, !currentProject.is_published);
+      
+      toast({
+        title: currentProject.is_published ? 'Project Unpublished' : 'Project Published',
+        description: currentProject.is_published 
+          ? 'Your project is now hidden from the explore page' 
+          : 'Your project is now visible on the explore page',
+        variant: 'default'
+      });
+    } catch (error) {
+      console.error('Error publishing project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update project publishing status',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleSetCurrentFocus = (step: ProjectStep) => {
@@ -160,6 +178,16 @@ const ProjectContent: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-2 border rounded-md px-3 py-2 mr-2">
+              <Globe className="h-4 w-4 text-primary" />
+              <span className="mr-2">Publish</span>
+              <Switch 
+                checked={currentProject.is_published} 
+                onCheckedChange={handleTogglePublish} 
+                aria-label="Toggle publish" 
+              />
+            </div>
+            
             <Button onClick={handleShareProject}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
