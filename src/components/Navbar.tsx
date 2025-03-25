@@ -62,7 +62,7 @@ const Navbar = () => {
         </div>}
 
       {/* Mobile Bottom Navigation with equal spacing */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px] mx-[10px]">
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px] mx-0">
           <div className="w-full grid grid-cols-5 gap-0">
             {menuItems.map(item => {
           const isActiveItem = isActive(item.path);
