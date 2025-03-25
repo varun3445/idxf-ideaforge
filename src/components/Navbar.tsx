@@ -65,19 +65,19 @@ const Navbar = () => {
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation - improved spacing for even distribution and centered Create button */}
+      {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
-          <div className="flex items-center justify-between w-full px-2">
-            {menuItems.map((item, index) => {
-              const isMiddleItem = index === Math.floor(menuItems.length / 2);
+          <div className="w-full max-w-md flex justify-between px-3">
+            {menuItems.map((item) => {
               const isActiveItem = isActive(item.path);
+              const isCreateButton = item.name === 'Create';
               
               return (
                 <Button 
                   key={item.name} 
                   variant="ghost" 
                   size="sm" 
-                  className={`flex flex-col items-center justify-center py-1 ${isMiddleItem ? 'px-3' : 'px-2'} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} 
+                  className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} 
                   onClick={() => navigate(item.path)}
                 >
                   {item.icon}
