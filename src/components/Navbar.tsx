@@ -67,7 +67,7 @@ const Navbar = () => {
 
       {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl py-[12px]">
-          <div className="w-full max-w-md flex justify-between px-3">
+          <div className="w-full flex justify-between px-4">
             {menuItems.map((item) => {
               const isActiveItem = isActive(item.path);
               const isCreateButton = item.name === 'Create';
