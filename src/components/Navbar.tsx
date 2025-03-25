@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Search, MessageSquare, Bell, User, LogOut } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Users } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,11 +16,11 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - updated naming and icons
+  // Mobile menu items - updated icons for Explore and Communities
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
-    icon: <Search className="h-5 w-5" />
+    icon: <Globe className="h-5 w-5" />
   }, {
     name: 'Search',
     path: '/matches',
@@ -31,12 +32,13 @@ const Navbar = () => {
   }, {
     name: 'Communities',
     path: '/communities',
-    icon: <MessageSquare className="h-5 w-5" />
+    icon: <Users className="h-5 w-5" />
   }, {
     name: 'Profile',
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -45,6 +47,7 @@ const Navbar = () => {
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
+  
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -63,8 +66,8 @@ const Navbar = () => {
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation - improved spacing */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2">
+      {/* Mobile Bottom Navigation - improved spacing and rounded corners */}
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl">
           <div className="flex items-center justify-between w-full px-2">
             {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-2 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                 {item.icon}
@@ -103,4 +106,5 @@ const Navbar = () => {
         </div>}
     </>;
 };
+
 export default Navbar;
