@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Compass, Heart, FolderKanban, Users, User, LogOut } from 'lucide-react';
+import { Search, MessageSquare, Bell, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,28 +16,29 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - added Profile to the mobile nav
+  // Mobile menu items - updated naming and icons
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
-    icon: <Compass className="h-5 w-5" />
+    icon: <Search className="h-5 w-5" />
   }, {
-    name: 'Matches',
+    name: 'Search',
     path: '/matches',
-    icon: <Heart className="h-5 w-5" />
+    icon: <Search className="h-5 w-5" />
   }, {
-    name: 'Projects',
+    name: 'Create',
     path: '/projects',
-    icon: <FolderKanban className="h-5 w-5" />
+    icon: <Bell className="h-5 w-5" />
   }, {
     name: 'Communities',
     path: '/communities',
-    icon: <Users className="h-5 w-5" />
+    icon: <MessageSquare className="h-5 w-5" />
   }, {
     name: 'Profile',
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -45,6 +47,7 @@ const Navbar = () => {
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
+  
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -57,16 +60,16 @@ const Navbar = () => {
         </div>}
 
       {/* Mobile center logo */}
-      {isMobile && <div className="fixed top-2 left-0 right-0 z-50 flex justify-center">
+      {isMobile && <div className="fixed top-3 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            
+            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border mx-[10px] rounded-t-xl my-[5px] px-0 py-[10px] bg-background/90">
-          <div className="flex items-center justify-between max-w-[370px] w-full px-4">
-            {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-3 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
+      {/* Mobile Bottom Navigation - improved spacing */}
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2">
+          <div className="flex items-center justify-between w-full px-2">
+            {menuItems.map(item => <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center py-1 px-2 ${isActive(item.path) ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                 {item.icon}
                 <span className="text-xs mt-0.5">{item.name}</span>
               </Button>)}
@@ -103,4 +106,5 @@ const Navbar = () => {
         </div>}
     </>;
 };
+
 export default Navbar;
