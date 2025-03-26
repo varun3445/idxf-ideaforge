@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, GlobeOff } from 'lucide-react';
+import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -139,7 +139,7 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
                     <DropdownMenuItem onClick={() => handleTogglePublishStatus(project)}>
                       {project.published ? (
                         <>
-                          <GlobeOff className="mr-2 h-4 w-4" />
+                          <EyeOff className="mr-2 h-4 w-4" />
                           Unpublish
                         </>
                       ) : (
