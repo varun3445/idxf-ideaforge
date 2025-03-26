@@ -149,6 +149,10 @@ const ProjectContext = createContext<ProjectContextType>({
   markNotificationAsRead: async () => {}
 });
 
+interface ProjectProviderProps {
+  children: ReactNode;
+}
+
 export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -167,7 +171,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     loadUserProjects();
     loadNotifications();
     
-    // Load backing projects from localStorage
     const savedBackingProjects = localStorage.getItem('backingProjects');
     if (savedBackingProjects) {
       setBackingProjects(JSON.parse(savedBackingProjects));
@@ -175,25 +178,18 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   }, [user]);
 
   const loadNotifications = () => {
-    // Remove mock notifications to fix the issue
     const savedNotifications = localStorage.getItem('userNotifications');
     if (savedNotifications) {
       const parsedNotifications = JSON.parse(savedNotifications);
       setNotifications(parsedNotifications);
     } else {
-      // Initialize with empty array instead of mock data
       setNotifications([]);
-      // Save empty array to localStorage
       localStorage.setItem('userNotifications', JSON.stringify([]));
     }
   };
 
   const respondToCollaboration = async (collaborationId: string, accept: boolean) => {
-    // Implementation placeholder - this would update the collaborator's status in a real app
     console.log(`Responding to collaboration ${collaborationId}: ${accept ? 'accept' : 'reject'}`);
-    
-    // For demo purposes, we'll just mark the notification as read
-    // In a real app, you'd update the collaboration status in the database
     return Promise.resolve();
   };
 
@@ -214,18 +210,15 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     setError(null);
     
     try {
-      // Find the project in local storage
       const project = projects.find(p => p.id === projectId);
       if (project) {
         setCurrentProject(project);
         
-        // Load steps from localStorage
         const savedSteps = localStorage.getItem(`projectSteps-${projectId}`);
         if (savedSteps) {
           const parsedSteps = JSON.parse(savedSteps);
           setProjectSteps(parsedSteps);
           
-          // Set current step if one is marked
           if (project.current_step_id) {
             const currentStep = parsedSteps.find((s: ProjectStep) => s.id === project.current_step_id);
             if (currentStep) {
@@ -236,7 +229,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
           setProjectSteps([]);
         }
         
-        // Load collaborators
         const savedCollaborators = localStorage.getItem(`projectCollaborators-${projectId}`);
         if (savedCollaborators) {
           setCollaborators(JSON.parse(savedCollaborators));
@@ -244,7 +236,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
           setCollaborators([]);
         }
         
-        // Load step assignments
         const savedAssignments = localStorage.getItem(`stepAssignments-${projectId}`);
         if (savedAssignments) {
           setStepAssignments(JSON.parse(savedAssignments));
@@ -283,22 +274,17 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       const updatedSteps = [...projectSteps, newStep];
       setProjectSteps(updatedSteps);
       
-      // Save steps to localStorage
       localStorage.setItem(`projectSteps-${currentProject.id}`, JSON.stringify(updatedSteps));
       
-      // If this is the first step, set it as the current focus
       if (projectSteps.length === 0 && !currentProject.current_step_id) {
         setCurrentStep(newStep);
         
-        // Update project with current step
         const updatedProject = { ...currentProject, current_step_id: newStep.id };
         setCurrentProject(updatedProject);
         
-        // Update project in projects array
         const updatedProjects = projects.map(p => p.id === currentProject.id ? updatedProject : p);
         setProjects(updatedProjects);
         
-        // Save to localStorage
         localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
       }
       
@@ -312,13 +298,11 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
   const deleteStep = (stepId: string) => {
     if (!currentProject) return;
     
-    // Find all child steps (recursively)
     const getAllChildStepIds = (parentId: string): string[] => {
       const directChildren = projectSteps.filter(s => s.parent_step_id === parentId);
       
       let allChildIds: string[] = directChildren.map(child => child.id);
       
-      // Recursively get children of children
       directChildren.forEach(child => {
         allChildIds = [...allChildIds, ...getAllChildStepIds(child.id)];
       });
@@ -329,32 +313,25 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     const childStepIds = getAllChildStepIds(stepId);
     const allStepIdsToRemove = [stepId, ...childStepIds];
     
-    // Filter out the steps to be removed
     const remainingSteps = projectSteps.filter(step => !allStepIdsToRemove.includes(step.id));
     setProjectSteps(remainingSteps);
     
-    // Save steps to localStorage
     localStorage.setItem(`projectSteps-${currentProject.id}`, JSON.stringify(remainingSteps));
     
-    // If the deleted step was the current focus, clear it
     if (currentProject.current_step_id && allStepIdsToRemove.includes(currentProject.current_step_id)) {
       const updatedProject = { ...currentProject, current_step_id: null };
       setCurrentProject(updatedProject);
       setCurrentStep(null);
       
-      // Update project in projects array
       const updatedProjects = projects.map(p => p.id === currentProject.id ? updatedProject : p);
       setProjects(updatedProjects);
       
-      // Save to localStorage
       localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
     }
     
-    // Remove any assignments for the deleted steps
     const updatedAssignments = stepAssignments.filter(a => !allStepIdsToRemove.includes(a.step_id));
     setStepAssignments(updatedAssignments);
     
-    // Save assignments to localStorage
     localStorage.setItem(`stepAssignments-${currentProject.id}`, JSON.stringify(updatedAssignments));
   };
 
@@ -367,18 +344,15 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     
     setProjectSteps(updatedSteps);
     
-    // Save steps to localStorage
     localStorage.setItem(`projectSteps-${currentProject.id}`, JSON.stringify(updatedSteps));
   };
 
   const assignStep = (stepId: string, userId: string) => {
     if (!currentProject) return;
     
-    // Check if assignment already exists
     const existingAssignment = stepAssignments.find(a => a.step_id === stepId && a.user_id === userId);
     if (existingAssignment) return;
     
-    // Find user info from collaborators
     const collaborator = collaborators.find(c => c.user_id === userId);
     
     const newAssignment: StepAssignment = {
@@ -392,7 +366,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     const updatedAssignments = [...stepAssignments, newAssignment];
     setStepAssignments(updatedAssignments);
     
-    // Save assignments to localStorage
     localStorage.setItem(`stepAssignments-${currentProject.id}`, JSON.stringify(updatedAssignments));
   };
 
@@ -402,11 +375,10 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     const updatedAssignments = stepAssignments.filter(a => a.id !== assignmentId);
     setStepAssignments(updatedAssignments);
     
-    // Save assignments to localStorage
     localStorage.setItem(`stepAssignments-${currentProject.id}`, JSON.stringify(updatedAssignments));
   };
 
-  const publishProject = async (projectId: string, isPublished: boolean) => {
+  const publishProject = async (projectId: string, isPublished: boolean): Promise<{ success: boolean }> => {
     try {
       const projectsString = localStorage.getItem("userProjects");
       const projects = projectsString ? JSON.parse(projectsString) : [];
@@ -441,7 +413,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       challenges: string; 
       image?: File | null 
     }
-  ) => {
+  ): Promise<{ success: boolean }> => {
     try {
       const projectsString = localStorage.getItem("userProjects");
       const projects = projectsString ? JSON.parse(projectsString) : [];
@@ -454,7 +426,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
             overview: details.overview,
             goals: details.goals,
             challenges: details.challenges
-            // Image handling would be added here in a real app
           };
         }
         return project;
@@ -481,7 +452,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         console.log("Loaded projects from localStorage:", parsedProjects);
         setProjects(parsedProjects);
       } else {
-        // Initialize with empty array if none exist
         localStorage.setItem('userProjects', JSON.stringify([]));
         setProjects([]);
       }
@@ -503,7 +473,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         project.id === id ? { ...project, ...updates } : project
       )
     );
-    // Save to localStorage
     localStorage.setItem('userProjects', JSON.stringify(projects.map(project =>
       project.id === id ? { ...project, ...updates } : project
     )));
@@ -511,14 +480,10 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
 
   const deleteProject = (id: string) => {
     setProjects(prevProjects => prevProjects.filter(project => project.id !== id));
-    // Remove from localStorage
     localStorage.setItem('userProjects', JSON.stringify(projects.filter(project => project.id !== id)));
   };
 
   const addCollaborator = async (email: string, projectId: string, role: string, permissions: string[]) => {
-    // In a real app, you would send an invitation to the user with the specified email
-    // For this demo, we'll create a mock collaborator and a notification
-    
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
     
@@ -532,13 +497,12 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       permissions: permissions || ['view', 'edit'],
       status: 'pending',
       user: {
-        name: email.split('@')[0], // Use part of email as name
+        name: email.split('@')[0],
         email: email,
         avatar: undefined
       }
     };
     
-    // Update collaborators for the project
     let projectCollaborators: ProjectCollaborator[] = [];
     const savedCollaborators = localStorage.getItem(`projectCollaborators-${projectId}`);
     if (savedCollaborators) {
@@ -548,12 +512,10 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     projectCollaborators.push(newCollaborator);
     localStorage.setItem(`projectCollaborators-${projectId}`, JSON.stringify(projectCollaborators));
     
-    // Update current collaborators if viewing the same project
     if (currentProject && currentProject.id === projectId) {
       setCollaborators([...collaborators, newCollaborator]);
     }
     
-    // Create a notification for the invitation
     const notification: Notification = {
       id: uuidv4(),
       type: 'collaboration_invitation',
@@ -567,7 +529,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       }
     };
     
-    // Add notification
     const savedNotifications = localStorage.getItem('userNotifications');
     let allNotifications: Notification[] = [];
     if (savedNotifications) {
@@ -577,7 +538,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     allNotifications.push(notification);
     localStorage.setItem('userNotifications', JSON.stringify(allNotifications));
     
-    // Update current notifications
     setNotifications([...notifications, notification]);
   };
 
@@ -587,7 +547,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     const updatedCollaborators = collaborators.filter(c => c.id !== collaboratorId);
     setCollaborators(updatedCollaborators);
     
-    // Save to localStorage
     localStorage.setItem(`projectCollaborators-${currentProject.id}`, JSON.stringify(updatedCollaborators));
   };
 
@@ -604,7 +563,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     
     setBackingProjects(updatedBackingProjects);
   
-    // Save to localStorage
     localStorage.setItem('backingProjects', JSON.stringify(updatedBackingProjects));
     
     console.log("Updated backing projects:", updatedBackingProjects);
@@ -633,7 +591,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     setError(null);
     
     try {
-      // Get the current user ID
       const currentUserId = user?.id || 'user-1';
       
       const newProject: Project = {
@@ -651,17 +608,13 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       
       console.log("Creating new project with owner_id:", currentUserId);
       
-      // Update projects array with the new project
       const updatedProjects = [...projects, newProject];
       setProjects(updatedProjects);
       
-      // Save to localStorage
       localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
       
-      // Initialize project steps as empty array
       localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
       
-      // Initialize collaborators as empty array
       localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify([]));
       
       toast({

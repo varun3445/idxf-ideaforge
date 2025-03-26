@@ -20,7 +20,7 @@ export const debugProjectStorage = () => {
 
 export const createLocalProject = (title: string, description: string, ownerId: string) => {
   try {
-    // Generate a unique project ID (normally this would come from the server)
+    // Generate a unique project ID using crypto.randomUUID if available, otherwise use a fallback
     const projectId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
     
     // Create the new project object
@@ -34,7 +34,13 @@ export const createLocalProject = (title: string, description: string, ownerId: 
       is_published: false,
       share_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
       current_step_id: null,
-      backers_count: 0
+      backers_count: 0,
+      // Make sure these fields match what the Explore page expects
+      creator: "Default User",
+      collaborators: 1,
+      category: "Technology",
+      techStack: ["React", "JavaScript"],
+      imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop"
     };
     
     // Get existing projects
