@@ -36,16 +36,14 @@ export const createLocalProject = (title: string, description: string, ownerId: 
       is_published: false,
       share_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
       current_step_id: null,
-      collaborators: [], // Empty array of ProjectCollaborator, not a number
-      backersCount: 0, // Changed from backers_count to backersCount to match the interface
-      // These fields are for the Explore page
-      creator: "Default User",
-      techStack: ["React", "JavaScript"],
-      imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop",
+      collaborators: [], // Empty array of ProjectCollaborator
+      backersCount: 0, // Using backersCount instead of backers_count to match the interface
+      // Optional fields with proper types as defined in the Project interface
       skills: [],
       goals: "",
       challenges: "",
-      overview: ""
+      overview: "",
+      imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop"
     };
     
     // Get existing projects
