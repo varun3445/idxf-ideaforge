@@ -378,49 +378,37 @@ export type Database = {
       projects: {
         Row: {
           backers_count: number
-          challenges: string | null
           created_at: string
           current_step_id: string | null
           description: string | null
-          goals: string | null
           id: string
           is_published: boolean | null
-          overview: string | null
           owner_id: string
           share_code: string | null
-          skills: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
           backers_count?: number
-          challenges?: string | null
           created_at?: string
           current_step_id?: string | null
           description?: string | null
-          goals?: string | null
           id?: string
           is_published?: boolean | null
-          overview?: string | null
           owner_id: string
           share_code?: string | null
-          skills?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
           backers_count?: number
-          challenges?: string | null
           created_at?: string
           current_step_id?: string | null
           description?: string | null
-          goals?: string | null
           id?: string
           is_published?: boolean | null
-          overview?: string | null
           owner_id?: string
           share_code?: string | null
-          skills?: string[] | null
           title?: string
           updated_at?: string
         }
