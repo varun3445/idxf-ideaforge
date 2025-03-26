@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { User } from "../types/auth.types";
 import { supabase } from "../integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 export const useAuthProvider = () => {
   const [user, setUser] = useState<User | null>({
@@ -16,23 +17,28 @@ export const useAuthProvider = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
-  // Skip the actual authentication process
+  // Initialize local storage with test data if needed
   useEffect(() => {
     // Load any existing projects from localStorage when initializing
     const savedProjects = localStorage.getItem('userProjects');
     if (!savedProjects) {
       // Initialize with an empty array if no projects exist
       localStorage.setItem('userProjects', JSON.stringify([]));
+      console.log("Initialized empty userProjects in localStorage");
+    } else {
+      console.log("Found existing projects in localStorage:", JSON.parse(savedProjects));
     }
     
     // Initialize backing projects if it doesn't exist
     if (!localStorage.getItem('backingProjects')) {
       localStorage.setItem('backingProjects', JSON.stringify({}));
+      console.log("Initialized empty backingProjects in localStorage");
     }
     
     // Initialize user notifications if they don't exist
     if (!localStorage.getItem('userNotifications')) {
       localStorage.setItem('userNotifications', JSON.stringify([]));
+      console.log("Initialized empty userNotifications in localStorage");
     }
     
     console.log("Auth initialized with mock user:", user);

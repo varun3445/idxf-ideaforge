@@ -12,6 +12,7 @@ import AnimatedTransition from '../components/AnimatedTransition';
 import { useToast } from '../hooks/use-toast';
 import { useProject, Project } from '../contexts/ProjectContext';
 import { useAuth } from '../AuthContext';
+import { createLocalProject, debugProjectStorage } from '../utils/projectUtils';
 
 interface ShareProjectProps {
   project: Project;
@@ -233,11 +234,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   </Dialog>
 );
 
-interface ProjectsProps {
-  
-}
-
-const Projects: React.FC<ProjectsProps> = () => {
+const Projects: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -264,6 +261,7 @@ const Projects: React.FC<ProjectsProps> = () => {
   useEffect(() => {
     loadUserProjects();
     console.log("Loading user projects in Projects.tsx");
+    debugProjectStorage();
   }, [loadUserProjects]);
   
   useEffect(() => {
@@ -290,7 +288,7 @@ const Projects: React.FC<ProjectsProps> = () => {
     setIsSubmitting(true);
     
     try {
-      await createProject(newProjectTitle, newProjectDescription);
+      const newProject = createLocalProject(newProjectTitle, newProjectDescription, userId);
       
       toast({
         title: "Project created",
@@ -301,8 +299,9 @@ const Projects: React.FC<ProjectsProps> = () => {
       setNewProjectTitle('');
       setNewProjectDescription('');
       
-      // Reload projects to make sure we see the new one
       loadUserProjects();
+      
+      debugProjectStorage();
     } catch (error) {
       console.error("Failed to create project", error);
       toast({
@@ -461,7 +460,36 @@ const Projects: React.FC<ProjectsProps> = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              renderProjectsGrid(ownedProjects)
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {ownedProjects.length === 0 ? (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground mb-4">
+                      You haven't created any projects yet.
+                    </p>
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" /> Create New Project
+                    </Button>
+                  </div>
+                ) : (
+                  ownedProjects.map((project) => {
+                    const isBackingProject = backingProjects[project.id] || false;
+                    const isOwnedByCurrentUser = project.owner_id === userId;
+                    const collaboratorCount = 1;
+                    
+                    return (
+                      <ProjectCard 
+                        key={project.id}
+                        project={project}
+                        isBackingProject={isBackingProject}
+                        isOwnedByCurrentUser={isOwnedByCurrentUser}
+                        collaboratorCount={collaboratorCount}
+                        toggleBackingProject={toggleBackingProject}
+                        handleShareProject={handleShareProject}
+                      />
+                    );
+                  })
+                )}
+              </div>
             )}
           </TabsContent>
           
@@ -471,68 +499,47 @@ const Projects: React.FC<ProjectsProps> = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              renderProjectsGrid(collaborativeProjects)
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {collaborativeProjects.length === 0 ? (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground mb-4">
+                      You're not collaborating on any projects yet.
+                    </p>
+                  </div>
+                ) : (
+                  collaborativeProjects.map((project) => {
+                    const isBackingProject = backingProjects[project.id] || false;
+                    const isOwnedByCurrentUser = project.owner_id === userId;
+                    const collaboratorCount = 3;
+                    
+                    return (
+                      <ProjectCard 
+                        key={project.id}
+                        project={project}
+                        isBackingProject={isBackingProject}
+                        isOwnedByCurrentUser={isOwnedByCurrentUser}
+                        collaboratorCount={collaboratorCount}
+                        toggleBackingProject={toggleBackingProject}
+                        handleShareProject={handleShareProject}
+                      />
+                    );
+                  })
+                )}
+              </div>
             )}
           </TabsContent>
         </Tabs>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-              <DialogDescription>
-                Add a new project to start collaborating and bringing your ideas to life.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleCreateProject}>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <label htmlFor="title" className="text-sm font-medium">
-                    Project Title
-                  </label>
-                  <Input
-                    id="title"
-                    placeholder="Enter a title for your project"
-                    value={newProjectTitle}
-                    onChange={(e) => setNewProjectTitle(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Project Description
-                  </label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe what your project is about"
-                    value={newProjectDescription}
-                    onChange={(e) => setNewProjectDescription(e.target.value)}
-                    rows={3}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <DialogFooter className="mt-4">
-                <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Project'
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreateProjectDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          newProjectTitle={newProjectTitle}
+          newProjectDescription={newProjectDescription}
+          setNewProjectTitle={setNewProjectTitle}
+          setNewProjectDescription={setNewProjectDescription}
+          handleCreateProject={handleCreateProject}
+          isSubmitting={isSubmitting}
+        />
 
         <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
           <DialogContent>

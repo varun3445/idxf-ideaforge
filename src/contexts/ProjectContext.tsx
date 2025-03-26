@@ -107,8 +107,8 @@ interface ProjectContextType {
   completeStep: (stepId: string, isCompleted: boolean) => void;
   assignStep: (stepId: string, userId: string) => void;
   unassignStep: (assignmentId: string) => void;
-  publishProject: (projectId: string, isPublished: boolean) => Promise<void>;
-  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string; image?: File | null }) => Promise<void>;
+  publishProject: (projectId: string, isPublished: boolean) => Promise<{ success: boolean }>;
+  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string; image?: File | null }) => Promise<{ success: boolean }>;
   respondToCollaboration: (collaborationId: string, accept: boolean) => Promise<void>;
   markNotificationAsRead: (notificationId: string) => Promise<void>;
 }
@@ -149,7 +149,7 @@ const ProjectContext = createContext<ProjectContextType>({
   markNotificationAsRead: async () => {}
 });
 
-export const ProjectProvider = ({ children }: { children: ReactNode }) => {
+export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -407,61 +407,68 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const publishProject = async (projectId: string, isPublished: boolean) => {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-    
-    const updatedProject = { ...project, is_published: isPublished };
-    
-    // Update projects array
-    const updatedProjects = projects.map(p => p.id === projectId ? updatedProject : p);
-    setProjects(updatedProjects);
-    
-    // Update current project if it's the one being published
-    if (currentProject && currentProject.id === projectId) {
-      setCurrentProject(updatedProject);
+    try {
+      const projectsString = localStorage.getItem("userProjects");
+      const projects = projectsString ? JSON.parse(projectsString) : [];
+      
+      const updatedProjects = projects.map((project: Project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            is_published: isPublished
+          };
+        }
+        return project;
+      });
+      
+      localStorage.setItem("userProjects", JSON.stringify(updatedProjects));
+      setProjects(updatedProjects);
+      
+      console.log(`Project ${projectId} publishing status changed to ${isPublished}`);
+      return { success: true };
+    } catch (error) {
+      console.error("Error publishing project:", error);
+      throw error;
     }
-    
-    // Save to localStorage
-    localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
-    
-    console.log("Project published state updated:", projectId, isPublished);
   };
 
   const publishProjectWithDetails = async (
     projectId: string, 
-    isPublished: boolean, 
-    details: { overview: string; goals: string; challenges: string; image?: File | null }
+    isPublished: boolean,
+    details: { 
+      overview: string; 
+      goals: string; 
+      challenges: string; 
+      image?: File | null 
+    }
   ) => {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-    
-    // Handle image upload (in a real app, this would upload the file to storage)
-    let imageUrl = project.imageUrl;
-    if (details.image) {
-      // Simulate image upload - in a real app you'd upload the file to storage
-      imageUrl = URL.createObjectURL(details.image);
+    try {
+      const projectsString = localStorage.getItem("userProjects");
+      const projects = projectsString ? JSON.parse(projectsString) : [];
+      
+      const updatedProjects = projects.map((project: Project) => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            is_published: isPublished,
+            overview: details.overview,
+            goals: details.goals,
+            challenges: details.challenges
+            // Image handling would be added here in a real app
+          };
+        }
+        return project;
+      });
+      
+      localStorage.setItem("userProjects", JSON.stringify(updatedProjects));
+      setProjects(updatedProjects);
+      
+      console.log(`Project ${projectId} published with details:`, details);
+      return { success: true };
+    } catch (error) {
+      console.error("Error publishing project with details:", error);
+      throw error;
     }
-    
-    const updatedProject = { 
-      ...project, 
-      is_published: isPublished,
-      overview: details.overview,
-      goals: details.goals,
-      challenges: details.challenges,
-      imageUrl 
-    };
-    
-    // Update projects array
-    const updatedProjects = projects.map(p => p.id === projectId ? updatedProject : p);
-    setProjects(updatedProjects);
-    
-    // Update current project if it's the one being published
-    if (currentProject && currentProject.id === projectId) {
-      setCurrentProject(updatedProject);
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
   };
 
   const loadUserProjects = () => {
@@ -679,47 +686,43 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  return (
-    <ProjectContext.Provider
-      value={{
-        projects,
-        loading,
-        error,
-        createProject,
-        getProjectById,
-        updateProject,
-        deleteProject,
-        loadUserProjects,
-        addCollaborator,
-        removeCollaborator,
-        getCollaborators,
-        toggleBackingProject,
-        getBackingProjects,
-        notifications,
-        addNotification,
-        removeNotification,
-        loadNotifications,
-        projectSteps,
-        currentProject,
-        currentStep,
-        setCurrentStep,
-        collaborators,
-        stepAssignments,
-        loadProjectDetails,
-        createStep,
-        deleteStep,
-        completeStep,
-        assignStep,
-        unassignStep,
-        publishProject,
-        publishProjectWithDetails,
-        respondToCollaboration,
-        markNotificationAsRead
-      }}
-    >
-      {children}
-    </ProjectContext.Provider>
-  );
+  const value = {
+    projects,
+    loading,
+    error,
+    createProject,
+    getProjectById,
+    updateProject,
+    deleteProject,
+    loadUserProjects,
+    addCollaborator,
+    removeCollaborator,
+    getCollaborators,
+    toggleBackingProject,
+    getBackingProjects,
+    notifications,
+    addNotification,
+    removeNotification,
+    loadNotifications,
+    projectSteps,
+    currentProject,
+    currentStep,
+    setCurrentStep,
+    collaborators,
+    stepAssignments,
+    loadProjectDetails,
+    createStep,
+    deleteStep,
+    completeStep,
+    assignStep,
+    unassignStep,
+    publishProject,
+    publishProjectWithDetails,
+    respondToCollaboration,
+    markNotificationAsRead
+  };
+
+  return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 };
 
 export const useProject = () => {
