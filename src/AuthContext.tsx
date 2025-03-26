@@ -1,24 +1,15 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { AuthContextType } from './types/auth.types';
-
-// Create a mock authenticated user
-const mockUser = {
-  id: 'user-1',
-  email: 'test@example.com',
-  name: 'Test User',
-  location: 'Somewhere, World',
-  skills: ['JavaScript', 'React', 'Design'],
-  avatar: null
-};
+import { useAuthProvider } from './hooks/useAuthProvider';
 
 // Create a default auth context with authentication disabled
 const defaultAuthContext: AuthContextType = {
-  user: mockUser,
+  user: null,
   setUser: () => {},
-  loading: false,
+  loading: true,
   error: null,
-  isAuthenticated: true, // Always authenticated
+  isAuthenticated: false,
   login: async () => ({ error: null }),
   signup: async () => ({ error: null }),
   logout: async () => {},
@@ -29,7 +20,10 @@ const defaultAuthContext: AuthContextType = {
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  return <AuthContext.Provider value={defaultAuthContext}>{children}</AuthContext.Provider>;
+  // Use the actual auth provider hook instead of mock data
+  const auth = useAuthProvider();
+  
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
