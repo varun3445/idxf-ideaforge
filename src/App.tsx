@@ -15,7 +15,6 @@ import ProjectDetail from './pages/ProjectDetail';
 import Projects from './pages/Projects';
 import Forge from './pages/Forge';
 import JoinProject from './pages/JoinProject';
-import Communities from './pages/Communities';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
@@ -50,7 +49,7 @@ const AppContent = () => {
           <Route path="/projects" element={<Projects />} />
           <Route path="/forge/:projectId" element={<Forge />} />
           <Route path="/join-project/:shareCode" element={<JoinProject />} />
-          <Route path="/communities" element={<Communities />} />
+          {/* Communities route removed */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
