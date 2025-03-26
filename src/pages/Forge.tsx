@@ -111,7 +111,7 @@ const ProjectContent: React.FC = () => {
     }
   };
 
-  const handlePublishWithDetails = async (projectId: string, details: { overview: string; goals: string; challenges: string }) => {
+  const handlePublishWithDetails = async (projectId: string, details: { overview: string; goals: string; challenges: string; image?: File | null }) => {
     if (!currentProject) return;
     
     try {

@@ -1,10 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
 
-// Define a constant to indicate if we're in demo mode (not using real backend)
-const IS_DEMO_MODE = true; // Set to true to use mock data, false to use Supabase
+const IS_DEMO_MODE = true;
 
 export interface ProjectStep {
   id: string;
@@ -99,7 +97,7 @@ interface ProjectContextType {
   assignStep: (stepId: string, userId: string) => Promise<void>;
   unassignStep: (assignmentId: string) => Promise<void>;
   publishProject: (projectId: string, isPublished: boolean) => Promise<void>;
-  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string }) => Promise<void>;
+  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string; image?: File | null }) => Promise<void>;
   markNotificationAsRead: (notificationId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -517,10 +515,35 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const publishProjectWithDetails = async (
     projectId: string, 
     isPublished: boolean, 
-    details: { overview: string; goals: string; challenges: string }
+    details: { overview: string; goals: string; challenges: string; image?: File | null }
   ) => {
     try {
       console.log("Publishing project with details:", projectId, isPublished, details);
+      
+      let imageUrl = null;
+      if (details.image) {
+        if (IS_DEMO_MODE) {
+          imageUrl = URL.createObjectURL(details.image);
+          console.log("Created object URL for image in demo mode:", imageUrl);
+        } else {
+          const fileName = `project-${projectId}-${Date.now()}`;
+          const { data, error } = await supabase.storage
+            .from('project-images')
+            .upload(fileName, details.image);
+            
+          if (error) {
+            console.error("Error uploading image:", error);
+            throw error;
+          }
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('project-images')
+            .getPublicUrl(fileName);
+            
+          imageUrl = publicUrl;
+          console.log("Uploaded image to Supabase storage:", imageUrl);
+        }
+      }
       
       if (IS_DEMO_MODE) {
         const updatedProjects = projects.map(project => 
@@ -530,7 +553,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
             is_published: true, 
             overview: details.overview,
             goals: details.goals,
-            challenges: details.challenges
+            challenges: details.challenges,
+            image_url: imageUrl || project.image_url
           } : 
           project
         );
@@ -542,9 +566,32 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
             is_published: true,
             overview: details.overview,
             goals: details.goals,
-            challenges: details.challenges
+            challenges: details.challenges,
+            image_url: imageUrl || currentProject.image_url
           });
         }
+        
+        const savedProjects = localStorage.getItem('userProjects');
+        let storedProjects = [];
+        
+        if (savedProjects) {
+          storedProjects = JSON.parse(savedProjects);
+        }
+        
+        const updatedStoredProjects = storedProjects.map((project: Project) => 
+          project.id === projectId ? 
+          { 
+            ...project, 
+            is_published: true, 
+            overview: details.overview,
+            goals: details.goals,
+            challenges: details.challenges,
+            image_url: imageUrl || project.image_url
+          } : 
+          project
+        );
+        
+        localStorage.setItem('userProjects', JSON.stringify(updatedStoredProjects));
         
         return;
       }
@@ -555,7 +602,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           is_published: true,
           overview: details.overview,
           goals: details.goals,
-          challenges: details.challenges 
+          challenges: details.challenges,
+          image_url: imageUrl
         })
         .eq('id', projectId);
       
@@ -571,7 +619,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           is_published: true, 
           overview: details.overview,
           goals: details.goals,
-          challenges: details.challenges
+          challenges: details.challenges,
+          image_url: imageUrl
         } : 
         project
       );
@@ -583,7 +632,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           is_published: true,
           overview: details.overview,
           goals: details.goals,
-          challenges: details.challenges
+          challenges: details.challenges,
+          image_url: imageUrl
         });
       }
     } catch (error) {
