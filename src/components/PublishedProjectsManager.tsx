@@ -90,6 +90,7 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
     setIsUpdateDialogOpen(true);
   };
 
+  // Handle error condition with clear visual feedback
   if (error) {
     return (
       <div className="text-center py-8">
@@ -104,9 +105,10 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
     );
   }
 
+  // Handle empty projects state
   if (publishedProjects.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 bg-background text-foreground">
         <p className="text-muted-foreground">You don't have any published projects yet.</p>
         <Button className="mt-4" onClick={() => navigate('/projects')}>Create New Project</Button>
       </div>
@@ -114,7 +116,7 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-foreground">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {publishedProjects.map((project) => (
           <Card key={project.id} className="overflow-hidden">
