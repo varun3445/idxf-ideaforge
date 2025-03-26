@@ -400,6 +400,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         order_index: projectSteps.length + 1,
         is_completed: false,
         parent_step_id: parentStepId,
+        created_at: new Date().toISOString(), // Adding the missing created_at property
       };
 
       if (supabaseEnabled) {
@@ -419,7 +420,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const mockStep: ProjectStep = {
           id: uuidv4(),
           ...newStep,
-          created_at: new Date().toISOString()
         } as ProjectStep;
         setProjectSteps([...projectSteps, mockStep]);
       }
@@ -498,21 +498,20 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      const newStep: Omit<ProjectStep, 'id' | 'created_at' | 'is_completed'> = {
+      const newStep: Omit<ProjectStep, 'id'> = {
         project_id: currentProject.id,
         title: step.title,
         description: step.description || '',
         order_index: step.order_index,
         parent_step_id: step.parent_step_id || null,
+        is_completed: false,
+        created_at: new Date().toISOString(), // Adding the missing created_at property
       };
 
       if (supabaseEnabled) {
         const { data, error } = await supabase
           .from('project_steps')
-          .insert({
-            ...newStep,
-            is_completed: false
-          })
+          .insert(newStep)
           .select()
           .single();
 
@@ -527,8 +526,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const mockStep: ProjectStep = {
           id: uuidv4(),
           ...newStep,
-          is_completed: false,
-          created_at: new Date().toISOString()
         };
         setProjectSteps([...projectSteps, mockStep]);
         return true;
