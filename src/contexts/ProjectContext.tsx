@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../AuthContext';
-import { User } from '../types/auth.types';
+import { createLocalProject } from '../utils/projectUtils';
 
 export interface ProjectCollaborator {
   id: string;
@@ -143,8 +143,8 @@ const ProjectContext = createContext<ProjectContextType>({
   completeStep: () => {},
   assignStep: () => {},
   unassignStep: () => {},
-  publishProject: async () => {},
-  publishProjectWithDetails: async () => {},
+  publishProject: async () => ({ success: false }),
+  publishProjectWithDetails: async () => ({ success: false }),
   respondToCollaboration: async () => {},
   markNotificationAsRead: async () => {}
 });
@@ -400,7 +400,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       return { success: true };
     } catch (error) {
       console.error("Error publishing project:", error);
-      throw error;
+      return { success: false };
     }
   };
 
@@ -438,7 +438,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       return { success: true };
     } catch (error) {
       console.error("Error publishing project with details:", error);
-      throw error;
+      return { success: false };
     }
   };
 
@@ -593,29 +593,10 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
     try {
       const currentUserId = user?.id || 'user-1';
       
-      const newProject: Project = {
-        id: uuidv4(),
-        title,
-        description,
-        owner_id: currentUserId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        current_step_id: null,
-        share_code: `SHARE${Math.floor(Math.random() * 90000) + 10000}`,
-        backersCount: 0,
-        is_published: false
-      };
-      
-      console.log("Creating new project with owner_id:", currentUserId);
+      const newProject = createLocalProject(title, description, currentUserId);
       
       const updatedProjects = [...projects, newProject];
       setProjects(updatedProjects);
-      
-      localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
-      
-      localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
-      
-      localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify([]));
       
       toast({
         title: "Project created",
