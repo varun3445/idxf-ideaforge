@@ -251,6 +251,9 @@ const ProjectsList: React.FC = () => {
         const nextDeadline = getNextDeadline(project.id);
         const waitlistCount = projectWaitlists[project.id] || 0;
         const isBackingProject = backingProjects[project.id] || false;
+        
+        const collaboratorCount = (project.owner_id === (user?.id || 'user-1')) ? 1 : 3;
+        
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
@@ -270,7 +273,7 @@ const ProjectsList: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <Users className="h-4 w-4 mr-1" />
-                    3 collaborators
+                    {collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}
                   </div>
                 </div>
                 
@@ -288,8 +291,6 @@ const ProjectsList: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    
-                    
                     <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={e => {
                   e.stopPropagation();
                   handleShareProject(project);
@@ -396,3 +397,4 @@ const ProjectsWithProvider: React.FC = () => {
 };
 
 export default ProjectsWithProvider;
+

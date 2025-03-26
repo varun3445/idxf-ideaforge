@@ -393,7 +393,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
       
-      localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify([]));
+      const initialCollaborators = [];
+      localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify(initialCollaborators));
       
       toast({
         title: 'Success',
