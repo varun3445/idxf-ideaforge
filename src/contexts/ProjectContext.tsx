@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '../hooks/use-toast';
@@ -167,6 +166,12 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     loadUserProjects();
     loadNotifications();
+    
+    // Load backing projects from localStorage
+    const savedBackingProjects = localStorage.getItem('backingProjects');
+    if (savedBackingProjects) {
+      setBackingProjects(JSON.parse(savedBackingProjects));
+    }
   }, [user]);
 
   const loadNotifications = () => {
@@ -418,6 +423,8 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     
     // Save to localStorage
     localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
+    
+    console.log("Project published state updated:", projectId, isPublished);
   };
 
   const publishProjectWithDetails = async (
@@ -428,7 +435,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
     
-    // Handle image upload (in a real app, this would upload to a storage service)
+    // Handle image upload (in a real app, this would upload the file to storage)
     let imageUrl = project.imageUrl;
     if (details.image) {
       // Simulate image upload - in a real app you'd upload the file to storage
@@ -463,7 +470,13 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     try {
       const savedProjects = localStorage.getItem('userProjects');
       if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
+        const parsedProjects = JSON.parse(savedProjects);
+        console.log("Loaded projects from localStorage:", parsedProjects);
+        setProjects(parsedProjects);
+      } else {
+        // Initialize with empty array if none exist
+        localStorage.setItem('userProjects', JSON.stringify([]));
+        setProjects([]);
       }
     } catch (error: any) {
       console.error('Error loading projects:', error);
@@ -577,21 +590,25 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleBackingProject = (projectId: string) => {
-    setBackingProjects(prev => ({
-      ...prev,
-      [projectId]: !prev[projectId],
-    }));
-  
-    // Save to localStorage
-    localStorage.setItem('backingProjects', JSON.stringify({
+    const updatedBackingProjects = {
       ...backingProjects,
       [projectId]: !backingProjects[projectId],
-    }));
+    };
+    
+    setBackingProjects(updatedBackingProjects);
+  
+    // Save to localStorage
+    localStorage.setItem('backingProjects', JSON.stringify(updatedBackingProjects));
+    
+    console.log("Updated backing projects:", updatedBackingProjects);
   };
   
   const getBackingProjects = () => {
     const savedBackingProjects = localStorage.getItem('backingProjects');
-    return savedBackingProjects ? JSON.parse(savedBackingProjects) : {};
+    if (savedBackingProjects) {
+      return JSON.parse(savedBackingProjects);
+    }
+    return {};
   };
 
   const addNotification = (notification: Notification) => {
@@ -613,10 +630,10 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       const currentUserId = user?.id || 'user-1';
       
       const newProject: Project = {
-        id: `project-${Date.now()}`,
+        id: uuidv4(),
         title,
         description,
-        owner_id: currentUserId, // Use the current user's ID
+        owner_id: currentUserId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         current_step_id: null,
@@ -628,18 +645,10 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       console.log("Creating new project with owner_id:", currentUserId);
       
       // Update projects array with the new project
-      setProjects(prev => [...prev, newProject]);
+      const updatedProjects = [...projects, newProject];
+      setProjects(updatedProjects);
       
       // Save to localStorage
-      const savedProjects = localStorage.getItem('userProjects');
-      let updatedProjects = [];
-      
-      if (savedProjects) {
-        updatedProjects = [...JSON.parse(savedProjects), newProject];
-      } else {
-        updatedProjects = [newProject];
-      }
-      
       localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
       
       // Initialize project steps as empty array

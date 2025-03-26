@@ -21,21 +21,9 @@ import Signup from './pages/Signup';
 
 import './App.css';
 
-// Protected route component to check authentication
+// Modified protected route component to allow access without authentication
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
-  const location = useLocation();
-
-  // If auth is still loading, show nothing (we could add a loading spinner here)
-  if (loading) {
-    return null;
-  }
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
+  // No authentication check - always allow access
   return <>{children}</>;
 };
 
@@ -59,7 +47,7 @@ const AppContent = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           
-          {/* Protected routes */}
+          {/* All routes are now effectively protected but always accessible */}
           <Route path="/explore" element={
             <ProtectedRoute>
               <Explore />

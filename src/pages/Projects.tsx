@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
+import { Plus, Calendar, Layers, Users, Share2, Loader2, Heart } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Button } from '../components/ui/button';
@@ -263,14 +263,14 @@ const Projects: React.FC<ProjectsProps> = () => {
   
   useEffect(() => {
     loadUserProjects();
+    console.log("Loading user projects in Projects.tsx");
   }, [loadUserProjects]);
   
   useEffect(() => {
     const fetchBackingProjects = async () => {
-      const backedProjects = await getBackingProjects();
-      if (backedProjects) {
-        setBackingProjects(backedProjects);
-      }
+      const backedProjects = getBackingProjects();
+      setBackingProjects(backedProjects);
+      console.log("Backing projects:", backedProjects);
     };
     fetchBackingProjects();
   }, [getBackingProjects]);
@@ -300,6 +300,9 @@ const Projects: React.FC<ProjectsProps> = () => {
       setIsCreateDialogOpen(false);
       setNewProjectTitle('');
       setNewProjectDescription('');
+      
+      // Reload projects to make sure we see the new one
+      loadUserProjects();
     } catch (error) {
       console.error("Failed to create project", error);
       toast({
@@ -328,7 +331,6 @@ const Projects: React.FC<ProjectsProps> = () => {
     }
   };
   
-  // Correctly filter projects by owner_id exactly matching the userId
   const ownedProjects = projects.filter(p => p.owner_id === userId);
   const collaborativeProjects = projects.filter(p => p.owner_id !== userId);
   
@@ -361,76 +363,77 @@ const Projects: React.FC<ProjectsProps> = () => {
           const isBackingProject = backingProjects[project.id] || false;
           
           const isOwnedByCurrentUser = project.owner_id === userId;
-          // Only set collaborator count to 1 if it's owned by the current user and has no actual collaborators
           const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
           
-          return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-xl line-clamp-1 pr-4 cursor-pointer" 
-                  onClick={() => navigate(`/forge/${project.id}`)}>
-                  {project.title}
-                </CardTitle>
-                {project.is_published && (
-                  <Badge variant="secondary" className="ml-2 shrink-0">
-                    Published
-                  </Badge>
-                )}
-              </div>
-              <CardDescription className="line-clamp-2 mt-1">
-                {project.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-2 flex-grow">
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="mr-1 h-4 w-4" />
-                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Layers className="mr-1 h-4 w-4" />
-                  <span>3 steps completed</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Users className="mr-1 h-4 w-4" />
-                  <span>{collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}</span>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between pt-2 border-t">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/forge/${project.id}`)}>
-                Open Project
-              </Button>
-              
-              {!isOwnedByCurrentUser && (
-                <Button 
-                  variant={isBackingProject ? "secondary" : "outline"} 
-                  size="sm"
-                  onClick={() => toggleBackingProject(project.id)}
-                >
-                  {isBackingProject ? (
-                    <>
-                      <Heart className="mr-1 h-4 w-4 fill-current" /> Backing
-                    </>
-                  ) : (
-                    <>
-                      <Heart className="mr-1 h-4 w-4" /> Back Project
-                    </>
+          return (
+            <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl line-clamp-1 pr-4 cursor-pointer" 
+                    onClick={() => navigate(`/forge/${project.id}`)}>
+                    {project.title}
+                  </CardTitle>
+                  {project.is_published && (
+                    <Badge variant="secondary" className="ml-2 shrink-0">
+                      Published
+                    </Badge>
                   )}
+                </div>
+                <CardDescription className="line-clamp-2 mt-1">
+                  {project.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2 flex-grow">
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="mr-1 h-4 w-4" />
+                    <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Layers className="mr-1 h-4 w-4" />
+                    <span>3 steps completed</span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="mr-1 h-4 w-4" />
+                    <span>{collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between pt-2 border-t">
+                <Button variant="outline" size="sm" onClick={() => navigate(`/forge/${project.id}`)}>
+                  Open Project
                 </Button>
-              )}
-              
-              {isOwnedByCurrentUser && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleShareProject(project)}
-                >
-                  <Share2 className="mr-1 h-4 w-4" /> Share
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
+                
+                {!isOwnedByCurrentUser && (
+                  <Button 
+                    variant={isBackingProject ? "secondary" : "outline"} 
+                    size="sm"
+                    onClick={() => toggleBackingProject(project.id)}
+                  >
+                    {isBackingProject ? (
+                      <>
+                        <Heart className="mr-1 h-4 w-4 fill-current" /> Backing
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="mr-1 h-4 w-4" /> Back Project
+                      </>
+                    )}
+                  </Button>
+                )}
+                
+                {isOwnedByCurrentUser && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleShareProject(project)}
+                  >
+                    <Share2 className="mr-1 h-4 w-4" /> Share
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          );
         })}
       </div>
     );
@@ -473,7 +476,6 @@ const Projects: React.FC<ProjectsProps> = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Project creation dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -532,7 +534,6 @@ const Projects: React.FC<ProjectsProps> = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Share project dialog */}
         <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -554,7 +555,16 @@ const Projects: React.FC<ProjectsProps> = () => {
                   />
                   <Button 
                     className="ml-2"
-                    onClick={handleCopyLink}
+                    onClick={() => {
+                      if (selectedProject?.share_code) {
+                        navigator.clipboard.writeText(`https://ideaforge.app/join-project/${selectedProject.share_code}`);
+                        toast({
+                          title: "Link copied",
+                          description: "The project link has been copied to your clipboard.",
+                        });
+                        setIsShareDialogOpen(false);
+                      }
+                    }}
                   >
                     Copy
                   </Button>
