@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
@@ -227,8 +228,14 @@ const ProjectsList: React.FC = () => {
     }
   };
   
+  // Make sure to correctly filter projects by owner_id exactly matching the userId
   const ownedProjects = projects.filter(p => p.owner_id === userId);
   const collaborativeProjects = projects.filter(p => p.owner_id !== userId);
+  
+  console.log("Current user ID:", userId);
+  console.log("All projects:", projects);
+  console.log("Owned projects:", ownedProjects);
+  console.log("Collaborative projects:", collaborativeProjects);
   
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
@@ -254,6 +261,7 @@ const ProjectsList: React.FC = () => {
         const isBackingProject = backingProjects[project.id] || false;
         
         const isOwnedByCurrentUser = project.owner_id === userId;
+        // Set collaborator count to 1 for new owned projects
         const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
         
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">

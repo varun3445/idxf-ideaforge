@@ -122,28 +122,12 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   const loadNotifications = () => {
-    const mockNotifications: Notification[] = [
-      {
-        id: 'notif-1',
-        user_id: 'user-1',
-        project_id: '1',
-        type: 'collaboration_invitation',
-        created_at: new Date().toISOString(),
-        read: false,
-        data: {
-          project_title: 'AI-Powered Visual Design Assistant',
-          inviter_name: 'Alice Wonderland',
-          collaboration_id: 'collab-mock-1'
-        }
-      }
-    ];
-
     const savedNotifications = localStorage.getItem('userNotifications');
     if (savedNotifications) {
       const parsedNotifications = JSON.parse(savedNotifications);
-      setNotifications([...mockNotifications, ...parsedNotifications]);
+      setNotifications(parsedNotifications);
     } else {
-      setNotifications(mockNotifications);
+      setNotifications([]);
     }
   };
 
@@ -366,11 +350,13 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     setError(null);
     
     try {
+      const userId = 'user-1';
+      
       const newProject: Project = {
         id: `project-${Date.now()}`,
         title,
         description,
-        owner_id: 'user-1',
+        owner_id: userId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         current_step_id: null,
@@ -378,6 +364,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         backers_count: 0,
         is_published: false
       };
+      
+      console.log("Creating new project with owner_id:", userId);
       
       setProjects(prev => [...prev, newProject]);
       
@@ -393,7 +381,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
       
-      const initialCollaborators = [];
+      const initialCollaborators: ProjectCollaborator[] = [];
       localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify(initialCollaborators));
       
       toast({
@@ -617,7 +605,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         project.id === projectId ? 
         { 
           ...project, 
-          is_published: true, 
+          is_published: true,
           overview: details.overview,
           goals: details.goals,
           challenges: details.challenges,
@@ -911,3 +899,4 @@ export const useProject = () => {
   }
   return context;
 };
+
