@@ -41,8 +41,13 @@ const AddCollaboratorDialog: React.FC<AddCollaboratorDialogProps> = ({
     }
     
     try {
-      // Pass only the email as required by the updated method
-      await addCollaborator(email.trim());
+      // Pass all required arguments: email, projectId, role, permissions
+      await addCollaborator(
+        email.trim(),
+        projectId,
+        'collaborator',
+        ['view', 'edit']
+      );
       
       setEmail('');
       onOpenChange(false);
