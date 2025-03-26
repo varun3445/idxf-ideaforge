@@ -34,6 +34,44 @@ export interface ProjectStep {
   order_index: number;
   is_completed: boolean;
   parent_step_id: string | null;
+  created_at: string; // Adding the missing created_at property
+}
+
+// Add missing type definitions
+export interface ProjectCollaborator {
+  id: string;
+  project_id: string;
+  user_id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+}
+
+export interface StepAssignment {
+  id: string;
+  step_id: string;
+  user_id: string;
+  assigned_at: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  project_id: string;
+  type: 'collaboration_invitation' | 'step_assignment' | 'project_update';
+  read: boolean;
+  created_at: string;
+  data: any;
 }
 
 interface ProjectContextType {
@@ -56,6 +94,19 @@ interface ProjectContextType {
   updateProjectStep: (step: Partial<ProjectStep>) => Promise<void>;
   deleteProjectStep: (stepId: string) => Promise<void>;
   setCurrentStep: (step: ProjectStep | null) => void;
+  // Add missing properties in ProjectContextType
+  collaborators: ProjectCollaborator[];
+  stepAssignments: StepAssignment[];
+  notifications: Notification[];
+  addCollaborator: (email: string) => Promise<void>;
+  removeCollaborator: (collaboratorId: string) => Promise<void>;
+  createStep: (step: { title: string; description?: string; parent_step_id?: string | null; order_index: number }) => Promise<boolean>;
+  deleteStep: (stepId: string) => Promise<boolean>;
+  completeStep: (stepId: string, isCompleted: boolean) => Promise<boolean>;
+  assignStep: (stepId: string, userId: string) => Promise<void>;
+  unassignStep: (assignmentId: string) => Promise<void>;
+  respondToCollaboration: (collaborationId: string, accept: boolean) => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -78,6 +129,9 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [projectSteps, setProjectSteps] = useState<ProjectStep[]>([]);
+  const [collaborators, setCollaborators] = useState<ProjectCollaborator[]>([]);
+  const [stepAssignments, setStepAssignments] = useState<StepAssignment[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentStep, setCurrentStep] = useState<ProjectStep | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,6 +241,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
               order_index: 1,
               is_completed: false,
               parent_step_id: null,
+              created_at: new Date().toISOString()
             },
             {
               id: 'step-2',
@@ -196,6 +251,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
               order_index: 2,
               is_completed: false,
               parent_step_id: null,
+              created_at: new Date().toISOString()
             },
           ];
           setProjectSteps(mockSteps);
@@ -363,6 +419,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const mockStep: ProjectStep = {
           id: uuidv4(),
           ...newStep,
+          created_at: new Date().toISOString()
         } as ProjectStep;
         setProjectSteps([...projectSteps, mockStep]);
       }
@@ -413,6 +470,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
+      // Also remove any substeps
+      const substeps = projectSteps.filter(s => s.parent_step_id === stepId);
+      for (const substep of substeps) {
+        await deleteStep(substep.id);
+      }
+
       // Update local state
       setProjectSteps((prevSteps) => prevSteps.filter((s) => s.id !== stepId));
     } catch (error) {
@@ -421,8 +484,227 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const setCurrentStep = (step: ProjectStep | null) => {
-    setCurrentStep(step);
+  // Implement the missing functions
+
+  const createStep = async (step: { 
+    title: string; 
+    description?: string; 
+    parent_step_id?: string | null; 
+    order_index: number 
+  }) => {
+    if (!currentProject) {
+      console.error('No project is currently loaded.');
+      return false;
+    }
+
+    try {
+      const newStep: Omit<ProjectStep, 'id' | 'created_at' | 'is_completed'> = {
+        project_id: currentProject.id,
+        title: step.title,
+        description: step.description || '',
+        order_index: step.order_index,
+        parent_step_id: step.parent_step_id || null,
+      };
+
+      if (supabaseEnabled) {
+        const { data, error } = await supabase
+          .from('project_steps')
+          .insert({
+            ...newStep,
+            is_completed: false
+          })
+          .select()
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        setProjectSteps([...projectSteps, data]);
+        return true;
+      } else {
+        // Mock implementation for when Supabase is not available
+        const mockStep: ProjectStep = {
+          id: uuidv4(),
+          ...newStep,
+          is_completed: false,
+          created_at: new Date().toISOString()
+        };
+        setProjectSteps([...projectSteps, mockStep]);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error adding project step:', error);
+      setError('Failed to add project step');
+      return false;
+    }
+  };
+
+  const deleteStep = async (stepId: string) => {
+    try {
+      if (supabaseEnabled) {
+        const { error } = await supabase
+          .from('project_steps')
+          .delete()
+          .eq('id', stepId);
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      // Also remove any substeps
+      const substeps = projectSteps.filter(s => s.parent_step_id === stepId);
+      for (const substep of substeps) {
+        await deleteStep(substep.id);
+      }
+
+      // Update local state
+      setProjectSteps((prevSteps) => prevSteps.filter((s) => s.id !== stepId));
+      return true;
+    } catch (error) {
+      console.error('Error deleting project step:', error);
+      setError('Failed to delete project step');
+      return false;
+    }
+  };
+
+  const completeStep = async (stepId: string, isCompleted: boolean) => {
+    try {
+      if (supabaseEnabled) {
+        const { error } = await supabase
+          .from('project_steps')
+          .update({ is_completed: isCompleted })
+          .eq('id', stepId);
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      // Update local state
+      setProjectSteps((prevSteps) =>
+        prevSteps.map((s) => (s.id === stepId ? { ...s, is_completed: isCompleted } : s))
+      );
+      return true;
+    } catch (error) {
+      console.error('Error completing project step:', error);
+      setError('Failed to complete project step');
+      return false;
+    }
+  };
+
+  const addCollaborator = async (email: string) => {
+    if (!currentProject) {
+      console.error('No project is currently loaded.');
+      return;
+    }
+
+    try {
+      // In a real app, you would:
+      // 1. Check if user exists
+      // 2. Add to collaborators table
+      // 3. Send invitation notification
+
+      // Mock implementation
+      const newCollaborator: ProjectCollaborator = {
+        id: uuidv4(),
+        project_id: currentProject.id,
+        user_id: `user-${Date.now()}`,
+        status: 'pending',
+        user: {
+          id: `user-${Date.now()}`,
+          name: email.split('@')[0],
+          email: email
+        }
+      };
+
+      setCollaborators([...collaborators, newCollaborator]);
+    } catch (error) {
+      console.error('Error adding collaborator:', error);
+      setError('Failed to add collaborator');
+    }
+  };
+
+  const removeCollaborator = async (collaboratorId: string) => {
+    try {
+      // In a real app, you would delete from the database
+
+      // Mock implementation
+      setCollaborators(collaborators.filter(c => c.id !== collaboratorId));
+    } catch (error) {
+      console.error('Error removing collaborator:', error);
+      setError('Failed to remove collaborator');
+    }
+  };
+
+  const assignStep = async (stepId: string, userId: string) => {
+    try {
+      // In a real app, you would add to assignments table
+
+      // Mock implementation
+      const newAssignment: StepAssignment = {
+        id: uuidv4(),
+        step_id: stepId,
+        user_id: userId,
+        assigned_at: new Date().toISOString(),
+        user: collaborators.find(c => c.user_id === userId)?.user
+      };
+
+      setStepAssignments([...stepAssignments, newAssignment]);
+    } catch (error) {
+      console.error('Error assigning step:', error);
+      setError('Failed to assign step');
+    }
+  };
+
+  const unassignStep = async (assignmentId: string) => {
+    try {
+      // In a real app, you would delete from assignments table
+
+      // Mock implementation
+      setStepAssignments(stepAssignments.filter(a => a.id !== assignmentId));
+    } catch (error) {
+      console.error('Error unassigning step:', error);
+      setError('Failed to unassign step');
+    }
+  };
+
+  const respondToCollaboration = async (collaborationId: string, accept: boolean) => {
+    try {
+      // In a real app, you would update collaboration status in database
+
+      // Mock implementation
+      setCollaborators(collaborators.map(c => 
+        c.id === collaborationId 
+          ? { ...c, status: accept ? 'accepted' : 'rejected' } 
+          : c
+      ));
+
+      // Mark related notifications as read
+      setNotifications(notifications.map(n => 
+        (n.type === 'collaboration_invitation' && n.data?.collaboration_id === collaborationId)
+          ? { ...n, read: true }
+          : n
+      ));
+    } catch (error) {
+      console.error('Error responding to collaboration:', error);
+      setError('Failed to respond to collaboration');
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      // In a real app, you would update notification in database
+
+      // Mock implementation
+      setNotifications(notifications.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      setError('Failed to mark notification as read');
+    }
   };
 
   const value: ProjectContextType = {
@@ -441,6 +723,19 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateProjectStep,
     deleteProjectStep,
     setCurrentStep,
+    // Add the missing functions and state to the context value
+    collaborators,
+    stepAssignments,
+    notifications,
+    addCollaborator,
+    removeCollaborator,
+    createStep,
+    deleteStep,
+    completeStep,
+    assignStep,
+    unassignStep,
+    respondToCollaboration,
+    markNotificationAsRead
   };
   
   return (
