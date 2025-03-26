@@ -1,13 +1,19 @@
-
 import { useState, useEffect } from "react";
 import { User } from "../types/auth.types";
 import { supabase } from "../integrations/supabase/client";
 
 export const useAuthProvider = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>({
+    id: 'user-1',
+    email: 'user@example.com',
+    name: 'Default User',
+    location: 'Somewhere',
+    skills: ['React', 'JavaScript'],
+    avatar: null
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
