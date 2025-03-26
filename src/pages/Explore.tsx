@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { supabase } from '../integrations/supabase/client';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +52,7 @@ const Explore = () => {
     console.log("Loading published projects...");
     
     try {
+      // First, load the mock projects
       const mockProjects: PortfolioItem[] = [
         {
           id: '1',
@@ -92,8 +95,38 @@ const Explore = () => {
         }
       ];
       
-      setPortfolioItems(mockProjects);
-      console.log("Mock projects loaded:", mockProjects);
+      // Now, try to fetch real projects from Supabase
+      let realProjects: PortfolioItem[] = [];
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('is_published', true);
+      
+      if (error) {
+        console.error('Error fetching published projects:', error);
+      } else if (data) {
+        console.log('Fetched real projects:', data);
+        
+        // Transform Supabase data to match our PortfolioItem interface
+        realProjects = data.map(project => ({
+          id: project.id,
+          title: project.title || 'Untitled Project',
+          description: project.description || 'No description available',
+          imageUrl: project.image_url || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop',
+          backers_count: project.backers_count || 0,
+          owner_id: project.owner_id,
+          created_at: project.created_at,
+          collaborators: 1, // Default value
+          category: 'Project', // Default category
+          techStack: ['Web Development'] // Default tech stack
+        }));
+      }
+      
+      // Combine mock projects with real projects
+      const combinedProjects = [...mockProjects, ...realProjects];
+      setPortfolioItems(combinedProjects);
+      console.log("Combined projects loaded:", combinedProjects);
     } catch (error) {
       console.error('Error loading published projects:', error);
       toast({
