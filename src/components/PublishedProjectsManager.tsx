@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, EyeOff } from 'lucide-react';
@@ -16,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from './ui/textarea';
 import { format } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../AuthContext';
 
 interface Project {
   id: string;
@@ -26,6 +26,7 @@ interface Project {
   backersCount: number;
   createdAt: string;
   updatedAt: string;
+  owner_id: string;
 }
 
 interface PublishedProjectsManagerProps {
@@ -43,11 +44,15 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [updateContent, setUpdateContent] = useState('');
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
+  // Filter projects based on ownership and published status
   const publishedProjects = projects.filter(project => project.published);
+  const ownedProjects = publishedProjects.filter(project => project.owner_id === user?.id);
+  const collaborativeProjects = publishedProjects.filter(project => project.owner_id !== user?.id);
 
   const handleViewProject = (projectId: string) => {
     navigate(`/project/${projectId}`);
@@ -86,19 +91,27 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
     setIsUpdateDialogOpen(true);
   };
 
-  if (publishedProjects.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">You don't have any published projects yet.</p>
-        <Button className="mt-4" onClick={() => navigate('/forge')}>Create New Project</Button>
-      </div>
-    );
-  }
+  const renderProjectGrid = (projectsList: Project[]) => {
+    if (projectsList.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            {projectsList === ownedProjects 
+              ? "You don't have any published projects yet."
+              : "You're not collaborating on any projects yet."}
+          </p>
+          {projectsList === ownedProjects && (
+            <Button className="mt-4" onClick={() => navigate('/forge')}>
+              Create New Project
+            </Button>
+          )}
+        </div>
+      );
+    }
 
-  return (
-    <div className="space-y-6">
+    return (
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {publishedProjects.map((project) => (
+        {projectsList.map((project) => (
           <Card key={project.id} className="overflow-hidden">
             <div className="aspect-video w-full relative">
               <img 
@@ -181,6 +194,188 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
             </CardFooter>
           </Card>
         ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {(ownedProjects.length === 0 && collaborativeProjects.length === 0) ? (
+          <div className="text-center py-8 col-span-full">
+            <p className="text-muted-foreground">You don't have any published projects yet.</p>
+            <Button className="mt-4" onClick={() => navigate('/forge')}>Create New Project</Button>
+          </div>
+        ) : (
+          <>
+            {ownedProjects.map((project) => (
+              <Card key={project.id} className="overflow-hidden">
+                <div className="aspect-video w-full relative">
+                  <img 
+                    src={project.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                    alt={project.title}
+                    className="object-cover w-full h-full"
+                  />
+                  <Badge 
+                    className="absolute top-2 right-2" 
+                    variant={project.published ? "default" : "outline"}
+                  >
+                    {project.published ? "Published" : "Draft"}
+                  </Badge>
+                </div>
+                <CardHeader className="p-4">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewProject(project.id)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditProject(project.id)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openUpdateDialog(project)}>
+                          <Bell className="mr-2 h-4 w-4" />
+                          Add Update
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleTogglePublishStatus(project)}>
+                          {project.published ? (
+                            <>
+                              <EyeOff className="mr-2 h-4 w-4" />
+                              Unpublish
+                            </>
+                          ) : (
+                            <>
+                              <Globe className="mr-2 h-4 w-4" />
+                              Publish
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {project.backersCount} {project.backersCount === 1 ? 'backer' : 'backers'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      Updated {format(new Date(project.updatedAt || project.createdAt), 'MMM d, yyyy')}
+                    </span>
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0 flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleViewProject(project.id)}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => openUpdateDialog(project)}
+                  >
+                    Add Update
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+            {collaborativeProjects.map((project) => (
+              <Card key={project.id} className="overflow-hidden">
+                <div className="aspect-video w-full relative">
+                  <img 
+                    src={project.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                    alt={project.title}
+                    className="object-cover w-full h-full"
+                  />
+                  <Badge 
+                    className="absolute top-2 right-2" 
+                    variant={project.published ? "default" : "outline"}
+                  >
+                    {project.published ? "Published" : "Draft"}
+                  </Badge>
+                </div>
+                <CardHeader className="p-4">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewProject(project.id)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditProject(project.id)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openUpdateDialog(project)}>
+                          <Bell className="mr-2 h-4 w-4" />
+                          Add Update
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleTogglePublishStatus(project)}>
+                          {project.published ? (
+                            <>
+                              <EyeOff className="mr-2 h-4 w-4" />
+                              Unpublish
+                            </>
+                          ) : (
+                            <>
+                              <Globe className="mr-2 h-4 w-4" />
+                              Publish
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {project.backersCount} {project.backersCount === 1 ? 'backer' : 'backers'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      Updated {format(new Date(project.updatedAt || project.createdAt), 'MMM d, yyyy')}
+                    </span>
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0 flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleViewProject(project.id)}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => openUpdateDialog(project)}
+                  >
+                    Add Update
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </>
+        )}
       </div>
 
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
