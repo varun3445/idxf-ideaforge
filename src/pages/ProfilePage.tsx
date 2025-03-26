@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -70,7 +71,7 @@ const ProfilePage = () => {
           variant: "destructive"
         });
       } else if (data) {
-        // Transform project data
+        // Transform project data - Fixed the image_url to imageUrl property name
         const userProjects = data.map(project => ({
           id: project.id,
           title: project.title || 'Untitled Project',
