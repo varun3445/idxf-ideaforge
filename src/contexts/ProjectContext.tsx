@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../integrations/supabase/client';
@@ -91,9 +90,9 @@ interface ProjectContextType {
   createStep: (stepData: { title: string; description?: string; parent_step_id?: string | null; order_index: number }) => Promise<boolean>;
   createProjectStep: (step: Omit<ProjectStep, 'id' | 'created_at'>) => Promise<void>;
   updateProjectStep: (step: Partial<ProjectStep> & { id: string }) => Promise<void>;
-  deleteStep: (stepId: string) => Promise<void>;
+  deleteStep: (stepId: string) => Promise<boolean>;
   deleteProjectStep: (stepId: string) => Promise<void>;
-  completeStep: (stepId: string, isCompleted: boolean) => Promise<void>;
+  completeStep: (stepId: string, isCompleted: boolean) => Promise<boolean>;
   reorderProjectSteps: (steps: ProjectStep[]) => Promise<void>;
   
   // Collaborator methods
