@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +50,6 @@ const Explore = () => {
     console.log("Loading published projects...");
     
     try {
-      // Use mock data since we're disabling authentication
       const mockProjects: PortfolioItem[] = [
         {
           id: '1',
@@ -121,7 +119,7 @@ const Explore = () => {
   };
 
   const handleViewProject = (projectId: string) => {
-    navigate(`/forge/${projectId}`);
+    navigate(`/project/${projectId}`);
   };
 
   const filteredPortfolioItems = portfolioItems.filter(item => 
