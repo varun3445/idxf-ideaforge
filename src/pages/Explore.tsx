@@ -109,11 +109,12 @@ const Explore = () => {
         console.log('Fetched real projects:', data);
         
         // Transform Supabase data to match our PortfolioItem interface
+        // Using a default image URL since the projects table doesn't have an image_url field
         realProjects = data.map(project => ({
           id: project.id,
           title: project.title || 'Untitled Project',
           description: project.description || 'No description available',
-          imageUrl: project.image_url || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop',
+          imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop', // Default image
           backers_count: project.backers_count || 0,
           owner_id: project.owner_id,
           created_at: project.created_at,
