@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../integrations/supabase/client';
@@ -11,8 +12,11 @@ export interface Project {
   is_published: boolean;
   share_code: string;
   current_step_id: string | null;
-  steps_order: string[];
   backers_count: number;
+  overview?: string;
+  goals?: string;
+  challenges?: string;
+  skills?: string[];
 }
 
 export interface ProjectStep {
@@ -68,8 +72,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       if (error) {
         throw new Error(error.message);
       }
-
-      // setProjects(data || []);
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -91,7 +93,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         throw new Error(projectError.message);
       }
 
-      setCurrentProject(project);
+      setCurrentProject(project as Project);
 
       // Fetch project steps
       const { data: steps, error: stepsError } = await supabase
@@ -132,7 +134,6 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
           owner_id: 'user-1', // Replace with actual user ID later
           is_published: false,
           share_code: shareCode,
-          steps_order: [],
           backers_count: 0,
           skills: skills || []
         }])
@@ -143,7 +144,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
         throw new Error(error.message);
       }
 
-      return data;
+      return data as Project;
     } catch (error: any) {
       setError(error.message);
       return null;
@@ -245,6 +246,8 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       const updates = steps.map(step => ({
         id: step.id,
         order_index: step.order_index,
+        project_id: step.project_id,
+        title: step.title
       }));
   
       // Execute batch update in Supabase

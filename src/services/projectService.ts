@@ -32,7 +32,8 @@ export const createProjectWithSkills = async (
           title, 
           description,
           owner_id: 'user-1', // Using default user for now
-          is_published: false
+          is_published: false,
+          skills
         }
       ])
       .select()
@@ -44,19 +45,6 @@ export const createProjectWithSkills = async (
     
     if (!projectData) {
       throw new Error('No project data returned after creation');
-    }
-    
-    // If there are skills, store them in a separate table or field
-    if (skills.length > 0) {
-      const { error: skillsError } = await supabase
-        .from('projects')
-        .update({ skills: skills })
-        .eq('id', projectData.id);
-      
-      if (skillsError) {
-        console.error('Error saving project skills:', skillsError);
-        // We don't throw here to avoid blocking project creation if skills fail
-      }
     }
     
     return projectData;

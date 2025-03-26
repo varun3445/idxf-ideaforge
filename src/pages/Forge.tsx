@@ -1,68 +1,56 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2, Globe } from 'lucide-react';
+
+import React, { useState, useEffect, FormEvent } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Plus, CheckCircle2, Share2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import AnimatedTransition from '@/components/AnimatedTransition';
-import ProjectStepCard from '@/components/ProjectStepCard';
-import AddStepDialog from '@/components/AddStepDialog';
-import AddCollaboratorDialog from '@/components/AddCollaboratorDialog';
-import CollaboratorsList from '@/components/CollaboratorsList';
-import { useProject, ProjectProvider, ProjectStep } from '../contexts/ProjectContext';
-import { useToast } from '../hooks/use-toast';
-import ProjectShareDialog from '@/components/ProjectShareDialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import NotificationDropdown from '@/components/NotificationDropdown';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useProject } from '../contexts/ProjectContext';
+import { createProjectWithSkills } from '../services/projectService';
+import ProjectStepCard from '../components/ProjectStepCard';
+import AddStepDialog from '../components/AddStepDialog';
+import ProjectShareDialog from '../components/ProjectShareDialog';
+import SuggestedStepsDialog from '../components/SuggestedStepsDialog';
+import AnimatedTransition from '../components/AnimatedTransition';
+import ProjectPublishDialog from '../components/ProjectPublishDialog';
+import SkillsetSelector from '../components/SkillsetSelector';
 
-const ForgeStyles = () => <style>
-    {`
-    .highlight-step {
-      background-color: rgba(var(--primary-rgb), 0.1);
-      border-radius: 0.5rem;
-      transition: background-color 0.3s ease-in-out;
-    }
-    .animate-pulse-once {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 1;
-    }
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.7;
-      }
-    }
-  `}
-  </style>;
+interface ForgeParams {
+  projectId?: string;
+}
 
-const ProjectContent: React.FC = () => {
-  const {
-    projectId
-  } = useParams<{
-    projectId: string;
-  }>();
+const Forge = () => {
+  const { projectId } = useParams<ForgeParams>();
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
-  const {
-    loadProjectDetails,
-    currentProject,
+  const { toast } = useToast();
+
+  // Project Context
+  const { 
+    currentProject, 
     projectSteps,
-    currentStep,
-    setCurrentStep,
+    loading, 
+    error, 
+    loadProjectDetails,
+    createProject,
+    createProjectStep,
     updateProject,
-    publishProject,
-    loading,
-    error
+    publishProject
   } = useProject();
-  const [addStepDialogOpen, setAddStepDialogOpen] = useState(false);
-  const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+
+  // Local State
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [skills, setSkills] = useState<string[]>([]);
+  const [isAddStepOpen, setIsAddStepOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isSuggestedStepsOpen, setIsSuggestedStepsOpen] = useState(false);
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const stepsRef = useRef<HTMLDivElement>(null);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -70,235 +58,425 @@ const ProjectContent: React.FC = () => {
     }
   }, [projectId, loadProjectDetails]);
 
-  const handleAddStep = () => {
-    setParentStepId(null);
-    setAddStepDialogOpen(true);
+  useEffect(() => {
+    if (currentProject) {
+      setTitle(currentProject.title);
+      setDescription(currentProject.description);
+      if (currentProject.skills) {
+        setSkills(currentProject.skills);
+      }
+    }
+  }, [currentProject]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please provide a title for your project.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (projectId && currentProject) {
+      // Update existing project
+      setSaveLoading(true);
+      try {
+        await updateProject({
+          id: projectId,
+          title,
+          description,
+          skills
+        });
+        
+        toast({
+          title: "Project updated",
+          description: "Your project has been updated successfully.",
+          variant: "success",
+        });
+      } catch (error) {
+        console.error('Error updating project:', error);
+        toast({
+          title: "Update failed",
+          description: "Failed to update project. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setSaveLoading(false);
+      }
+    } else {
+      // Create new project
+      setCreateLoading(true);
+      try {
+        const newProject = await createProject(title, description, skills);
+        if (newProject) {
+          toast({
+            title: "Project created",
+            description: "Your new project has been created successfully.",
+            variant: "success",
+          });
+          navigate(`/forge/${newProject.id}`);
+        } else {
+          throw new Error("Failed to create project");
+        }
+      } catch (error) {
+        console.error('Error creating project:', error);
+        toast({
+          title: "Creation failed",
+          description: "Failed to create project. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setCreateLoading(false);
+      }
+    }
   };
 
-  const handleAddSubstep = (parentId: string) => {
+  const handleAddStep = (parentId: string | null = null) => {
     setParentStepId(parentId);
-    setAddStepDialogOpen(true);
-  };
-
-  const handleShareProject = () => {
-    setShareDialogOpen(true);
+    setIsAddStepOpen(true);
   };
 
   const handleTogglePublish = async () => {
-    if (!currentProject) return;
+    if (!projectId || !currentProject) return;
     
     if (!currentProject.is_published) {
-      setPublishDialogOpen(true);
+      // If not published, open the publish dialog
+      setIsPublishDialogOpen(true);
     } else {
+      // If already published, unpublish directly
+      setPublishLoading(true);
       try {
-        await publishProject(currentProject.id, false);
-        
+        await publishProject(projectId, false);
         toast({
-          title: 'Project Unpublished',
-          description: 'Your project is now hidden from the explore page',
-          variant: 'default'
+          title: "Project unpublished",
+          description: "Your project is no longer visible on the Explore page.",
+          variant: "success",
         });
       } catch (error) {
         console.error('Error unpublishing project:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to update project publishing status',
-          variant: 'destructive'
+          title: "Action failed",
+          description: "Failed to unpublish project. Please try again.",
+          variant: "destructive",
         });
+      } finally {
+        setPublishLoading(false);
       }
     }
   };
 
   const handlePublishSuccess = () => {
-    if (projectId) {
-      loadProjectDetails(projectId);
-    }
-  };
-
-  const handleSetCurrentFocus = (step: ProjectStep) => {
-    if (!currentProject) return;
-    setCurrentStep(step);
-    updateProject({
-      id: currentProject.id,
-      current_step_id: step.id
-    });
+    // Handle after successful publishing from dialog
     toast({
-      title: 'Current focus updated',
-      description: `The team is now focused on "${step.title}"`,
-      variant: 'default'
+      title: "Success",
+      description: "Your project is now live on the Explore page.",
+      variant: "success",
     });
+    loadProjectDetails(projectId!);
   };
 
-  const scrollToStep = (stepId: string) => {
-    setTimeout(() => {
-      const stepElement = document.getElementById(`step-${stepId}`);
-      if (stepElement) {
-        stepElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-        stepElement.classList.add('highlight-step');
-        setTimeout(() => {
-          stepElement.classList.remove('highlight-step');
-        }, 2000);
-      }
-    }, 100);
-  };
-
-  const rootSteps = projectSteps.filter(step => step.parent_step_id === null).sort((a, b) => a.order_index - b.order_index);
-
-  if (loading && !currentProject) {
-    return <div className="flex h-full w-full items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>;
-  }
-
-  if (error && !currentProject) {
-    return <div className="flex h-full w-full items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium mb-2">Error loading project</h3>
-          <p className="text-sm text-gray-500 mb-4">{error}</p>
-          <Button onClick={() => navigate('/projects')}>Go back to projects</Button>
+  if (loading && projectId) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading project...</p>
         </div>
-      </div>;
-  }
-
-  if (!currentProject) {
-    return <div className="flex h-full w-full items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium mb-2">Project not found</h3>
-          <p className="text-sm text-gray-500 mb-4">The project you're looking for doesn't exist or you don't have access.</p>
-          <Button onClick={() => navigate('/projects')}>Go back to projects</Button>
-        </div>
-      </div>;
-  }
-
-  return <div className="page-container p-4 md:p-6">
-      <ForgeStyles />
-      <div className="mb-8">
-        <Button variant="ghost" onClick={() => navigate('/projects')} className="mb-2 pl-0 text-left">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Projects
-        </Button>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-left">{currentProject.title}</h1>
-            {currentProject.description && <p className="text-gray-600 mt-2">{currentProject.description}</p>}
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center gap-2 border rounded-md px-3 py-2 mr-2">
-              <Globe className="h-4 w-4 text-primary" />
-              <span className="mr-2">Publish</span>
-              <Switch 
-                checked={currentProject.is_published} 
-                onCheckedChange={handleTogglePublish} 
-                aria-label="Toggle publish" 
-              />
-            </div>
-            
-            <Button onClick={handleShareProject}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-            <Button onClick={() => setAddCollaboratorDialogOpen(true)}>
-              <Users className="mr-2 h-4 w-4" />
-              Add Collaborator
-            </Button>
-          </div>
-        </div>
-        
-        {currentStep && <Card className="mt-6 border-l-4 border-l-primary animate-pulse-once">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Layers className="mr-2 h-5 w-5 text-primary" />
-                Current Focus
-              </CardTitle>
-              <CardDescription>The step your team is currently focused on</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{currentStep.title}</h3>
-                  {currentStep.description && <p className="text-sm text-gray-600 mt-1">{currentStep.description}</p>}
-                </div>
-                <Button size="sm" variant="outline" onClick={() => scrollToStep(currentStep.id)}>
-                  <ListChecks className="mr-2 h-4 w-4" />
-                  Go to Step
-                </Button>
-              </div>
-            </CardContent>
-          </Card>}
       </div>
-      
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-1" ref={stepsRef}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Project Steps</h2>
-            <Button size="sm" onClick={handleAddStep}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Step
-            </Button>
-          </div>
-          
-          {rootSteps.length === 0 ? <Card>
-              <CardContent className="flex flex-col items-center justify-center p-8">
-                <ListChecks className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No steps yet</h3>
-                <p className="text-sm text-gray-500 text-center mb-4">
-                  Start by adding the first step to your project
-                </p>
-                <Button onClick={handleAddStep}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add First Step
-                </Button>
-              </CardContent>
-            </Card> : <div className="space-y-4">
-              {rootSteps.map(step => <div key={step.id} id={`step-${step.id}`} className="transition-all duration-300">
-                  <div className="flex items-start gap-2 mb-2">
-                    
-                    
-                    <div className="flex-1">
-                      <ProjectStepCard step={step} onAddSubstep={handleAddSubstep} isCurrentFocus={currentStep?.id === step.id} />
+    );
+  }
+
+  if (error && projectId) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Error loading project: {error}</p>
+          <Button variant="outline" onClick={() => navigate('/projects')}>
+            Return to Projects
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <AnimatedTransition>
+      <div className="container mx-auto py-8 px-4 md:px-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+            <div className="w-full md:w-2/3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-playfair text-2xl md:text-3xl">
+                    {projectId ? 'Edit Project' : 'Create New Project'}
+                  </CardTitle>
+                  <CardDescription>
+                    {projectId 
+                      ? 'Update your project details and manage its steps' 
+                      : 'Start by giving your project a title and description'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="title" className="block text-sm font-medium">
+                      Project Title
+                    </label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter a descriptive title for your project"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="description" className="block text-sm font-medium">
+                      Project Description
+                    </label>
+                    <Textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Describe your project and its goals"
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="skills" className="block text-sm font-medium">
+                      Project Skills
+                    </label>
+                    <SkillsetSelector 
+                      selectedSkills={skills} 
+                      onChange={setSkills} 
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Select the skills required for this project
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between items-center">
+                  <div className="flex flex-wrap gap-2">
+                    {projectId && (
+                      <>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setIsShareDialogOpen(true)}
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Share
+                        </Button>
+                        
+                        <Button 
+                          type="button" 
+                          variant={currentProject?.is_published ? "destructive" : "secondary"}
+                          onClick={handleTogglePublish}
+                          disabled={publishLoading}
+                        >
+                          {publishLoading ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : currentProject?.is_published ? (
+                            <EyeOff className="h-4 w-4 mr-2" />
+                          ) : (
+                            <Eye className="h-4 w-4 mr-2" />
+                          )}
+                          {currentProject?.is_published ? 'Unpublish' : 'Publish'}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  
+                  <Button type="submit" disabled={createLoading || saveLoading}>
+                    {(createLoading || saveLoading) && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {projectId ? 'Save Changes' : 'Create Project'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              {projectId && (
+                <div className="mt-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-playfair">Project Steps</h2>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsSuggestedStepsOpen(true)}
+                        size="sm"
+                      >
+                        Get Suggestions
+                      </Button>
+                      <Button 
+                        onClick={() => handleAddStep(null)}
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Step
+                      </Button>
                     </div>
                   </div>
-                </div>)}
-            </div>}
-        </div>
+                  
+                  {projectSteps.length === 0 ? (
+                    <Card className="bg-muted/50">
+                      <CardContent className="flex flex-col items-center justify-center p-6">
+                        <div className="text-muted-foreground text-center mb-4">
+                          <p>No steps have been created for this project yet.</p>
+                          <p>Break down your project into manageable steps to get started.</p>
+                        </div>
+                        <Button onClick={() => handleAddStep(null)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add First Step
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {projectSteps
+                        .filter(step => !step.parent_step_id)
+                        .sort((a, b) => a.order_index - b.order_index)
+                        .map(step => (
+                          <ProjectStepCard 
+                            key={step.id}
+                            step={step}
+                            onAddSubStep={() => handleAddStep(step.id)}
+                          />
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="w-full md:w-1/3 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Guide</CardTitle>
+                  <CardDescription>
+                    Follow these tips to create a great project
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Clear Title</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Choose a descriptive title that clearly communicates your project's purpose.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Thorough Description</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Explain your project's goals, technical approach, and anticipated outcomes.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Select Skills</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Choose the skills required for your project to attract the right collaborators.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Define Steps</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Break your project into clear, manageable steps. This helps collaborators understand the workflow.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {projectId && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Publish Your Project</CardTitle>
+                    <CardDescription>
+                      When you're ready to share your project with the world
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm">
+                      Publishing makes your project visible on the Explore page, where other users can find and support it.
+                    </p>
+                    <div className="pt-2">
+                      <Button 
+                        className="w-full" 
+                        variant={currentProject?.is_published ? "destructive" : "default"}
+                        onClick={handleTogglePublish}
+                        disabled={publishLoading}
+                      >
+                        {publishLoading ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : currentProject?.is_published ? (
+                          <EyeOff className="h-4 w-4 mr-2" />
+                        ) : (
+                          <Eye className="h-4 w-4 mr-2" />
+                        )}
+                        {currentProject?.is_published ? 'Unpublish Project' : 'Publish Project'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </form>
         
-        <div className="lg:w-80">
-          <CollaboratorsList onAddCollaborator={() => setAddCollaboratorDialogOpen(true)} />
-        </div>
+        {/* Dialogs */}
+        {projectId && (
+          <>
+            <AddStepDialog 
+              open={isAddStepOpen} 
+              onOpenChange={setIsAddStepOpen}
+              projectId={projectId}
+              parentStepId={parentStepId}
+            />
+            
+            <ProjectShareDialog
+              open={isShareDialogOpen}
+              onOpenChange={setIsShareDialogOpen}
+              shareCode={currentProject?.share_code || ''}
+              projectTitle={currentProject?.title || 'Project'}
+            />
+            
+            <SuggestedStepsDialog
+              open={isSuggestedStepsOpen}
+              onOpenChange={setIsSuggestedStepsOpen}
+              projectId={projectId}
+              projectTitle={currentProject?.title || ''}
+              projectDescription={currentProject?.description || ''}
+            />
+            
+            <ProjectPublishDialog
+              open={isPublishDialogOpen}
+              onOpenChange={setIsPublishDialogOpen}
+              projectId={projectId}
+              projectTitle={currentProject?.title || 'Project'}
+              onSuccess={handlePublishSuccess}
+            />
+          </>
+        )}
       </div>
-      
-      <AddStepDialog open={addStepDialogOpen} onOpenChange={setAddStepDialogOpen} parentStepId={parentStepId} />
-      
-      <AddCollaboratorDialog open={addCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen} />
-      
-      {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
-      
-      {currentProject && (
-        <ProjectPublishDialog 
-          open={publishDialogOpen} 
-          onOpenChange={setPublishDialogOpen} 
-          projectId={currentProject.id} 
-          projectTitle={currentProject.title}
-          onSuccess={handlePublishSuccess}
-        />
-      )}
-      
-      <div className="fixed z-30 top-4 right-4">
-        <NotificationDropdown />
-      </div>
-    </div>;
+    </AnimatedTransition>
+  );
 };
 
-const ForgeWithProvider: React.FC = () => {
-  return <AnimatedTransition>
-      <ProjectProvider>
-        <ProjectContent />
-      </ProjectProvider>
-    </AnimatedTransition>;
-};
-
-export default ForgeWithProvider;
+export default Forge;
