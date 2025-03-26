@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +44,7 @@ const Explore = () => {
   
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -51,9 +53,11 @@ const Explore = () => {
 
   const loadPublishedProjects = async () => {
     setLoading(true);
+    setFetchError(null);
     console.log("Loading published projects...");
     
     try {
+      // First, load the mock projects for demonstration
       const mockProjects: PortfolioItem[] = [
         {
           id: '1',
@@ -105,40 +109,50 @@ const Explore = () => {
         }
       ];
       
+      // Now, try to fetch real projects from Supabase
       let realProjects: PortfolioItem[] = [];
       
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('is_published', true);
-      
-      if (error) {
-        console.error('Error fetching published projects:', error);
-      } else if (data) {
-        console.log('Fetched real projects:', data);
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('is_published', true);
         
-        realProjects = data.map(project => ({
-          id: project.id,
-          title: project.title || 'Untitled Project',
-          description: project.description || 'No description available',
-          imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop',
-          backers_count: project.backers_count || 0,
-          owner_id: project.owner_id,
-          created_at: project.created_at,
-          collaborators: 1,
-          category: 'Project',
-          techStack: ['Web Development'],
-          overview: project.overview || '',
-          goals: project.goals || '',
-          challenges: project.challenges || ''
-        }));
+        if (error) {
+          console.error('Error fetching published projects:', error);
+          setFetchError(error.message);
+        } else if (data) {
+          console.log('Fetched real projects:', data);
+          
+          // Transform Supabase data to match our PortfolioItem interface
+          realProjects = data.map(project => ({
+            id: project.id,
+            title: project.title || 'Untitled Project',
+            description: project.description || 'No description available',
+            imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop', // Default image
+            backers_count: project.backers_count || 0,
+            owner_id: project.owner_id,
+            created_at: project.created_at,
+            collaborators: 1,
+            category: 'Project',
+            techStack: ['Web Development'],
+            overview: project.overview || '',
+            goals: project.goals || '',
+            challenges: project.challenges || ''
+          }));
+        }
+      } catch (dbError) {
+        console.error('Unexpected error fetching projects:', dbError);
+        setFetchError('Failed to fetch projects from database');
       }
       
+      // Combine mock projects with real projects
       const combinedProjects = [...mockProjects, ...realProjects];
       setPortfolioItems(combinedProjects);
       console.log("Combined projects loaded:", combinedProjects);
     } catch (error) {
-      console.error('Error loading published projects:', error);
+      console.error('Error in loadPublishedProjects:', error);
+      setFetchError('Failed to load projects');
       toast({
         title: 'Error',
         description: 'Failed to load published projects',
@@ -223,6 +237,15 @@ const Explore = () => {
           {loading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : fetchError ? (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium mb-2">Error loading projects</h3>
+              <p className="text-gray-600 mb-6">{fetchError}</p>
+              <div className="flex flex-col items-center gap-3">
+                <Button onClick={loadPublishedProjects} variant="outline">Try Again</Button>
+                <p className="text-sm text-muted-foreground">While we fix this issue, you can still view our demo projects below</p>
+              </div>
             </div>
           ) : filteredPortfolioItems.length === 0 ? (
             <div className="text-center py-12">

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, EyeOff } from 'lucide-react';
+import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, EyeOff, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -30,6 +30,8 @@ interface Project {
 
 interface PublishedProjectsManagerProps {
   projects: Project[];
+  error?: string | null;
+  onRefresh?: () => void;
   onUpdateProject: (projectId: string, data: Partial<Project>) => void;
   onPublishStatusChange: (projectId: string, publish: boolean) => void;
   onAddUpdate: (projectId: string, updateText: string) => void;
@@ -37,6 +39,8 @@ interface PublishedProjectsManagerProps {
 
 const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   projects,
+  error,
+  onRefresh,
   onUpdateProject,
   onPublishStatusChange,
   onAddUpdate,
@@ -86,11 +90,25 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
     setIsUpdateDialogOpen(true);
   };
 
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground mb-4">Error loading your published projects: {error}</p>
+        {onRefresh && (
+          <Button onClick={onRefresh} variant="outline" className="flex items-center gap-2">
+            <RefreshCw size={16} />
+            Try Again
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   if (publishedProjects.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-muted-foreground">You don't have any published projects yet.</p>
-        <Button className="mt-4" onClick={() => navigate('/forge')}>Create New Project</Button>
+        <Button className="mt-4" onClick={() => navigate('/projects')}>Create New Project</Button>
       </div>
     );
   }
