@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2, Info, Code, Target } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2 } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { useToast } from "@/hooks/use-toast";
@@ -17,13 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface PortfolioItem {
   id: string;
@@ -51,8 +43,6 @@ const Explore = () => {
   
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
-  const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -64,7 +54,6 @@ const Explore = () => {
     console.log("Loading published projects...");
     
     try {
-      // First, load the mock projects
       const mockProjects: PortfolioItem[] = [
         {
           id: '1',
@@ -116,7 +105,6 @@ const Explore = () => {
         }
       ];
       
-      // Now, try to fetch real projects from Supabase
       let realProjects: PortfolioItem[] = [];
       
       const { data, error } = await supabase
@@ -129,26 +117,23 @@ const Explore = () => {
       } else if (data) {
         console.log('Fetched real projects:', data);
         
-        // Transform Supabase data to match our PortfolioItem interface
-        // Using a default image URL since the projects table doesn't have an image_url field
         realProjects = data.map(project => ({
           id: project.id,
           title: project.title || 'Untitled Project',
           description: project.description || 'No description available',
-          imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop', // Default image
+          imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1170&auto=format&fit=crop',
           backers_count: project.backers_count || 0,
           owner_id: project.owner_id,
           created_at: project.created_at,
-          collaborators: 1, // Default value
-          category: 'Project', // Default category
-          techStack: ['Web Development'], // Default tech stack
+          collaborators: 1,
+          category: 'Project',
+          techStack: ['Web Development'],
           overview: project.overview || '',
           goals: project.goals || '',
           challenges: project.challenges || ''
         }));
       }
       
-      // Combine mock projects with real projects
       const combinedProjects = [...mockProjects, ...realProjects];
       setPortfolioItems(combinedProjects);
       console.log("Combined projects loaded:", combinedProjects);
@@ -178,11 +163,6 @@ const Explore = () => {
 
   const handleViewProject = (projectId: string) => {
     navigate(`/project/${projectId}`);
-  };
-
-  const handleViewProjectDetails = (project: PortfolioItem) => {
-    setSelectedProject(project);
-    setProjectDetailsOpen(true);
   };
 
   const filteredPortfolioItems = portfolioItems.filter(item => 
@@ -288,18 +268,6 @@ const Explore = () => {
                       </div>
                       
                       <div className="flex items-center justify-end gap-2">
-                        {(item.overview || item.goals || item.challenges) && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center font-medium gap-1 sm:gap-2"
-                            onClick={() => handleViewProjectDetails(item)}
-                          >
-                            <Info size={16} />
-                            <span>Details</span>
-                          </Button>
-                        )}
-                        
                         <Button 
                           variant="default" 
                           size="sm" 
@@ -317,64 +285,6 @@ const Explore = () => {
             </div>
           )}
         </section>
-
-        <Dialog open={projectDetailsOpen} onOpenChange={setProjectDetailsOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-playfair">{selectedProject?.title}</DialogTitle>
-              <DialogDescription>
-                {selectedProject?.description}
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedProject && (
-              <div className="space-y-6 mt-4">
-                {selectedProject.overview && (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Info size={18} className="text-primary" />
-                      Project Overview
-                    </h3>
-                    <p className="text-gray-600 whitespace-pre-line">
-                      {selectedProject.overview}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedProject.goals && (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Target size={18} className="text-primary" />
-                      Project Goals
-                    </h3>
-                    <p className="text-gray-600 whitespace-pre-line">
-                      {selectedProject.goals}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedProject.challenges && (
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Code size={18} className="text-primary" />
-                      Technical Challenges
-                    </h3>
-                    <p className="text-gray-600 whitespace-pre-line">
-                      {selectedProject.challenges}
-                    </p>
-                  </div>
-                )}
-                
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={() => handleViewProject(selectedProject.id)}>
-                    View Full Project
-                    <ArrowRight size={16} className="ml-2" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </AnimatedTransition>;
 };
