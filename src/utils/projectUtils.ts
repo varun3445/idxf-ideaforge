@@ -37,7 +37,7 @@ export const createLocalProject = (title: string, description: string, ownerId: 
       share_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
       current_step_id: null,
       collaborators: [], // Empty array of ProjectCollaborator, not a number
-      backers_count: 0,
+      backersCount: 0, // Changed from backers_count to backersCount to match the interface
       // These fields are for the Explore page
       creator: "Default User",
       techStack: ["React", "JavaScript"],
