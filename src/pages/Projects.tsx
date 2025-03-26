@@ -18,7 +18,6 @@ import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '../AuthContext';
-import SkillsetSelector from '@/components/SkillsetSelector';
 
 interface ProjectDeadline {
   id: string;
@@ -46,7 +45,6 @@ const ProjectsList: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [skills, setSkills] = useState<string[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
   const [creatingProject, setCreatingProject] = useState(false);
   const [suggestedSteps, setSuggestedSteps] = useState([]);
@@ -106,63 +104,24 @@ const ProjectsList: React.FC = () => {
     
     try {
       setCreatingProject(true);
-      console.log("Starting project creation with title:", title, "description:", description, "skills:", skills);
+      console.log("Creating project with title:", title, "and description:", description);
       
-      const connectionCheck = await supabase.from('projects').select('count()', { count: 'exact', head: true });
-      console.log("Database connection check before creating project:", connectionCheck);
-      
-      const newProject = await createProject(title.trim(), description.trim(), skills);
-      console.log("Project creation result:", newProject);
+      const newProject = await createProject(title.trim(), description.trim());
+      console.log("New project created:", newProject);
       
       if (newProject) {
         setTitle('');
         setDescription('');
-        setSkills([]);
         setCreateDialogOpen(false);
-        
-        toast({
-          title: 'Success',
-          description: 'Project created successfully!',
-          variant: 'default'
-        });
-        
         navigate(`/forge/${newProject.id}`);
       } else {
-        const mockProject = {
-          id: `mock-${Date.now()}`,
-          title: title.trim(),
-          description: description.trim(),
-          owner_id: user?.id || 'user-1',
-          created_at: new Date().toISOString(),
-          share_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-          is_published: false,
-          current_step_id: null,
-          backers_count: 0,
-          skills
-        };
-        
-        setCreateDialogOpen(false);
-        setTitle('');
-        setDescription('');
-        setSkills([]);
-        
-        toast({
-          title: 'Success',
-          description: 'Project created in offline mode. Some features may be limited.',
-          variant: 'default'
-        });
-        
-        loadProjects();
-        
-        setTimeout(() => {
-          navigate(`/forge/${mockProject.id}`);
-        }, 100);
+        throw new Error('Failed to create project');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating project:', error);
       toast({
         title: 'Error',
-        description: error?.message || 'Failed to create project. Please try again.',
+        description: 'Failed to create project. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -392,17 +351,6 @@ const ProjectsList: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="project-description">Description *</Label>
               <Textarea id="project-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter project description" rows={4} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="project-skills">Skills</Label>
-              <p className="text-sm text-muted-foreground mb-2">
-                Select skills relevant to your project
-              </p>
-              <SkillsetSelector 
-                selectedSkills={skills} 
-                onChange={setSkills} 
-              />
             </div>
 
             <Button type="button" variant="outline" className="w-full" onClick={handleGetAISuggestions} disabled={!title.trim() || !description.trim() || loadingAI}>

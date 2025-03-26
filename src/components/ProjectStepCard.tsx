@@ -89,7 +89,7 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
               </div>
               {step.description && <p className="text-sm text-gray-600 mt-1 text-left">{step.description}</p>}
               <div className="flex items-center mt-2 text-xs text-gray-500">
-                <span>Created {format(new Date(step.created_at || new Date()), 'MMM d, yyyy')}</span>
+                <span>Created {format(new Date(step.created_at), 'MMM d, yyyy')}</span>
               </div>
             </div>
           </div>
