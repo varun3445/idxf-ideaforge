@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, CheckCircle2, Share2, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -22,11 +21,10 @@ interface ForgeParams {
 }
 
 const Forge = () => {
-  const { projectId } = useParams<ForgeParams>();
+  const { projectId } = useParams<Record<string, string>>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Project Context
   const { 
     currentProject, 
     projectSteps,
@@ -34,12 +32,11 @@ const Forge = () => {
     error, 
     loadProjectDetails,
     createProject,
-    createProjectStep,
+    createStep,
     updateProject,
     publishProject
   } = useProject();
 
-  // Local State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
@@ -81,7 +78,6 @@ const Forge = () => {
     }
 
     if (projectId && currentProject) {
-      // Update existing project
       setSaveLoading(true);
       try {
         await updateProject({
@@ -107,7 +103,6 @@ const Forge = () => {
         setSaveLoading(false);
       }
     } else {
-      // Create new project
       setCreateLoading(true);
       try {
         const newProject = await createProject(title, description, skills);
@@ -143,10 +138,8 @@ const Forge = () => {
     if (!projectId || !currentProject) return;
     
     if (!currentProject.is_published) {
-      // If not published, open the publish dialog
       setIsPublishDialogOpen(true);
     } else {
-      // If already published, unpublish directly
       setPublishLoading(true);
       try {
         await publishProject(projectId, false);
@@ -169,7 +162,6 @@ const Forge = () => {
   };
 
   const handlePublishSuccess = () => {
-    // Handle after successful publishing from dialog
     toast({
       title: "Success",
       description: "Your project is now live on the Explore page.",
@@ -344,7 +336,8 @@ const Forge = () => {
                           <ProjectStepCard 
                             key={step.id}
                             step={step}
-                            onAddSubStep={() => handleAddStep(step.id)}
+                            onAddSubstep={() => handleAddStep(step.id)}
+                            isCurrentFocus={currentProject?.current_step_id === step.id}
                           />
                         ))}
                     </div>
@@ -440,13 +433,11 @@ const Forge = () => {
           </div>
         </form>
         
-        {/* Dialogs */}
         {projectId && (
           <>
             <AddStepDialog 
               open={isAddStepOpen} 
               onOpenChange={setIsAddStepOpen}
-              projectId={projectId}
               parentStepId={parentStepId}
             />
             
@@ -460,9 +451,8 @@ const Forge = () => {
             <SuggestedStepsDialog
               open={isSuggestedStepsOpen}
               onOpenChange={setIsSuggestedStepsOpen}
-              projectId={projectId}
-              projectTitle={currentProject?.title || ''}
-              projectDescription={currentProject?.description || ''}
+              steps={[]}
+              onViewTeam={() => {}}
             />
             
             <ProjectPublishDialog

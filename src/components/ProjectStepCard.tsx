@@ -6,7 +6,7 @@ import { Checkbox } from './ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ChevronDown, ChevronRight, Trash, MoreHorizontal, UserPlus, CheckCircle2, Image, FileText, Paperclip } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { useProject, ProjectStep, StepAssignment } from '../contexts/ProjectContext';
+import { useProject, ProjectStep, StepAssignment, ProjectCollaborator } from '../contexts/ProjectContext';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import StepImageDialog from './StepImageDialog';
