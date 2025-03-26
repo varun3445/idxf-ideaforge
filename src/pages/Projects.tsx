@@ -18,6 +18,7 @@ import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '../AuthContext';
+import SkillsetSelector from '@/components/SkillsetSelector';
 
 interface ProjectDeadline {
   id: string;
@@ -52,6 +53,7 @@ const ProjectsList: React.FC = () => {
   const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
   const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
   const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   
   useEffect(() => {
     loadProjects();
@@ -104,14 +106,15 @@ const ProjectsList: React.FC = () => {
     
     try {
       setCreatingProject(true);
-      console.log("Creating project with title:", title, "and description:", description);
+      console.log("Creating project with title:", title, "description:", description, "and skills:", selectedSkills);
       
-      const newProject = await createProject(title.trim(), description.trim());
+      const newProject = await createProject(title.trim(), description.trim(), selectedSkills);
       console.log("New project created:", newProject);
       
       if (newProject) {
         setTitle('');
         setDescription('');
+        setSelectedSkills([]);
         setCreateDialogOpen(false);
         navigate(`/forge/${newProject.id}`);
       } else {
@@ -351,6 +354,17 @@ const ProjectsList: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="project-description">Description *</Label>
               <Textarea id="project-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter project description" rows={4} required />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Skills Required</Label>
+              <SkillsetSelector 
+                selectedSkills={selectedSkills}
+                onChange={setSelectedSkills}
+              />
+              <p className="text-xs text-muted-foreground">
+                Select skills that are required for this project
+              </p>
             </div>
 
             <Button type="button" variant="outline" className="w-full" onClick={handleGetAISuggestions} disabled={!title.trim() || !description.trim() || loadingAI}>

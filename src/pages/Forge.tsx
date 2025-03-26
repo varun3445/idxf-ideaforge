@@ -61,6 +61,7 @@ const ProjectContent: React.FC = () => {
   const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const stepsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,23 +87,31 @@ const ProjectContent: React.FC = () => {
   const handleTogglePublish = async () => {
     if (!currentProject) return;
     
-    try {
-      await publishProject(currentProject.id, !currentProject.is_published);
-      
-      toast({
-        title: currentProject.is_published ? 'Project Unpublished' : 'Project Published',
-        description: currentProject.is_published 
-          ? 'Your project is now hidden from the explore page' 
-          : 'Your project is now visible on the explore page',
-        variant: 'default'
-      });
-    } catch (error) {
-      console.error('Error publishing project:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update project publishing status',
-        variant: 'destructive'
-      });
+    if (!currentProject.is_published) {
+      setPublishDialogOpen(true);
+    } else {
+      try {
+        await publishProject(currentProject.id, false);
+        
+        toast({
+          title: 'Project Unpublished',
+          description: 'Your project is now hidden from the explore page',
+          variant: 'default'
+        });
+      } catch (error) {
+        console.error('Error unpublishing project:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update project publishing status',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const handlePublishSuccess = () => {
+    if (projectId) {
+      loadProjectDetails(projectId);
     }
   };
 
@@ -267,6 +276,16 @@ const ProjectContent: React.FC = () => {
       <AddCollaboratorDialog open={addCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen} />
       
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
+      
+      {currentProject && (
+        <ProjectPublishDialog 
+          open={publishDialogOpen} 
+          onOpenChange={setPublishDialogOpen} 
+          projectId={currentProject.id} 
+          projectTitle={currentProject.title}
+          onSuccess={handlePublishSuccess}
+        />
+      )}
       
       <div className="fixed z-30 top-4 right-4">
         <NotificationDropdown />

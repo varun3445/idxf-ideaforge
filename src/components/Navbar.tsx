@@ -1,11 +1,13 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Users, Plus } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,7 +17,7 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - using Users icon for Talk section
+  // Mobile menu items - Communities/Talk tab removed
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -29,20 +31,19 @@ const Navbar = () => {
     path: '/projects',
     icon: <Plus className="h-5 w-5" />
   }, {
-    name: 'Talk',
-    path: '/communities',
-    icon: <Users className="h-5 w-5" />
-  }, {
     name: 'Profile',
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
   }];
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+  
   useEffect(() => {
     console.log('Navbar rendered, isMobile:', isMobile);
   }, [isMobile]);
+  
   return <>
       {/* Desktop right menu - keep for desktop only */}
       {isMobile && <div className="fixed top-2 right-2 z-50">
@@ -63,7 +64,7 @@ const Navbar = () => {
 
       {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl mx-0 my-0 py-[15px]">
-          <div className="w-full grid grid-cols-5 gap-0">
+          <div className="w-full grid grid-cols-4 gap-0">
             {menuItems.map(item => {
           const isActiveItem = isActive(item.path);
           const isCreateButton = item.name === 'Create';
@@ -81,7 +82,7 @@ const Navbar = () => {
               </div>
             </div>
             <ul className="space-y-1 flex-grow">
-              {menuItems.slice(0, 4).map(item => <li key={item.name}>
+              {menuItems.slice(0, 3).map(item => <li key={item.name}>
                   <Button variant={isActive(item.path) ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate(item.path)}>
                     <span className="mr-1">{item.icon}</span>
                     {item.name}
@@ -105,4 +106,5 @@ const Navbar = () => {
         </div>}
     </>;
 };
+
 export default Navbar;
