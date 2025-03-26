@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useProject } from '../contexts/ProjectContext';
 import { useToast } from '../hooks/use-toast';
+import { useParams } from 'react-router-dom';
 
 interface AddCollaboratorDialogProps {
   open: boolean;
@@ -18,12 +19,13 @@ const AddCollaboratorDialog: React.FC<AddCollaboratorDialogProps> = ({
 }) => {
   const { addCollaborator } = useProject();
   const { toast } = useToast();
+  const { projectId } = useParams<{ projectId: string }>();
   const [email, setEmail] = useState('');
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim()) {
+    if (!email.trim() || !projectId) {
       return;
     }
     
@@ -38,7 +40,14 @@ const AddCollaboratorDialog: React.FC<AddCollaboratorDialogProps> = ({
       return;
     }
     
-    await addCollaborator(email.trim());
+    // Adding collaborator with role and permissions
+    await addCollaborator(
+      email.trim(), 
+      projectId, 
+      'collaborator', 
+      ['view', 'edit']
+    );
+    
     setEmail('');
     onOpenChange(false);
   };

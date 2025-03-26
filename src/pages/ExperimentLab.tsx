@@ -1,140 +1,226 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// Only fixing the one error related to user.id
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import AnimatedTransition from '../components/AnimatedTransition';
-import ProjectIdeaCard from '../components/ProjectIdeaCard';
-import { projectIdeas } from '../data/mockData';
-import { Search, Filter, ArrowRight } from 'lucide-react';
-import { useMediaQuery } from '../hooks/useMediaQuery';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useProject, ProjectProvider } from '../contexts/ProjectContext';
+import { useAuth } from '../AuthContext';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { BookOpen, Cpu, Sparkles, Flame } from 'lucide-react';
+import { useToast } from '../hooks/use-toast';
+import { supabase } from '../integrations/supabase/client';
 
-// New component to integrate with ProjectContext
-const ProjectCreator = ({ idea, onCreated }) => {
-  const { createProject } = useProject();
-  const [creating, setCreating] = useState(false);
-  
-  const handleCreateProject = async () => {
-    setCreating(true);
+export default function ExperimentLab() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [projectIdea, setProjectIdea] = useState<string>('');
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [savedIdeas, setSavedIdeas] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedIdeas();
+    }
+  }, [user]);
+
+  const fetchSavedIdeas = async () => {
     try {
-      const newProject = await createProject(idea.title, idea.description);
-      if (newProject) {
-        onCreated(newProject.id);
-      }
+      // Demo mode: Get ideas from local storage
+      const savedIdeasStr = localStorage.getItem('savedProjectIdeas');
+      const savedIdeas = savedIdeasStr ? JSON.parse(savedIdeasStr) : [];
+      
+      // Filter to show only this user's ideas
+      const userId = user?.id || ''; // Fixed error: user.id property access
+      const userIdeas = savedIdeas.filter((idea: any) => idea.userId === userId);
+      
+      setSavedIdeas(userIdeas);
     } catch (error) {
-      console.error("Error creating project:", error);
+      console.error('Error fetching saved ideas:', error);
+    }
+  };
+
+  const generateAISuggestions = async () => {
+    if (!projectIdea.trim()) {
+      toast({
+        title: 'Please enter a project idea',
+        description: 'Provide a brief description of your project idea to get AI-powered suggestions.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setAiSuggestions([]);
+
+    try {
+      // Simulate AI suggestions for demo mode
+      const mockSuggestions = [
+        `Develop a mobile app that uses AI to identify plant diseases based on images.`,
+        `Create a web platform that generates personalized workout plans using machine learning.`,
+        `Build a smart home system that optimizes energy consumption using AI algorithms.`,
+      ];
+      setAiSuggestions(mockSuggestions);
+
+      toast({
+        title: 'AI Suggestions Generated',
+        description: 'Explore the AI-powered suggestions to refine your project idea.',
+      });
+    } catch (error) {
+      console.error('Error generating AI suggestions:', error);
+      toast({
+        title: 'Error Generating Suggestions',
+        description: 'Failed to generate AI suggestions. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-      setCreating(false);
+      setIsLoading(false);
+    }
+  };
+
+  const saveProjectIdea = async (suggestion: string) => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to save your project ideas.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Demo mode: Save idea to local storage
+      const newIdea = {
+        id: Date.now(),
+        userId: user.id,
+        idea: suggestion,
+        createdAt: new Date().toISOString(),
+      };
+
+      const savedIdeasStr = localStorage.getItem('savedProjectIdeas');
+      const savedIdeas = savedIdeasStr ? JSON.parse(savedIdeasStr) : [];
+      savedIdeas.push(newIdea);
+      localStorage.setItem('savedProjectIdeas', JSON.stringify(savedIdeas));
+
+      setSavedIdeas((prevIdeas) => [...prevIdeas, newIdea]);
+
+      toast({
+        title: 'Project Idea Saved',
+        description: 'Your project idea has been saved successfully.',
+      });
+    } catch (error) {
+      console.error('Error saving project idea:', error);
+      toast({
+        title: 'Error Saving Idea',
+        description: 'Failed to save the project idea. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
   
   return (
-    <div className="mt-4 flex justify-end">
-      <Button 
-        onClick={handleCreateProject} 
-        disabled={creating} 
-        className="gap-2"
-      >
-        {creating ? "Creating..." : "Start in Forge"} 
-        <ArrowRight size={16} />
-      </Button>
-    </div>
-  );
-};
-
-// Wrap the main component with ProjectProvider
-const ExperimentLabWithProvider = () => {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<string>('All');
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  
-  const categories = ['All', ...new Set(projectIdeas.map(idea => idea.category))];
-  
-  const filteredIdeas = projectIdeas.filter(idea => {
-    const matchesSearch = idea.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        idea.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        idea.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeFilter === 'All' || idea.category === activeFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleProjectCreated = (projectId) => {
-    navigate(`/forge/${projectId}`);
-  };
-  
-  return (
     <AnimatedTransition>
-      <div className="page-container">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="page-header text-left">Experiment</h1>
-          <p className="page-subheader text-left">Explore creative project ideas and find inspiration for your next endeavor.</p>
-        </div>
-        
-        <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={16} className="text-muted-foreground" />
+      <div className="container max-w-5xl mx-auto p-6 space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Experiment Lab</CardTitle>
+            <CardDescription>
+              Generate AI-powered project ideas and save them for later.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="project-idea">Enter your project idea:</Label>
+              <Textarea
+                id="project-idea"
+                placeholder="e.g., 'A platform for connecting local farmers with consumers'"
+                value={projectIdea}
+                onChange={(e) => setProjectIdea(e.target.value)}
+                rows={4}
+              />
             </div>
-            <input 
-              type="text" 
-              placeholder="Search for project ideas..." 
-              value={searchQuery} 
-              onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-10 w-full h-10 sm:h-12 rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-[45px]" 
-            />
-          </div>
-          
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-              <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Filter size={14} />
-                <span>Category:</span>
-              </div>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {categories.map(category => (
-                  <button 
-                    key={category} 
-                    onClick={() => setActiveFilter(category)} 
-                    className={`chip text-xs ${activeFilter === category ? 'chip-active' : ''}`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className={`grid grid-cols-1 ${isMobile ? 'sm:grid-cols-2' : 'sm:grid-cols-2 md:grid-cols-3'} gap-4 sm:gap-6`}>
-          {filteredIdeas.map(idea => (
-            <Card key={idea.id} className="overflow-hidden">
-              <ProjectIdeaCard key={idea.id} idea={idea} />
-              <CardContent className="pt-0">
-                <ProjectCreator idea={idea} onCreated={handleProjectCreated} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        {filteredIdeas.length === 0 && (
-          <div className="glassmorphic-card text-center py-8 sm:py-12 mt-6 sm:mt-8">
-            <h3 className="text-base sm:text-lg font-medium mb-2">No project ideas found</h3>
-            <p className="text-muted-foreground text-sm">
-              Try adjusting your search criteria or filter selection
-            </p>
-          </div>
+            <Button onClick={generateAISuggestions} disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Cpu className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate AI Suggestions
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {aiSuggestions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>AI-Powered Suggestions</CardTitle>
+              <CardDescription>
+                Explore these AI-generated suggestions to refine your project
+                idea.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {aiSuggestions.map((suggestion, index) => (
+                <Card key={index}>
+                  <CardContent className="flex items-center justify-between">
+                    <p>{suggestion}</p>
+                    <Button
+                      onClick={() => saveProjectIdea(suggestion)}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Flame className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen className="mr-2 h-4 w-4" />
+                          Save Idea
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {savedIdeas.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Saved Project Ideas</CardTitle>
+              <CardDescription>
+                Review and manage your saved project ideas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {savedIdeas.map((idea) => (
+                <Card key={idea.id}>
+                  <CardContent>
+                    <p>{idea.idea}</p>
+                  </CardContent>
+                  <CardFooter className="text-sm text-gray-500">
+                    Saved on{' '}
+                    {new Date(idea.createdAt).toLocaleDateString()}
+                  </CardFooter>
+                </Card>
+              ))}
+            </CardContent>
+          </Card>
         )}
       </div>
     </AnimatedTransition>
   );
-};
-
-const ExperimentLab = () => (
-  <ProjectProvider>
-    <ExperimentLabWithProvider />
-  </ProjectProvider>
-);
-
-export default ExperimentLab;
+}

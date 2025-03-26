@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Users, Layers, ListChecks, ArrowLeft, Share2, CheckCircle2, Circle, ChevronRight, Link2, Globe } from 'lucide-react';
@@ -8,7 +9,7 @@ import ProjectStepCard from '@/components/ProjectStepCard';
 import AddStepDialog from '@/components/AddStepDialog';
 import AddCollaboratorDialog from '@/components/AddCollaboratorDialog';
 import CollaboratorsList from '@/components/CollaboratorsList';
-import { useProject, ProjectProvider, ProjectStep } from '../contexts/ProjectContext';
+import { useProject, ProjectStep } from '../contexts/ProjectContext';
 import { useToast } from '../hooks/use-toast';
 import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -115,7 +116,7 @@ const ProjectContent: React.FC = () => {
     if (!currentProject) return;
     
     try {
-      await publishProjectWithDetails(projectId, currentProject.is_published || false, details);
+      await publishProjectWithDetails(projectId, true, details);
       
       toast({
         title: 'Project Published',
@@ -135,8 +136,7 @@ const ProjectContent: React.FC = () => {
   const handleSetCurrentFocus = (step: ProjectStep) => {
     if (!currentProject) return;
     setCurrentStep(step);
-    updateProject({
-      id: currentProject.id,
+    updateProject(currentProject.id, {
       current_step_id: step.id
     });
     toast({
@@ -311,9 +311,7 @@ const ProjectContent: React.FC = () => {
 
 const ForgeWithProvider: React.FC = () => {
   return <AnimatedTransition>
-      <ProjectProvider>
         <ProjectContent />
-      </ProjectProvider>
     </AnimatedTransition>;
 };
 

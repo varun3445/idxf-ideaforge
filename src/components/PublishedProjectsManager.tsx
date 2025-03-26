@@ -1,33 +1,40 @@
-
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MoreHorizontal, Edit, Eye, Bell, Trash, Globe, EyeOff } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Eye, EyeOff, MessageSquare, Calendar, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { format } from 'date-fns';
-import { useToast } from '../hooks/use-toast';
-import { useAuth } from '../AuthContext';
+import { useToast } from '@/hooks/use-toast';
+
+interface ProjectUpdate {
+  id: string;
+  content: string;
+  timestamp: string;
+}
 
 interface Project {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  imageUrl?: string;
   published: boolean;
   backersCount: number;
   createdAt: string;
   updatedAt: string;
   owner_id: string;
+  updates?: ProjectUpdate[];
 }
 
 interface PublishedProjectsManagerProps {
@@ -41,229 +48,197 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   projects,
   onUpdateProject,
   onPublishStatusChange,
-  onAddUpdate,
+  onAddUpdate
 }) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const userId = user?.id || 'user-1';
-  
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [updateContent, setUpdateContent] = useState('');
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updateText, setUpdateText] = useState('');
+  const [expandedProjects, setExpandedProjects] = useState<{[key: string]: boolean}>({});
 
-  // Debugging logs to verify what's happening with project filtering
-  console.log("PublishedProjectsManager - User ID:", userId);
-  console.log("PublishedProjectsManager - Projects before filtering:", projects);
-  
-  // First filter the published projects
-  const publishedProjects = projects.filter(project => 
-    project.published === true || project.is_published === true
-  );
-  
-  console.log("PublishedProjectsManager - Published projects:", publishedProjects);
-  
-  // Then separate owned vs. collaborative projects
-  const ownedProjects = publishedProjects.filter(project => 
-    project.owner_id === userId
-  );
-  
-  const collaborativeProjects = publishedProjects.filter(project => 
-    project.owner_id !== userId
-  );
-  
-  console.log("PublishedProjectsManager - Owned projects:", ownedProjects);
-  console.log("PublishedProjectsManager - Collaborative projects:", collaborativeProjects);
+  // Filter only published projects
+  // Changed from is_published to published to match Project interface
+  const publishedProjects = projects.filter(project => project.published);
 
-  const handleViewProject = (projectId: string) => {
-    navigate(`/project/${projectId}`);
-  };
+  const handleUpdateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !updateText.trim()) return;
 
-  const handleEditProject = (projectId: string) => {
-    navigate(`/forge/${projectId}`);
-  };
-
-  const handleAddUpdate = () => {
-    if (selectedProject && updateContent.trim()) {
-      onAddUpdate(selectedProject.id, updateContent);
-      setUpdateContent('');
-      setIsUpdateDialogOpen(false);
-      toast({
-        title: "Update added",
-        description: "Your project update has been published.",
-        variant: "success",
-      });
-    }
-  };
-
-  const handleTogglePublishStatus = (project: Project) => {
-    onPublishStatusChange(project.id, !project.published);
+    onAddUpdate(selectedProject.id, updateText.trim());
+    setUpdateText('');
+    setUpdateDialogOpen(false);
+    
     toast({
-      title: project.published ? "Project unpublished" : "Project published",
-      description: project.published 
-        ? "Your project is now hidden from the Explore page." 
-        : "Your project is now visible on the Explore page.",
-      variant: "success",
+      title: "Update posted",
+      description: "Your project update has been posted successfully.",
     });
   };
 
-  const openUpdateDialog = (project: Project) => {
-    setSelectedProject(project);
-    setIsUpdateDialogOpen(true);
+  const toggleProjectExpanded = (projectId: string) => {
+    setExpandedProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
   };
 
-  const renderProjectGrid = (projectsList: Project[]) => {
-    if (projectsList.length === 0) {
-      return (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">
-            {projectsList === ownedProjects 
-              ? "You don't have any published projects yet."
-              : "You're not collaborating on any published projects yet."}
-          </p>
-          {projectsList === ownedProjects && (
-            <Button className="mt-4" onClick={() => navigate('/projects')}>
-              Manage Your Projects
-            </Button>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {projectsList.map((project) => (
-          <Card key={project.id} className="overflow-hidden">
-            <div className="aspect-video w-full relative">
-              <img 
-                src={project.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} 
-                alt={project.title}
-                className="object-cover w-full h-full"
-              />
-              <Badge 
-                className="absolute top-2 right-2" 
-                variant={project.published ? "default" : "outline"}
-              >
-                {project.published ? "Published" : "Draft"}
-              </Badge>
-            </div>
-            <CardHeader className="p-4">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleViewProject(project.id)}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEditProject(project.id)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => openUpdateDialog(project)}>
-                      <Bell className="mr-2 h-4 w-4" />
-                      Add Update
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleTogglePublishStatus(project)}>
-                      {project.published ? (
-                        <>
-                          <EyeOff className="mr-2 h-4 w-4" />
-                          Unpublish
-                        </>
-                      ) : (
-                        <>
-                          <Globe className="mr-2 h-4 w-4" />
-                          Publish
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
-              <div className="mt-3 flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {project.backersCount} {project.backersCount === 1 ? 'backer' : 'backers'}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Updated {format(new Date(project.updatedAt || project.createdAt), 'MMM d, yyyy')}
-                </span>
-              </div>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 flex justify-between">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleViewProject(project.id)}
-              >
-                View Details
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={() => openUpdateDialog(project)}
-              >
-                Add Update
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    );
+  const handleOpenUpdateDialog = (project: Project) => {
+    setSelectedProject(project);
+    setUpdateDialogOpen(true);
   };
 
   return (
-    <div className="space-y-6">
-      {ownedProjects.length === 0 && collaborativeProjects.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">You don't have any published projects yet.</p>
-          <Button className="mt-4" onClick={() => navigate('/projects')}>Manage Your Projects</Button>
+    <div>
+      {publishedProjects.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium mb-2">No published projects</h3>
+          <p className="text-sm text-gray-500">
+            When you publish projects, they will appear here.
+          </p>
         </div>
       ) : (
-        <>
-          {ownedProjects.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Your Published Projects</h2>
-              {renderProjectGrid(ownedProjects)}
-            </div>
-          )}
-          
-          {collaborativeProjects.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Projects You're Collaborating On</h2>
-              {renderProjectGrid(collaborativeProjects)}
-            </div>
-          )}
-        </>
+        <div className="space-y-6">
+          {publishedProjects.map(project => (
+            <Card key={project.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{project.title}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {project.description}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onPublishStatusChange(project.id, !project.published)}
+                  >
+                    {project.published ? (
+                      <>
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Unpublish
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Publish
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              
+              {project.imageUrl && (
+                <div className="px-6">
+                  <img 
+                    src={project.imageUrl} 
+                    alt={project.title} 
+                    className="w-full h-48 object-cover rounded-md mb-4"
+                  />
+                </div>
+              )}
+              
+              <CardContent className="pb-2">
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    <span>Created {format(new Date(project.createdAt), 'MMM d, yyyy')}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-1" />
+                    <span>{project.backersCount} backers</span>
+                  </div>
+                </div>
+                
+                <div className="border-t pt-3">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => toggleProjectExpanded(project.id)}
+                  >
+                    <span>Project Updates</span>
+                    {expandedProjects[project.id] ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                  
+                  {expandedProjects[project.id] && (
+                    <div className="mt-3 space-y-3">
+                      {project.updates && project.updates.length > 0 ? (
+                        project.updates.map(update => (
+                          <div key={update.id} className="bg-gray-50 p-3 rounded-md">
+                            <div className="flex items-start space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>U</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex justify-between">
+                                  <span className="text-sm font-medium">Project Update</span>
+                                  <span className="text-xs text-gray-500">
+                                    {format(new Date(update.timestamp), 'MMM d, yyyy')}
+                                  </span>
+                                </div>
+                                <p className="text-sm mt-1">{update.content}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-2">
+                          No updates yet
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              
+              <CardFooter className="pt-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handleOpenUpdateDialog(project)}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Post Update
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       )}
-
-      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+      
+      {/* Update Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Project Update</DialogTitle>
-            <DialogDescription>
-              Share progress or news with your project supporters. This update will be visible to all project backers.
-            </DialogDescription>
+            <DialogTitle>Post Project Update</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <Textarea
-              placeholder="What's new with your project?"
-              className="min-h-[150px]"
-              value={updateContent}
-              onChange={(e) => setUpdateContent(e.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddUpdate} disabled={!updateContent.trim()}>Publish Update</Button>
-          </DialogFooter>
+          
+          <form onSubmit={handleUpdateSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="update-text">Update Message</Label>
+              <Textarea 
+                id="update-text" 
+                value={updateText} 
+                onChange={e => setUpdateText(e.target.value)}
+                placeholder="Share progress, milestones, or news about your project..."
+                rows={5}
+                required
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setUpdateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Post Update
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

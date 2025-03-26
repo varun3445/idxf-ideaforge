@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Trash, UserPlus, Clock } from 'lucide-react';
 import { useProject, ProjectCollaborator } from '../contexts/ProjectContext';
 import { Badge } from './ui/badge';
+import { useParams } from 'react-router-dom';
 
 interface CollaboratorsListProps {
   onAddCollaborator: () => void;
@@ -14,11 +15,8 @@ interface CollaboratorsListProps {
 const CollaboratorsList: React.FC<CollaboratorsListProps> = ({
   onAddCollaborator
 }) => {
-  const {
-    collaborators,
-    removeCollaborator,
-    currentProject
-  } = useProject();
+  const { collaborators, removeCollaborator, currentProject } = useProject();
+  const { projectId } = useParams<{ projectId: string }>();
 
   // Get accepted collaborators
   const acceptedCollaborators = collaborators.filter(c => c.status === 'accepted');

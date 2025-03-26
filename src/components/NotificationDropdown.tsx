@@ -21,14 +21,14 @@ const NotificationDropdown = () => {
   
   const handleAccept = async (notification: Notification) => {
     if (notification.type === 'collaboration_invitation') {
-      await respondToCollaboration(notification.data.collaboration_id, true);
+      await respondToCollaboration(notification.data.collaboration_id || '', true);
       navigate(`/forge/${notification.project_id}`);
     }
   };
   
   const handleDecline = async (notification: Notification) => {
     if (notification.type === 'collaboration_invitation') {
-      await respondToCollaboration(notification.data.collaboration_id, false);
+      await respondToCollaboration(notification.data.collaboration_id || '', false);
     }
   };
   
