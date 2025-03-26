@@ -595,7 +595,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       
       const newProject = createLocalProject(title, description, currentUserId);
       
-      const updatedProjects = [...projects, newProject];
+      const updatedProjects: Project[] = [...projects, newProject];
       setProjects(updatedProjects);
       
       toast({

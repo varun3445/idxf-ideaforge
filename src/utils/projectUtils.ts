@@ -3,6 +3,8 @@
  * Utility functions for project operations
  */
 
+import { Project, ProjectCollaborator } from '../contexts/ProjectContext';
+
 export const debugProjectStorage = () => {
   try {
     const projects = localStorage.getItem('userProjects');
@@ -18,13 +20,13 @@ export const debugProjectStorage = () => {
   }
 };
 
-export const createLocalProject = (title: string, description: string, ownerId: string) => {
+export const createLocalProject = (title: string, description: string, ownerId: string): Project => {
   try {
     // Generate a unique project ID using crypto.randomUUID if available, otherwise use a fallback
     const projectId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
     
-    // Create the new project object
-    const newProject = {
+    // Create the new project object that matches the Project interface
+    const newProject: Project = {
       id: projectId,
       title,
       description,
@@ -34,24 +36,31 @@ export const createLocalProject = (title: string, description: string, ownerId: 
       is_published: false,
       share_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
       current_step_id: null,
+      collaborators: [], // Empty array of ProjectCollaborator, not a number
       backers_count: 0,
-      // Make sure these fields match what the Explore page expects
+      // These fields are for the Explore page
       creator: "Default User",
-      collaborators: 1,
-      category: "Technology",
       techStack: ["React", "JavaScript"],
-      imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop"
+      imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop",
+      skills: [],
+      goals: "",
+      challenges: "",
+      overview: ""
     };
     
     // Get existing projects
     const existingProjectsJSON = localStorage.getItem('userProjects');
-    const existingProjects = existingProjectsJSON ? JSON.parse(existingProjectsJSON) : [];
+    const existingProjects: Project[] = existingProjectsJSON ? JSON.parse(existingProjectsJSON) : [];
     
     // Add the new project
     const updatedProjects = [...existingProjects, newProject];
     
     // Save back to localStorage
     localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
+    
+    // Initialize empty collections for the project
+    localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
+    localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify([]));
     
     console.log(`Project "${title}" created successfully:`, newProject);
     console.log('Updated projects list:', updatedProjects);
