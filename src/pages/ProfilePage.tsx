@@ -71,13 +71,13 @@ const ProfilePage = () => {
           variant: "destructive"
         });
       } else if (data) {
-        // Transform project data - using image_url property name correctly
+        // Transform project data - fixing the property name issue
         const userProjects = data.map(project => ({
           id: project.id,
           title: project.title || 'Untitled Project',
           description: project.description || 'No description available',
-          // Using a fallback for image URL - the property might be missing or named differently in the database
-          imageUrl: project.image_url || 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
+          // Fix: Using a default image URL since image_url doesn't exist in the project type
+          imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
           published: project.is_published || false,
           backersCount: project.backers_count || 0,
           createdAt: project.created_at,
