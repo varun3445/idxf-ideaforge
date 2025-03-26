@@ -106,25 +106,35 @@ const ProjectsList: React.FC = () => {
     
     try {
       setCreatingProject(true);
-      console.log("Creating project with title:", title, "and description:", description, "skills:", skills);
+      console.log("Starting project creation with title:", title, "description:", description, "skills:", skills);
+      
+      const connectionCheck = await supabase.from('projects').select('count()', { count: 'exact', head: true });
+      console.log("Database connection check before creating project:", connectionCheck);
       
       const newProject = await createProject(title.trim(), description.trim(), skills);
-      console.log("New project created:", newProject);
+      console.log("Project creation result:", newProject);
       
       if (newProject) {
         setTitle('');
         setDescription('');
         setSkills([]);
         setCreateDialogOpen(false);
+        
+        toast({
+          title: 'Success',
+          description: 'Project created successfully!',
+          variant: 'default'
+        });
+        
         navigate(`/forge/${newProject.id}`);
       } else {
-        throw new Error('Failed to create project');
+        throw new Error('Failed to create project - no project data returned');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating project:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create project. Please try again.',
+        description: error?.message || 'Failed to create project. Please try again.',
         variant: 'destructive'
       });
     } finally {

@@ -270,16 +270,27 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Update createProject to include skills
   const createProject = async (title: string, description: string, skills: string[] = []) => {
     try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Creating project with details:", { title, description, skills });
+      
+      const shareCode = generateMockShareCode();
+      
       const newProject = {
         title,
         description,
         owner_id: user?.id || mockCurrentUserId,
-        skills
+        skills,
+        share_code: shareCode,
+        is_published: false,
+        backers_count: 0
       };
       
-      console.log("Creating project with data:", newProject);
+      console.log("Prepared project data:", newProject);
       
       if (supabaseEnabled) {
+        console.log("Using Supabase to create project");
         const { data, error } = await supabase
           .from('projects')
           .insert(newProject)
@@ -287,13 +298,19 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           .single();
           
         if (error) {
+          console.error("Supabase error creating project:", error);
+          setError(error.message || 'Failed to create project');
+          setLoading(false);
           throw error;
         }
         
+        console.log("Project created successfully:", data);
         // Refresh the projects list
         loadProjects();
+        setLoading(false);
         return data;
       } else {
+        console.log("Using mock implementation");
         // Mock implementation for when Supabase is not available
         const mockProject: Project = {
           id: `proj-${Date.now()}`,
@@ -301,7 +318,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           description,
           owner_id: mockCurrentUserId,
           created_at: new Date().toISOString(),
-          share_code: generateMockShareCode(),
+          share_code: shareCode,
           is_published: false,
           current_step_id: null,
           backers_count: 0,
@@ -309,10 +326,13 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
         
         setProjects([...projects, mockProject]);
+        setLoading(false);
         return mockProject;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating project:', error);
+      setError(error?.message || 'Failed to create project');
+      setLoading(false);
       return null;
     }
   };

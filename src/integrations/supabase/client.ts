@@ -17,14 +17,20 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: false,
+      detectSessionInUrl: true,
       storage: localStorage,
       storageKey: 'supabase.auth.token'
     },
     global: {
       fetch: (url, options) => {
-        // Using a more efficient fetch with caching strategy
-        return fetch(url, options);
+        // Add better error handling for network issues
+        return fetch(url, {
+          ...options,
+          headers: {
+            ...options?.headers,
+            'X-Client-Info': 'ideaforge-app'
+          }
+        });
       }
     },
     realtime: {
@@ -39,6 +45,7 @@ export const supabase = createClient<Database>(
 export const checkAuthState = async () => {
   try {
     const { data, error } = await supabase.auth.getSession();
+    console.log("Auth state check:", { session: !!data.session, error });
     return { data, error };
   } catch (error) {
     console.error("Error checking auth state:", error);
@@ -50,7 +57,7 @@ export const checkAuthState = async () => {
 export const checkDatabaseConnection = async () => {
   try {
     const { data, error } = await supabase
-      .from('profiles')
+      .from('projects')
       .select('*', { count: 'exact', head: true });
     
     const count = data ? data.length : 0;
