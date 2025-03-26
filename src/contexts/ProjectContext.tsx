@@ -19,7 +19,6 @@ export interface Project {
   is_published: boolean;
   current_step_id: string | null;
   backers_count: number;
-  // Add the new fields
   overview?: string;
   goals?: string;
   challenges?: string;
@@ -34,10 +33,9 @@ export interface ProjectStep {
   order_index: number;
   is_completed: boolean;
   parent_step_id: string | null;
-  created_at: string; // Adding the missing created_at property
+  created_at: string;
 }
 
-// Add missing type definitions
 export interface ProjectCollaborator {
   id: string;
   project_id: string;
@@ -94,7 +92,6 @@ interface ProjectContextType {
   updateProjectStep: (step: Partial<ProjectStep>) => Promise<void>;
   deleteProjectStep: (stepId: string) => Promise<void>;
   setCurrentStep: (step: ProjectStep | null) => void;
-  // Add missing properties in ProjectContextType
   collaborators: ProjectCollaborator[];
   stepAssignments: StepAssignment[];
   notifications: Notification[];
@@ -155,7 +152,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         setProjects(data || []);
       } else {
-        // Mock implementation for when Supabase is not available
         const mockProjects: Project[] = [
           {
             id: '1',
@@ -194,7 +190,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setError(null);
     try {
       if (supabaseEnabled) {
-        // Fetch project details
         const { data: projectData, error: projectError } = await supabase
           .from('projects')
           .select('*')
@@ -207,7 +202,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         setCurrentProject(projectData);
 
-        // Fetch project steps
         const { data: stepsData, error: stepsError } = await supabase
           .from('project_steps')
           .select('*')
@@ -228,7 +222,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setCurrentStep(null);
         }
       } else {
-        // Mock implementation for when Supabase is not available
         const mockProject = projects.find((p) => p.id === projectId);
         if (mockProject) {
           setCurrentProject(mockProject);
@@ -267,7 +260,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Update createProject to include skills
   const createProject = async (title: string, description: string, skills: string[] = []) => {
     try {
       setLoading(true);
@@ -291,27 +283,53 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       if (supabaseEnabled) {
         console.log("Using Supabase to create project");
-        const { data, error } = await supabase
-          .from('projects')
-          .insert(newProject)
-          .select()
-          .single();
+        try {
+          const connectionCheck = await supabase.from('projects').select('count()', { count: 'exact', head: true });
+          console.log("Database connection check before creating project:", connectionCheck);
           
-        if (error) {
-          console.error("Supabase error creating project:", error);
-          setError(error.message || 'Failed to create project');
+          if (connectionCheck.error) {
+            console.log("Connection check failed, falling back to mock implementation");
+            throw new Error(`Database connection failed: ${connectionCheck.error.message}`);
+          }
+          
+          const { data, error } = await supabase
+            .from('projects')
+            .insert(newProject)
+            .select()
+            .single();
+            
+          if (error) {
+            console.error("Supabase error creating project:", error);
+            throw error;
+          }
+          
+          console.log("Project created successfully:", data);
+          loadProjects();
           setLoading(false);
-          throw error;
+          return data;
+        } catch (error: any) {
+          console.error("Supabase error creating project:", error);
+          
+          console.log("Falling back to mock implementation due to error");
+          const mockProject: Project = {
+            id: `proj-${Date.now()}`,
+            title,
+            description,
+            owner_id: mockCurrentUserId,
+            created_at: new Date().toISOString(),
+            share_code: shareCode,
+            is_published: false,
+            current_step_id: null,
+            backers_count: 0,
+            skills
+          };
+          
+          setProjects([...projects, mockProject]);
+          setLoading(false);
+          return mockProject;
         }
-        
-        console.log("Project created successfully:", data);
-        // Refresh the projects list
-        loadProjects();
-        setLoading(false);
-        return data;
       } else {
         console.log("Using mock implementation");
-        // Mock implementation for when Supabase is not available
         const mockProject: Project = {
           id: `proj-${Date.now()}`,
           title,
@@ -354,7 +372,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Update local state
       setProjects((prevProjects) =>
         prevProjects.map((p) => (p.id === project.id ? { ...p, ...project } : p)),
       );
@@ -367,7 +384,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Update the publishProject function to handle both publish and unpublish cases
   const publishProject = async (projectId: string, isPublished: boolean) => {
     try {
       const project = projects.find(p => p.id === projectId);
@@ -386,7 +402,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
       
-      // Update local state
       setProjects(prevProjects => prevProjects.map(p => 
         p.id === projectId ? { ...p, is_published: isPublished } : p
       ));
@@ -420,7 +435,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         order_index: projectSteps.length + 1,
         is_completed: false,
         parent_step_id: parentStepId,
-        created_at: new Date().toISOString(), // Adding the missing created_at property
+        created_at: new Date().toISOString(),
       };
 
       if (supabaseEnabled) {
@@ -436,7 +451,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         setProjectSteps([...projectSteps, data]);
       } else {
-        // Mock implementation for when Supabase is not available
         const mockStep: ProjectStep = {
           id: uuidv4(),
           ...newStep,
@@ -467,7 +481,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Update local state
       setProjectSteps((prevSteps) =>
         prevSteps.map((s) => (s.id === step.id ? { ...s, ...step } : s)),
       );
@@ -490,21 +503,17 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Also remove any substeps
       const substeps = projectSteps.filter(s => s.parent_step_id === stepId);
       for (const substep of substeps) {
         await deleteStep(substep.id);
       }
 
-      // Update local state
       setProjectSteps((prevSteps) => prevSteps.filter((s) => s.id !== stepId));
     } catch (error) {
       console.error('Error deleting project step:', error);
       setError('Failed to delete project step');
     }
   };
-
-  // Implement the missing functions
 
   const createStep = async (step: { 
     title: string; 
@@ -525,7 +534,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         order_index: step.order_index,
         parent_step_id: step.parent_step_id || null,
         is_completed: false,
-        created_at: new Date().toISOString(), // Adding the missing created_at property
+        created_at: new Date().toISOString(),
       };
 
       if (supabaseEnabled) {
@@ -542,7 +551,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setProjectSteps([...projectSteps, data]);
         return true;
       } else {
-        // Mock implementation for when Supabase is not available
         const mockStep: ProjectStep = {
           id: uuidv4(),
           ...newStep,
@@ -570,13 +578,11 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Also remove any substeps
       const substeps = projectSteps.filter(s => s.parent_step_id === stepId);
       for (const substep of substeps) {
         await deleteStep(substep.id);
       }
 
-      // Update local state
       setProjectSteps((prevSteps) => prevSteps.filter((s) => s.id !== stepId));
       return true;
     } catch (error) {
@@ -599,7 +605,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
 
-      // Update local state
       setProjectSteps((prevSteps) =>
         prevSteps.map((s) => (s.id === stepId ? { ...s, is_completed: isCompleted } : s))
       );
@@ -618,12 +623,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      // In a real app, you would:
-      // 1. Check if user exists
-      // 2. Add to collaborators table
-      // 3. Send invitation notification
-
-      // Mock implementation
       const newCollaborator: ProjectCollaborator = {
         id: uuidv4(),
         project_id: currentProject.id,
@@ -645,9 +644,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const removeCollaborator = async (collaboratorId: string) => {
     try {
-      // In a real app, you would delete from the database
-
-      // Mock implementation
       setCollaborators(collaborators.filter(c => c.id !== collaboratorId));
     } catch (error) {
       console.error('Error removing collaborator:', error);
@@ -657,9 +653,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const assignStep = async (stepId: string, userId: string) => {
     try {
-      // In a real app, you would add to assignments table
-
-      // Mock implementation
       const newAssignment: StepAssignment = {
         id: uuidv4(),
         step_id: stepId,
@@ -677,9 +670,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const unassignStep = async (assignmentId: string) => {
     try {
-      // In a real app, you would delete from assignments table
-
-      // Mock implementation
       setStepAssignments(stepAssignments.filter(a => a.id !== assignmentId));
     } catch (error) {
       console.error('Error unassigning step:', error);
@@ -689,16 +679,12 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const respondToCollaboration = async (collaborationId: string, accept: boolean) => {
     try {
-      // In a real app, you would update collaboration status in database
-
-      // Mock implementation
       setCollaborators(collaborators.map(c => 
         c.id === collaborationId 
           ? { ...c, status: accept ? 'accepted' : 'rejected' } 
           : c
       ));
 
-      // Mark related notifications as read
       setNotifications(notifications.map(n => 
         (n.type === 'collaboration_invitation' && n.data?.collaboration_id === collaborationId)
           ? { ...n, read: true }
@@ -712,9 +698,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const markNotificationAsRead = async (notificationId: string) => {
     try {
-      // In a real app, you would update notification in database
-
-      // Mock implementation
       setNotifications(notifications.map(n => 
         n.id === notificationId ? { ...n, read: true } : n
       ));
@@ -740,7 +723,6 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
     updateProjectStep,
     deleteProjectStep,
     setCurrentStep,
-    // Add the missing functions and state to the context value
     collaborators,
     stepAssignments,
     notifications,

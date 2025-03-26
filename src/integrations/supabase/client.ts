@@ -22,15 +22,9 @@ export const supabase = createClient<Database>(
       storageKey: 'supabase.auth.token'
     },
     global: {
-      fetch: (url, options) => {
-        // Add better error handling for network issues
-        return fetch(url, {
-          ...options,
-          headers: {
-            ...options?.headers,
-            'X-Client-Info': 'ideaforge-app'
-          }
-        });
+      headers: {
+        'X-Client-Info': 'ideaforge-app',
+        'apikey': SUPABASE_PUBLISHABLE_KEY
       }
     },
     realtime: {
