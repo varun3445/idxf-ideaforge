@@ -12,7 +12,7 @@ import AvatarUpload from '../components/AvatarUpload';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import PublishedProjectsManager from '../components/PublishedProjectsManager';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ProfilePage = () => {
@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
   const [projects, setProjects] = useState<any[]>([]);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -48,7 +49,7 @@ const ProfilePage = () => {
     if (user) {
       loadUserProjects();
     }
-  }, [user]);
+  }, [user, retryCount]);
 
   const loadUserProjects = async () => {
     if (!user) return;
@@ -71,12 +72,11 @@ const ProfilePage = () => {
           variant: "destructive"
         });
       } else if (data) {
-        // Transform project data - fixing the property name issue
+        // Transform project data - ensuring consistent property mapping
         const userProjects = data.map(project => ({
           id: project.id,
           title: project.title || 'Untitled Project',
           description: project.description || 'No description available',
-          // Fix: Using a default image URL since image_url doesn't exist in the project type
           imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
           published: project.is_published || false,
           backersCount: project.backers_count || 0,
@@ -97,6 +97,10 @@ const ProfilePage = () => {
     } finally {
       setProjectsLoading(false);
     }
+  };
+
+  const handleRetryProjectLoad = () => {
+    setRetryCount(prev => prev + 1);
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -166,19 +170,57 @@ const ProfilePage = () => {
     ));
   };
 
+  const renderProjectsError = () => {
+    if (!projectsError) return null;
+    
+    const isRecursionError = projectsError.includes("infinite recursion");
+    
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>{isRecursionError ? "Database Policy Error" : "Error Loading Projects"}</AlertTitle>
+        <AlertDescription>
+          {isRecursionError ? (
+            <>
+              There's an issue with the database security policies that's preventing your projects from loading.
+              This could happen if you've recently updated security rules.
+              <div className="mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={handleRetryProjectLoad}
+                >
+                  <RefreshCw className="h-3 w-3" /> 
+                  Retry
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {projectsError}
+              <div className="mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  onClick={handleRetryProjectLoad}
+                >
+                  <RefreshCw className="h-3 w-3" /> 
+                  Retry
+                </Button>
+              </div>
+            </>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <AnimatedTransition>
       <div className="container mx-auto py-8 px-4 md:px-6">
-        {projectsError && projectsError.includes("infinite recursion") && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Database Policy Error</AlertTitle>
-            <AlertDescription>
-              There's an issue with the database security policies that's preventing your projects from loading.
-              The administrator has been notified and is working to resolve this.
-            </AlertDescription>
-          </Alert>
-        )}
+        {renderProjectsError()}
         
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-8">
@@ -274,7 +316,7 @@ const ProfilePage = () => {
                   <PublishedProjectsManager 
                     projects={projects}
                     error={projectsError}
-                    onRefresh={loadUserProjects}
+                    onRefresh={handleRetryProjectLoad}
                     onUpdateProject={handleUpdateProject}
                     onPublishStatusChange={handlePublishStatusChange}
                     onAddUpdate={handleAddUpdate}
