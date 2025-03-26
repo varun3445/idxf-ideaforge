@@ -93,7 +93,7 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   // Handle error condition with clear visual feedback
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8 bg-background text-foreground">
         <p className="text-muted-foreground mb-4">Error loading your published projects: {error}</p>
         {onRefresh && (
           <Button onClick={onRefresh} variant="outline" className="flex items-center gap-2">

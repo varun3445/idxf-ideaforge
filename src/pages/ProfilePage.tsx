@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -57,87 +56,44 @@ const ProfilePage = () => {
     setProjectsError(null);
     
     try {
-      // Try to fetch real projects
-      try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('owner_id', user.id);
-          
-        if (error) {
-          console.error('Error fetching user projects:', error);
-          setProjectsError(error.message);
-          // Fall back to mock data if there's an error
-          loadMockProjects();
-        } else if (data) {
-          // Transform project data
-          const userProjects = data.map(project => ({
-            id: project.id,
-            title: project.title || 'Untitled Project',
-            description: project.description || 'No description available',
-            imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
-            published: project.is_published || false,
-            backersCount: project.backers_count || 0,
-            createdAt: project.created_at,
-            updatedAt: project.updated_at
-          }));
-          setProjects(userProjects);
-          setProjectsError(null);
-        } else {
-          // No data returned, but no error either
-          loadMockProjects();
-        }
-      } catch (dbError) {
-        console.error('Unexpected error fetching projects:', dbError);
-        setProjectsError('Failed to fetch your projects');
-        loadMockProjects();
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('owner_id', user.id);
+        
+      if (error) {
+        console.error('Error fetching user projects:', error);
+        setProjectsError(error.message);
+        toast({
+          title: "Error fetching projects",
+          description: "There was an error loading your projects.",
+          variant: "destructive"
+        });
+      } else if (data) {
+        // Transform project data
+        const userProjects = data.map(project => ({
+          id: project.id,
+          title: project.title || 'Untitled Project',
+          description: project.description || 'No description available',
+          imageUrl: project.image_url || 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
+          published: project.is_published || false,
+          backersCount: project.backers_count || 0,
+          createdAt: project.created_at,
+          updatedAt: project.updated_at
+        }));
+        setProjects(userProjects);
+        setProjectsError(null);
       }
     } catch (error) {
       console.error('Error in loadUserProjects:', error);
-      loadMockProjects();
+      setProjectsError('Failed to fetch your projects');
+      toast({
+        title: "Error",
+        description: "Failed to load your projects. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setProjectsLoading(false);
-    }
-  };
-
-  const loadMockProjects = () => {
-    // Fallback to mock data
-    const mockProjects = [
-      {
-        id: '1',
-        title: 'AI-Powered Visual Design Assistant',
-        description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
-        imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
-        published: true,
-        backersCount: 24,
-        createdAt: '2023-11-15',
-        updatedAt: '2023-12-05',
-      },
-      {
-        id: '2',
-        title: 'Decentralized Creative Marketplace',
-        description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
-        imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
-        published: true,
-        backersCount: 18,
-        createdAt: '2023-09-23',
-        updatedAt: '2023-10-15',
-      },
-      {
-        id: '3',
-        title: 'Immersive Learning Environment',
-        description: 'A VR-based educational platform that creates interactive, spatial learning experiences for complex subjects.',
-        imageUrl: 'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?q=80&w=1170&auto=format&fit=crop',
-        published: false,
-        backersCount: 0,
-        createdAt: '2023-07-09',
-        updatedAt: '2023-08-01',
-      }
-    ];
-    
-    setProjects(mockProjects);
-    if (!projectsError) {
-      setProjectsError("Database connection error: Using demo projects instead");
     }
   };
 
