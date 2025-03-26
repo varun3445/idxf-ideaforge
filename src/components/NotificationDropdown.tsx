@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from './ui/button';
@@ -81,7 +82,7 @@ const NotificationDropdown = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 bg-white text-black">
         <div className="p-2">
           <h4 className="text-sm font-medium">Notifications</h4>
         </div>
@@ -98,7 +99,7 @@ const NotificationDropdown = () => {
                 return (
                   <div 
                     key={notification.id} 
-                    className={`p-3 border-b last:border-0 ${notification.read ? 'bg-gray-50/50' : 'bg-gray-50/80'}`}
+                    className={`p-3 border-b last:border-0 ${notification.read ? 'bg-white' : 'bg-gray-50'}`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-sm font-medium">Collaboration Invitation</div>
@@ -135,7 +136,7 @@ const NotificationDropdown = () => {
               return (
                 <DropdownMenuItem 
                   key={notification.id} 
-                  className={`flex flex-col items-start cursor-default ${!notification.read ? 'bg-gray-50' : ''}`}
+                  className={`flex flex-col items-start cursor-default ${!notification.read ? 'bg-gray-50' : 'bg-white'}`}
                   onClick={() => handleRead(notification)}
                 >
                   <div className="flex justify-between w-full">
