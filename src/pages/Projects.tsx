@@ -1,234 +1,334 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Layers, Users, Share2, Sparkles, Loader2, Clock, Award, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import AnimatedTransition from '@/components/AnimatedTransition';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useProject, ProjectProvider, Project } from '../contexts/ProjectContext';
-import { format, isPast, isToday } from 'date-fns';
-import ProjectShareDialog from '@/components/ProjectShareDialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '../integrations/supabase/client';
-import SuggestedStepsDialog from '@/components/SuggestedStepsDialog';
-import TeamSuggestionsDialog from '@/components/TeamSuggestionsDialog';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import AnimatedTransition from '../components/AnimatedTransition';
+import { useToast } from '../hooks/use-toast';
+import { useProject, Project } from '../contexts/ProjectContext';
 import { useAuth } from '../AuthContext';
 
-interface ProjectDeadline {
-  id: string;
-  title: string;
-  due_date: string;
-  is_completed: boolean;
+interface ShareProjectProps {
+  project: Project;
+  onCopyLink: () => void;
+  onClose: () => void;
 }
 
-const ProjectsList: React.FC = () => {
+const ShareProjectDialog: React.FC<ShareProjectProps> = ({ project, onCopyLink, onClose }) => (
+  <Dialog open={!!project} onOpenChange={() => onClose()}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Share Project</DialogTitle>
+        <DialogDescription>
+          Share your project with collaborators or get feedback.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Project Link
+          </label>
+          <div className="flex">
+            <Input
+              value={`https://ideaforge.app/join-project/${project?.share_code || ''}`}
+              readOnly
+            />
+            <Button
+              className="ml-2"
+              onClick={onCopyLink}
+            >
+              Copy
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Anyone with this link can view and request to join your project.
+          </p>
+        </div>
+      </div>
+
+      <DialogFooter className="mt-4">
+        <Button onClick={() => onClose()}>
+          Done
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
+
+interface ProjectCardProps {
+  project: Project;
+  isBackingProject: boolean;
+  isOwnedByCurrentUser: boolean;
+  collaboratorCount: number;
+  toggleBackingProject: (projectId: string) => void;
+  handleShareProject: (project: Project) => void;
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  isBackingProject,
+  isOwnedByCurrentUser,
+  collaboratorCount,
+  toggleBackingProject,
+  handleShareProject,
+}) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const userId = user?.id || 'user-1';
+
+  return (
+    <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-xl line-clamp-1 pr-4 cursor-pointer"
+            onClick={() => navigate(`/forge/${project.id}`)}>
+            {project.title}
+          </CardTitle>
+          {project.is_published && (
+            <Badge variant="secondary" className="ml-2 shrink-0">
+              Published
+            </Badge>
+          )}
+        </div>
+        <CardDescription className="line-clamp-2 mt-1">
+          {project.description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pb-2 flex-grow">
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Calendar className="mr-1 h-4 w-4" />
+            <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Layers className="mr-1 h-4 w-4" />
+            <span>3 steps completed</span>
+          </div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Users className="mr-1 h-4 w-4" />
+            <span>{collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}</span>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between pt-2 border-t">
+        <Button variant="outline" size="sm" onClick={() => navigate(`/forge/${project.id}`)}>
+          Open Project
+        </Button>
+
+        {!isOwnedByCurrentUser && (
+          <Button
+            variant={isBackingProject ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => toggleBackingProject(project.id)}
+          >
+            {isBackingProject ? (
+              <>
+                <Heart className="mr-1 h-4 w-4 fill-current" /> Backing
+              </>
+            ) : (
+              <>
+                <Heart className="mr-1 h-4 w-4" /> Back Project
+              </>
+            )}
+          </Button>
+        )}
+
+        {isOwnedByCurrentUser && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleShareProject(project)}
+          >
+            <Share2 className="mr-1 h-4 w-4" /> Share
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+};
+
+interface CreateProjectDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  newProjectTitle: string;
+  newProjectDescription: string;
+  setNewProjectTitle: (title: string) => void;
+  setNewProjectDescription: (description: string) => void;
+  handleCreateProject: (e: React.FormEvent) => void;
+  isSubmitting: boolean;
+}
+
+const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
+  open,
+  onOpenChange,
+  newProjectTitle,
+  newProjectDescription,
+  setNewProjectTitle,
+  setNewProjectDescription,
+  handleCreateProject,
+  isSubmitting,
+}) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Create New Project</DialogTitle>
+        <DialogDescription>
+          Add a new project to start collaborating and bringing your ideas to life.
+        </DialogDescription>
+      </DialogHeader>
+
+      <form onSubmit={handleCreateProject}>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <label htmlFor="title" className="text-sm font-medium">
+              Project Title
+            </label>
+            <Input
+              id="title"
+              placeholder="Enter a title for your project"
+              value={newProjectTitle}
+              onChange={(e) => setNewProjectTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="description" className="text-sm font-medium">
+              Project Description
+            </label>
+            <Textarea
+              id="description"
+              placeholder="Describe what your project is about"
+              value={newProjectDescription}
+              onChange={(e) => setNewProjectDescription(e.target.value)}
+              rows={3}
+              required
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              'Create Project'
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>
+);
+
+interface ProjectsProps {
+  
+}
+
+const Projects: React.FC<ProjectsProps> = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const userId = user?.id || 'user-1';
   
-  const {
+  const { 
     projects,
-    loadProjects,
+    loading,
+    error,
     createProject,
-    loading
+    loadUserProjects,
+    toggleBackingProject,
+    getBackingProjects
   } = useProject();
   
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [suggestedStepsDialogOpen, setSuggestedStepsDialogOpen] = useState(false);
-  const [teamSuggestionsDialogOpen, setTeamSuggestionsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [backingProjects, setBackingProjects] = useState<{ [projectId: string]: boolean }>({});
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [creatingProject, setCreatingProject] = useState(false);
-  const [suggestedSteps, setSuggestedSteps] = useState([]);
-  const [teamSuggestions, setTeamSuggestions] = useState([]);
-  const [projectDeadlines, setProjectDeadlines] = useState<Record<string, ProjectDeadline[]>>({});
-  const [projectWaitlists, setProjectWaitlists] = useState<Record<string, number>>({});
-  const [backingProjects, setBackingProjects] = useState<Record<string, boolean>>({});
   
   useEffect(() => {
-    loadProjects();
-    loadProjectsMetadata();
-  }, []);
+    loadUserProjects();
+  }, [loadUserProjects]);
   
-  const loadProjectsMetadata = async () => {
-    const deadlinesMock: Record<string, ProjectDeadline[]> = {
-      '1': [{
-        id: 'd1',
-        title: 'Design Review',
-        due_date: '2023-12-15T00:00:00Z',
-        is_completed: false
-      }, {
-        id: 'd2',
-        title: 'MVP Launch',
-        due_date: '2024-01-30T00:00:00Z',
-        is_completed: false
-      }],
-      '2': [{
-        id: 'd3',
-        title: 'Smart Contract Audit',
-        due_date: '2023-12-20T00:00:00Z',
-        is_completed: false
-      }, {
-        id: 'd4',
-        title: 'Beta Launch',
-        due_date: '2024-02-15T00:00:00Z',
-        is_completed: false
-      }]
+  useEffect(() => {
+    const fetchBackingProjects = async () => {
+      const backedProjects = await getBackingProjects();
+      if (backedProjects) {
+        setBackingProjects(backedProjects);
+      }
     };
-    const waitlistsMock: Record<string, number> = {
-      '1': 12,
-      '2': 8
-    };
-    setProjectDeadlines(deadlinesMock);
-    setProjectWaitlists(waitlistsMock);
-  };
+    fetchBackingProjects();
+  }, [getBackingProjects]);
   
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim()) {
+    
+    if (!newProjectTitle.trim() || !newProjectDescription.trim()) {
       toast({
-        title: 'Error',
-        description: 'Please provide both title and description',
-        variant: 'destructive'
+        title: "Missing information",
+        description: "Please fill in all fields.",
+        variant: "destructive",
       });
       return;
     }
     
+    setIsSubmitting(true);
+    
     try {
-      setCreatingProject(true);
-      console.log("Creating project with title:", title, "and description:", description);
+      await createProject(newProjectTitle, newProjectDescription);
       
-      const newProject = await createProject(title.trim(), description.trim());
-      console.log("New project created:", newProject);
-      
-      if (newProject) {
-        setTitle('');
-        setDescription('');
-        setCreateDialogOpen(false);
-        navigate(`/forge/${newProject.id}`);
-      } else {
-        throw new Error('Failed to create project');
-      }
-    } catch (error) {
-      console.error('Error creating project:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to create project. Please try again.',
-        variant: 'destructive'
+        title: "Project created",
+        description: "Your project has been created successfully.",
+      });
+      
+      setIsCreateDialogOpen(false);
+      setNewProjectTitle('');
+      setNewProjectDescription('');
+    } catch (error) {
+      console.error("Failed to create project", error);
+      toast({
+        variant: "destructive",
+        title: "Error creating project",
+        description: "Failed to create the project. Please try again.",
       });
     } finally {
-      setCreatingProject(false);
+      setIsSubmitting(false);
     }
   };
   
   const handleShareProject = (project: Project) => {
     setSelectedProject(project);
-    setShareDialogOpen(true);
+    setIsShareDialogOpen(true);
   };
   
-  const handleGetAISuggestions = async () => {
-    if (!title.trim() || !description.trim()) {
-      return;
-    }
-    setLoadingAI(true);
-    try {
-      const {
-        data: stepsData,
-        error: stepsError
-      } = await supabase.functions.invoke('project-ai-assistant', {
-        body: {
-          title,
-          description,
-          requestType: 'steps'
-        }
+  const handleCopyLink = () => {
+    if (selectedProject?.share_code) {
+      navigator.clipboard.writeText(`https://ideaforge.app/join-project/${selectedProject.share_code}`);
+      toast({
+        title: "Link copied",
+        description: "The project link has been copied to your clipboard.",
       });
-      if (stepsError) {
-        throw new Error(`Error getting step suggestions: ${stepsError.message}`);
-      }
-      const {
-        data: teamData,
-        error: teamError
-      } = await supabase.functions.invoke('project-ai-assistant', {
-        body: {
-          title,
-          description,
-          requestType: 'team'
-        }
-      });
-      if (teamError) {
-        throw new Error(`Error getting team suggestions: ${teamError.message}`);
-      }
-      setSuggestedSteps(stepsData.steps || []);
-      setTeamSuggestions(teamData.team || []);
-      setSuggestedStepsDialogOpen(true);
-    } catch (error) {
-      console.error('Error getting AI suggestions:', error);
-    } finally {
-      setLoadingAI(false);
+      setIsShareDialogOpen(false);
     }
   };
   
-  const handleBackProject = (projectId: string) => {
-    setBackingProjects(prev => ({
-      ...prev,
-      [projectId]: true
-    }));
-    const updatedProjects = projects.map(project => project.id === projectId ? {
-      ...project,
-      backers_count: (project.backers_count || 0) + 1
-    } : project);
-    toast({
-      title: "Project Backed!",
-      description: "You have successfully backed this project",
-      variant: "success"
-    });
-    setTimeout(() => {
-      setBackingProjects(prev => ({
-        ...prev,
-        [projectId]: false
-      }));
-    }, 2000);
-  };
-  
-  const getNextDeadline = (projectId: string): ProjectDeadline | null => {
-    const deadlines = projectDeadlines[projectId] || [];
-    const upcomingDeadlines = deadlines.filter(d => !d.is_completed).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-    return upcomingDeadlines.length > 0 ? upcomingDeadlines[0] : null;
-  };
-  
-  const getDeadlineDisplayText = (deadline: ProjectDeadline): string => {
-    const dueDate = new Date(deadline.due_date);
-    if (isPast(dueDate) && !isToday(dueDate)) {
-      return `Overdue: ${deadline.title} (${format(dueDate, 'MMM d')})`;
-    } else if (isToday(dueDate)) {
-      return `Due Today: ${deadline.title}`;
-    } else {
-      return `Due ${format(dueDate, 'MMM d')}: ${deadline.title}`;
-    }
-  };
-  
-  const getDeadlineBadgeVariant = (deadline: ProjectDeadline): "default" | "secondary" | "destructive" => {
-    const dueDate = new Date(deadline.due_date);
-    if (isPast(dueDate) && !isToday(dueDate)) {
-      return "destructive";
-    } else if (isToday(dueDate)) {
-      return "secondary";
-    } else {
-      return "default";
-    }
-  };
-  
-  // Make sure to correctly filter projects by owner_id exactly matching the userId
+  // Correctly filter projects by owner_id exactly matching the userId
   const ownedProjects = projects.filter(p => p.owner_id === userId);
   const collaborativeProjects = projects.filter(p => p.owner_id !== userId);
   
@@ -239,171 +339,242 @@ const ProjectsList: React.FC = () => {
   
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
-      return <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Layers className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-xl font-medium mb-2">No projects yet</h3>
-            <p className="text-center text-gray-500 mb-6 max-w-md">
-              {projectsList === ownedProjects ? "Start your first project to collaborate with others and track progress" : "You haven't been added to any projects as a collaborator yet"}
-            </p>
-            {projectsList === ownedProjects && <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Project
-              </Button>}
-          </CardContent>
-        </Card>;
+      return (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground mb-4">
+            {projectsList === ownedProjects 
+              ? "You haven't created any projects yet." 
+              : "You're not collaborating on any projects yet."}
+          </p>
+          {projectsList === ownedProjects && (
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Create New Project
+            </Button>
+          )}
+        </div>
+      );
     }
-    return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projectsList.map(project => {
-        const createdDate = new Date(project.created_at);
-        const nextDeadline = getNextDeadline(project.id);
-        const waitlistCount = projectWaitlists[project.id] || 0;
-        const isBackingProject = backingProjects[project.id] || false;
-        
-        const isOwnedByCurrentUser = project.owner_id === userId;
-        // Set collaborator count to 1 for new owned projects
-        const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
-        
-        return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
-              <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
-                <CardTitle className="text-xl text-left">{project.title}</CardTitle>
-                {nextDeadline && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
-                    <Clock className="mr-1 h-3 w-3" />
-                    {getDeadlineDisplayText(nextDeadline)}
-                  </Badge>}
-              </CardHeader>
-              <CardContent className="cursor-pointer flex-grow" onClick={() => navigate(`/forge/${project.id}`)}>
-                <p className="text-gray-600 line-clamp-3 text-left">{project.description}</p>
-              </CardContent>
-              <CardFooter className="border-t pt-4 flex flex-col space-y-3">
-                <div className="flex justify-between items-center w-full text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {format(createdDate, 'MMM d, yyyy')}
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-1" />
-                    {collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}
-                  </div>
+
+    return (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {projectsList.map((project) => {
+          const isBackingProject = backingProjects[project.id] || false;
+          
+          const isOwnedByCurrentUser = project.owner_id === userId;
+          // Only set collaborator count to 1 if it's owned by the current user and has no actual collaborators
+          const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
+          
+          return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-xl line-clamp-1 pr-4 cursor-pointer" 
+                  onClick={() => navigate(`/forge/${project.id}`)}>
+                  {project.title}
+                </CardTitle>
+                {project.is_published && (
+                  <Badge variant="secondary" className="ml-2 shrink-0">
+                    Published
+                  </Badge>
+                )}
+              </div>
+              <CardDescription className="line-clamp-2 mt-1">
+                {project.description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-2 flex-grow">
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="mr-1 h-4 w-4" />
+                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
                 </div>
-                
-                <div className="flex flex-wrap gap-2 justify-between items-center w-full">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200">
-                      <Award className="h-3 w-3" />
-                      <span>{project.backers_count || 0} backers</span>
-                    </Badge>
-                    
-                    {waitlistCount > 0 && <Badge variant="outline" className="flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200">
-                        <Clock className="h-3 w-3" />
-                        <span>{waitlistCount} waiting</span>
-                      </Badge>}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" onClick={e => {
-                  e.stopPropagation();
-                  handleShareProject(project);
-                }}>
-                      <Share2 className="h-4 w-4" />
-                      <span className="sr-only">Share</span>
-                    </Button>
-                  </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Layers className="mr-1 h-4 w-4" />
+                  <span>3 steps completed</span>
                 </div>
-              </CardFooter>
-            </Card>;
-      })}
-      </div>;
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Users className="mr-1 h-4 w-4" />
+                  <span>{collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}</span>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between pt-2 border-t">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/forge/${project.id}`)}>
+                Open Project
+              </Button>
+              
+              {!isOwnedByCurrentUser && (
+                <Button 
+                  variant={isBackingProject ? "secondary" : "outline"} 
+                  size="sm"
+                  onClick={() => toggleBackingProject(project.id)}
+                >
+                  {isBackingProject ? (
+                    <>
+                      <Heart className="mr-1 h-4 w-4 fill-current" /> Backing
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="mr-1 h-4 w-4" /> Back Project
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {isOwnedByCurrentUser && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleShareProject(project)}
+                >
+                  <Share2 className="mr-1 h-4 w-4" /> Share
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        })}
+      </div>
+    );
   };
   
-  return <div className="page-container">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-left">My Projects</h1>
-          <p className="text-gray-600 mt-2 text-left">Manage and collaborate on your projects</p>
+  return (
+    <AnimatedTransition>
+      <div className="container mx-auto py-6 px-4 md:px-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold font-playfair">Your Projects</h1>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> New Project
+          </Button>
         </div>
         
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Project
-        </Button>
-      </div>
-      
-      {loading ? <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div> : <Tabs defaultValue="owned" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="owned">Projects You Own</TabsTrigger>
-            <TabsTrigger value="collaborating">Collaborating On</TabsTrigger>
+        <Tabs defaultValue="owned" className="w-full">
+          <TabsList className="w-full max-w-md">
+            <TabsTrigger value="owned" className="flex-1">Your Projects</TabsTrigger>
+            <TabsTrigger value="collaborating" className="flex-1">Collaborating</TabsTrigger>
           </TabsList>
-          <TabsContent value="owned" className="mt-0">
-            {renderProjectsGrid(ownedProjects)}
-          </TabsContent>
-          <TabsContent value="collaborating" className="mt-0">
-            {renderProjectsGrid(collaborativeProjects)}
-          </TabsContent>
-        </Tabs>}
-      
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
-            <DialogDescription>
-              Fill in the details to create your new project
-            </DialogDescription>
-          </DialogHeader>
           
-          <form onSubmit={handleCreateProject} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="project-title">Project Title *</Label>
-              <Input id="project-title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter project title" required />
-            </div>
+          <TabsContent value="owned" className="py-4">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              renderProjectsGrid(ownedProjects)
+            )}
+          </TabsContent>
+          
+          <TabsContent value="collaborating" className="py-4">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              renderProjectsGrid(collaborativeProjects)
+            )}
+          </TabsContent>
+        </Tabs>
+        
+        {/* Project creation dialog */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+              <DialogDescription>
+                Add a new project to start collaborating and bringing your ideas to life.
+              </DialogDescription>
+            </DialogHeader>
             
-            <div className="space-y-2">
-              <Label htmlFor="project-description">Description *</Label>
-              <Textarea id="project-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Enter project description" rows={4} required />
-            </div>
+            <form onSubmit={handleCreateProject}>
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label htmlFor="title" className="text-sm font-medium">
+                    Project Title
+                  </label>
+                  <Input
+                    id="title"
+                    placeholder="Enter a title for your project"
+                    value={newProjectTitle}
+                    onChange={(e) => setNewProjectTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="description" className="text-sm font-medium">
+                    Project Description
+                  </label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe what your project is about"
+                    value={newProjectDescription}
+                    onChange={(e) => setNewProjectDescription(e.target.value)}
+                    rows={3}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter className="mt-4">
+                <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Project'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-            <Button type="button" variant="outline" className="w-full" onClick={handleGetAISuggestions} disabled={!title.trim() || !description.trim() || loadingAI}>
-              {loadingAI ? <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Suggestions...
-                </> : <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Get AI Suggestions
-                </>}
-            </Button>
+        {/* Share project dialog */}
+        <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share Project</DialogTitle>
+              <DialogDescription>
+                Share your project with collaborators or get feedback.
+              </DialogDescription>
+            </DialogHeader>
             
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={!title.trim() || !description.trim() || creatingProject}>
-                {creatingProject ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                {creatingProject ? 'Creating...' : 'Create Project'}
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Project Link
+                </label>
+                <div className="flex">
+                  <Input
+                    value={`https://ideaforge.app/join-project/${selectedProject?.share_code || ''}`}
+                    readOnly
+                  />
+                  <Button 
+                    className="ml-2"
+                    onClick={handleCopyLink}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Anyone with this link can view and request to join your project.
+                </p>
+              </div>
+            </div>
+            
+            <DialogFooter className="mt-4">
+              <Button onClick={() => setIsShareDialogOpen(false)}>
+                Done
               </Button>
             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-      
-      {selectedProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={selectedProject.title} shareCode={selectedProject.share_code} />}
-      
-      <SuggestedStepsDialog open={suggestedStepsDialogOpen} onOpenChange={setSuggestedStepsDialogOpen} steps={suggestedSteps} onViewTeam={() => {
-      setSuggestedStepsDialogOpen(false);
-      setTeamSuggestionsDialogOpen(true);
-    }} />
-      
-      <TeamSuggestionsDialog open={teamSuggestionsDialogOpen} onOpenChange={setTeamSuggestionsDialogOpen} teamMembers={teamSuggestions} />
-    </div>;
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AnimatedTransition>
+  );
 };
 
-const ProjectsWithProvider: React.FC = () => {
-  return <AnimatedTransition>
-      <ProjectProvider>
-        <ProjectsList />
-      </ProjectProvider>
-    </AnimatedTransition>;
-};
-
-export default ProjectsWithProvider;
+export default Projects;

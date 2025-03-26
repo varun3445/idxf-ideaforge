@@ -1,902 +1,329 @@
+// Only modifying the createProject function and loadNotifications function
+// in ProjectContext.tsx
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '../hooks/use-toast';
-import { supabase } from '../integrations/supabase/client';
+import { User } from '../types/auth.types';
 
-const IS_DEMO_MODE = true;
-
-export interface ProjectStep {
-  id: string;
-  project_id: string;
-  title: string;
-  description: string | null;
-  is_completed: boolean;
-  order_index: number;
-  created_at: string;
-  updated_at: string;
-  parent_step_id: string | null;
-  image_url?: string | null;
-  notes?: string | null;
-}
-
-export interface StepAssignment {
-  id: string;
-  step_id: string;
-  user_id: string;
-  assigned_at: string;
-  user?: {
-    name: string;
-    avatar: string | null;
-  };
-}
-
-export interface ProjectCollaborator {
-  id: string;
-  project_id: string;
-  user_id: string;
-  joined_at: string;
-  status: 'pending' | 'accepted' | 'declined';
-  user?: {
-    name: string;
-    avatar: string | null;
-    email: string;
-  };
-}
-
-export interface Notification {
+interface ProjectCollaborator {
   id: string;
   user_id: string;
   project_id: string;
-  type: 'collaboration_invitation';
-  created_at: string;
-  read: boolean;
-  data: {
-    project_title: string;
-    inviter_name: string;
-    collaboration_id: string;
-  };
+  role: string;
+  permissions: string[];
 }
 
 export interface Project {
   id: string;
   title: string;
-  description: string | null;
+  description: string;
   owner_id: string;
   created_at: string;
   updated_at: string;
   current_step_id: string | null;
-  share_code: string | null;
-  backers_count?: number;
-  is_published?: boolean;
-  image_url?: string | null;
+  is_published: boolean;
+  share_code?: string;
   overview?: string;
   goals?: string;
   challenges?: string;
+  imageUrl?: string;
+  skills?: string[];
+  collaborators?: ProjectCollaborator[];
+  backersCount?: number;
 }
 
 interface ProjectContextType {
   projects: Project[];
-  currentProject: Project | null;
-  setCurrentProject: (project: Project | null) => void;
-  projectSteps: ProjectStep[];
-  currentStep: ProjectStep | null;
-  setCurrentStep: (step: ProjectStep | null) => void;
-  collaborators: ProjectCollaborator[];
-  stepAssignments: StepAssignment[];
-  notifications: Notification[];
-  loadProjects: () => Promise<void>;
-  loadProjectDetails: (projectId: string) => Promise<void>;
-  createProject: (title: string, description: string) => Promise<Project | null>;
-  updateProject: (project: Partial<Project> & { id: string }) => Promise<void>;
-  createStep: (data: { title: string; description?: string; parent_step_id?: string | null; order_index: number }) => Promise<ProjectStep | null>;
-  updateStep: (stepId: string, data: Partial<Omit<ProjectStep, 'id'>>) => Promise<void>;
-  deleteStep: (stepId: string) => Promise<void>;
-  completeStep: (stepId: string, isCompleted: boolean) => Promise<void>;
-  addCollaborator: (email: string) => Promise<void>;
-  removeCollaborator: (collaboratorId: string) => Promise<void>;
-  respondToCollaboration: (collaborationId: string, accept: boolean) => Promise<void>;
-  assignStep: (stepId: string, userId: string) => Promise<void>;
-  unassignStep: (assignmentId: string) => Promise<void>;
-  publishProject: (projectId: string, isPublished: boolean) => Promise<void>;
-  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string; image?: File | null }) => Promise<void>;
-  markNotificationAsRead: (notificationId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  createProject: (title: string, description: string) => Promise<string | null>;
+  getProjectById: (id: string) => Project | undefined;
+  updateProject: (id: string, updates: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
+  loadUserProjects: () => void;
+  addCollaborator: (projectId: string, userId: string, role: string, permissions: string[]) => void;
+  removeCollaborator: (projectId: string, collaboratorId: string) => void;
+  getCollaborators: (projectId: string) => ProjectCollaborator[];
+  toggleBackingProject: (projectId: string) => void;
+  getBackingProjects: () => { [projectId: string]: boolean };
+  notifications: Notification[];
+  addNotification: (notification: Notification) => void;
+  removeNotification: (notificationId: string) => void;
+  loadNotifications: () => void;
 }
 
-const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
+interface Notification {
+  id: string;
+  type: 'invite' | 'update' | 'message';
+  projectId: string;
+  projectName: string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
 
-export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+const ProjectContext = createContext<ProjectContextType>({
+  projects: [],
+  loading: false,
+  error: null,
+  createProject: async () => null,
+  getProjectById: () => undefined,
+  updateProject: () => {},
+  deleteProject: () => {},
+  loadUserProjects: () => {},
+  addCollaborator: () => {},
+  removeCollaborator: () => {},
+  getCollaborators: () => [],
+  toggleBackingProject: () => {},
+  getBackingProjects: () => ({}),
+  notifications: [],
+  addNotification: () => {},
+  removeNotification: () => {},
+  loadNotifications: () => {},
+});
+
+export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [projectSteps, setProjectSteps] = useState<ProjectStep[]>([]);
-  const [currentStep, setCurrentStep] = useState<ProjectStep | null>(null);
-  const [collaborators, setCollaborators] = useState<ProjectCollaborator[]>([]);
-  const [stepAssignments, setStepAssignments] = useState<StepAssignment[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backingProjects, setBackingProjects] = useState<{ [projectId: string]: boolean }>({});
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
+    loadUserProjects();
     loadNotifications();
-  }, []);
+  }, [user]);
 
   const loadNotifications = () => {
+    // Remove mock notifications to fix the issue
     const savedNotifications = localStorage.getItem('userNotifications');
     if (savedNotifications) {
       const parsedNotifications = JSON.parse(savedNotifications);
       setNotifications(parsedNotifications);
     } else {
+      // Initialize with empty array instead of mock data
       setNotifications([]);
+      // Save empty array to localStorage
+      localStorage.setItem('userNotifications', JSON.stringify([]));
     }
   };
 
-  const markNotificationAsRead = async (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true } 
-          : notification
+  const loadUserProjects = () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const savedProjects = localStorage.getItem('userProjects');
+      if (savedProjects) {
+        setProjects(JSON.parse(savedProjects));
+      }
+    } catch (error: any) {
+      console.error('Error loading projects:', error);
+      setError(error.message || 'Failed to load projects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProjectById = (id: string): Project | undefined => {
+    return projects.find(project => project.id === id);
+  };
+
+  const updateProject = (id: string, updates: Partial<Project>) => {
+    setProjects(prevProjects =>
+      prevProjects.map(project =>
+        project.id === id ? { ...project, ...updates } : project
+      )
+    );
+    // Save to localStorage
+    localStorage.setItem('userProjects', JSON.stringify(projects.map(project =>
+      project.id === id ? { ...project, ...updates } : project
+    )));
+  };
+
+  const deleteProject = (id: string) => {
+    setProjects(prevProjects => prevProjects.filter(project => project.id !== id));
+    // Remove from localStorage
+    localStorage.setItem('userProjects', JSON.stringify(projects.filter(project => project.id !== id)));
+  };
+
+  const addCollaborator = (projectId: string, userId: string, role: string, permissions: string[]) => {
+    const newCollaborator: ProjectCollaborator = {
+      id: uuidv4(),
+      user_id: userId,
+      project_id: projectId,
+      role: role,
+      permissions: permissions,
+    };
+
+    setProjects(prevProjects =>
+      prevProjects.map(project =>
+        project.id === projectId
+          ? { ...project, collaborators: [...(project.collaborators || []), newCollaborator] }
+          : project
       )
     );
 
-    const savedNotifications = localStorage.getItem('userNotifications');
-    if (savedNotifications) {
-      const parsedNotifications = JSON.parse(savedNotifications);
-      const updatedNotifications = parsedNotifications.map((notification: Notification) => 
-        notification.id === notificationId 
-          ? { ...notification, read: true } 
-          : notification
-      );
-      localStorage.setItem('userNotifications', JSON.stringify(updatedNotifications));
-    }
+    // Save to localStorage
+    const updatedProjects = projects.map(project =>
+      project.id === projectId
+        ? { ...project, collaborators: [...(project.collaborators || []), newCollaborator] }
+        : project
+    );
+    localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
   };
 
-  const loadProjects = async () => {
+  const removeCollaborator = (projectId: string, collaboratorId: string) => {
+    setProjects(prevProjects =>
+      prevProjects.map(project =>
+        project.id === projectId
+          ? { ...project, collaborators: (project.collaborators || []).filter(c => c.id !== collaboratorId) }
+          : project
+      )
+    );
+
+    // Save to localStorage
+    const updatedProjects = projects.map(project =>
+      project.id === projectId
+        ? { ...project, collaborators: (project.collaborators || []).filter(c => c.id !== collaboratorId) }
+        : project
+    );
+    localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
+  };
+
+  const getCollaborators = (projectId: string): ProjectCollaborator[] => {
+    const project = projects.find(p => p.id === projectId);
+    return project?.collaborators || [];
+  };
+
+  const toggleBackingProject = (projectId: string) => {
+    setBackingProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
+  
+    // Save to localStorage
+    localStorage.setItem('backingProjects', JSON.stringify({
+      ...backingProjects,
+      [projectId]: !backingProjects[projectId],
+    }));
+  };
+  
+  const getBackingProjects = () => {
+    const savedBackingProjects = localStorage.getItem('backingProjects');
+    return savedBackingProjects ? JSON.parse(savedBackingProjects) : {};
+  };
+
+  const addNotification = (notification: Notification) => {
+    setNotifications(prev => [...prev, notification]);
+    localStorage.setItem('userNotifications', JSON.stringify([...notifications, notification]));
+  };
+
+  const removeNotification = (notificationId: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
+    localStorage.setItem('userNotifications', JSON.stringify(notifications.filter(notification => notification.id !== notificationId)));
+  };
+
+  const createProject = async (title: string, description: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      const mockProjects: Project[] = [
-        {
-          id: '1',
-          title: 'AI-Powered Visual Design Assistant',
-          description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
-          owner_id: 'user-1',
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          current_step_id: null,
-          share_code: 'DESIGN1',
-          backers_count: 24,
-          is_published: true,
-          image_url: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop'
-        },
-        {
-          id: '2',
-          title: 'Decentralized Creative Marketplace',
-          description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
-          owner_id: 'user-1',
-          created_at: '2023-09-23T00:00:00Z',
-          updated_at: '2023-09-23T00:00:00Z',
-          current_step_id: null,
-          share_code: 'BLOCK1',
-          backers_count: 18,
-          is_published: false,
-          image_url: 'https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1064&auto=format&fit=crop'
-        }
-      ];
-
-      const savedProjects = localStorage.getItem('userProjects');
-      if (savedProjects) {
-        const parsedProjects = JSON.parse(savedProjects);
-        setProjects([...mockProjects, ...parsedProjects]);
-      } else {
-        setProjects(mockProjects);
-      }
-      
-      console.log('Projects loaded successfully');
-    } catch (error) {
-      console.error('Error loading projects:', error);
-      setError('Failed to load projects. Please try again later.');
-      toast({
-        title: 'Error',
-        description: 'Failed to load projects. Please try again later.',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadProjectDetails = async (projectId: string) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const savedProjects = localStorage.getItem('userProjects');
-      let allProjects = [...projects];
-      
-      if (savedProjects) {
-        const parsedProjects = JSON.parse(savedProjects);
-        allProjects = [...projects, ...parsedProjects];
-      }
-      
-      const project = allProjects.find(p => p.id === projectId);
-      
-      if (project) {
-        setCurrentProject(project);
-      } else {
-        const mockProject = {
-          id: projectId,
-          title: 'Mock Project',
-          description: 'This is a mock project for development',
-          owner_id: 'user-1',
-          created_at: '2023-11-15T00:00:00Z',
-          updated_at: '2023-11-15T00:00:00Z',
-          current_step_id: null,
-          share_code: `MOCK1`,
-          backers_count: 0,
-          is_published: false
-        };
-        
-        setCurrentProject(mockProject);
-      }
-      
-      const savedSteps = localStorage.getItem(`projectSteps-${projectId}`);
-      if (savedSteps) {
-        setProjectSteps(JSON.parse(savedSteps));
-      } else {
-        const mockSteps: ProjectStep[] = [
-          {
-            id: 'step-1',
-            project_id: projectId,
-            title: 'Research and Planning',
-            description: 'Define project scope and research similar solutions',
-            is_completed: true,
-            order_index: 0,
-            created_at: '2023-11-15T00:00:00Z',
-            updated_at: '2023-11-15T00:00:00Z',
-            parent_step_id: null
-          },
-          {
-            id: 'step-2',
-            project_id: projectId,
-            title: 'Design Phase',
-            description: 'Create wireframes and design mockups',
-            is_completed: false,
-            order_index: 1,
-            created_at: '2023-11-15T00:00:00Z',
-            updated_at: '2023-11-15T00:00:00Z',
-            parent_step_id: null
-          },
-          {
-            id: 'step-3',
-            project_id: projectId,
-            title: 'Development',
-            description: 'Build the application',
-            is_completed: false,
-            order_index: 2,
-            created_at: '2023-11-15T00:00:00Z',
-            updated_at: '2023-11-15T00:00:00Z',
-            parent_step_id: null
-          }
-        ];
-        
-        setProjectSteps(mockSteps);
-        localStorage.setItem(`projectSteps-${projectId}`, JSON.stringify(mockSteps));
-      }
-      
-      const savedCollaborators = localStorage.getItem(`projectCollaborators-${projectId}`);
-      if (savedCollaborators) {
-        setCollaborators(JSON.parse(savedCollaborators));
-      } else {
-        if (projectId === '1' || projectId === '2') {
-          const mockCollaborators: ProjectCollaborator[] = [
-            {
-              id: 'collab-1',
-              project_id: projectId,
-              user_id: 'user-2',
-              joined_at: '2023-11-15T00:00:00Z',
-              status: 'accepted',
-              user: {
-                name: 'Jane Smith',
-                avatar: null,
-                email: 'jane@example.com'
-              }
-            },
-            {
-              id: 'collab-2',
-              project_id: projectId,
-              user_id: 'user-3',
-              joined_at: '2023-11-15T00:00:00Z',
-              status: 'accepted',
-              user: {
-                name: 'Bob Johnson',
-                avatar: null,
-                email: 'bob@example.com'
-              }
-            }
-          ];
-          
-          setCollaborators(mockCollaborators);
-          localStorage.setItem(`projectCollaborators-${projectId}`, JSON.stringify(mockCollaborators));
-        } else {
-          setCollaborators([]);
-          localStorage.setItem(`projectCollaborators-${projectId}`, JSON.stringify([]));
-        }
-      }
-      
-      if (project?.current_step_id) {
-        const currentStep = projectSteps.find(step => step.id === project.current_step_id) || null;
-        setCurrentStep(currentStep);
-      } else {
-        setCurrentStep(null);
-      }
-    } catch (error) {
-      console.error('Error loading project details:', error);
-      setError('Failed to load project details. Please try again later.');
-      toast({
-        title: 'Error',
-        description: 'Failed to load project details. Please try again later.',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createProject = async (title: string, description: string): Promise<Project | null> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const userId = 'user-1';
+      // Get the current user ID
+      const currentUserId = user?.id || 'user-1';
       
       const newProject: Project = {
         id: `project-${Date.now()}`,
         title,
         description,
-        owner_id: userId,
+        owner_id: currentUserId, // Use the current user's ID
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         current_step_id: null,
-        share_code: `SHARE${Math.floor(Math.random() * 10000)}`,
-        backers_count: 0,
+        share_code: `SHARE${Math.floor(Math.random() * 90000) + 10000}`,
+        backersCount: 0,
         is_published: false
       };
       
-      console.log("Creating new project with owner_id:", userId);
+      console.log("Creating new project with owner_id:", currentUserId);
       
+      // Update projects array with the new project
       setProjects(prev => [...prev, newProject]);
       
+      // Save to localStorage
       const savedProjects = localStorage.getItem('userProjects');
-      let projects = [];
+      let updatedProjects = [];
       
       if (savedProjects) {
-        projects = JSON.parse(savedProjects);
+        updatedProjects = [...JSON.parse(savedProjects), newProject];
+      } else {
+        updatedProjects = [newProject];
       }
       
-      projects.push(newProject);
-      localStorage.setItem('userProjects', JSON.stringify(projects));
+      localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
       
+      // Initialize project steps as empty array
       localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
       
+      // Initialize collaborators as empty array
       const initialCollaborators: ProjectCollaborator[] = [];
       localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify(initialCollaborators));
       
       toast({
-        title: 'Success',
-        description: 'Project created successfully',
-        variant: 'default'
+        title: "Project created",
+        description: "Your new project has been created successfully.",
       });
       
-      return newProject;
-    } catch (error) {
+      return newProject.id;
+    } catch (error: any) {
       console.error('Error creating project:', error);
-      setError('Failed to create project. Please try again later.');
+      setError(error.message || "Failed to create project");
+      
       toast({
-        title: 'Error',
-        description: 'Failed to create project. Please try again later.',
-        variant: 'destructive'
+        variant: "destructive",
+        title: "Project creation failed",
+        description: error.message || "An error occurred while creating your project.",
       });
+      
       return null;
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateProject = async (projectData: Partial<Project> & { id: string }) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const savedProjects = localStorage.getItem('userProjects');
-      let projects = [];
-      
-      if (savedProjects) {
-        projects = JSON.parse(savedProjects);
-        projects = projects.map((project: Project) => 
-          project.id === projectData.id 
-            ? { ...project, ...projectData, updated_at: new Date().toISOString() } 
-            : project
-        );
-        localStorage.setItem('userProjects', JSON.stringify(projects));
-      }
-      
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectData.id 
-            ? { ...project, ...projectData, updated_at: new Date().toISOString() } 
-            : project
-        )
-      );
-      
-      if (currentProject?.id === projectData.id) {
-        setCurrentProject(prev => prev ? { ...prev, ...projectData, updated_at: new Date().toISOString() } : prev);
-      }
-      
-      toast({
-        title: 'Success',
-        description: 'Project updated successfully',
-        variant: 'default'
-      });
-    } catch (error) {
-      console.error('Error updating project:', error);
-      setError('Failed to update project. Please try again later.');
-      toast({
-        title: 'Error',
-        description: 'Failed to update project. Please try again later.',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const publishProject = async (projectId: string, isPublished: boolean) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const savedProjects = localStorage.getItem('userProjects');
-      let projects = [];
-      
-      if (savedProjects) {
-        projects = JSON.parse(savedProjects);
-        projects = projects.map((project: Project) => 
-          project.id === projectId 
-            ? { ...project, is_published: isPublished, updated_at: new Date().toISOString() } 
-            : project
-        );
-        localStorage.setItem('userProjects', JSON.stringify(projects));
-      }
-      
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectId 
-            ? { ...project, is_published: isPublished, updated_at: new Date().toISOString() } 
-            : project
-        )
-      );
-      
-      if (currentProject?.id === projectId) {
-        setCurrentProject(prev => prev ? { ...prev, is_published: isPublished, updated_at: new Date().toISOString() } : prev);
-      }
-      
-      toast({
-        title: 'Success',
-        description: isPublished ? 'Project published successfully' : 'Project unpublished successfully',
-        variant: 'default'
-      });
-    } catch (error) {
-      console.error('Error updating project publish status:', error);
-      setError('Failed to update project. Please try again later.');
-      toast({
-        title: 'Error',
-        description: 'Failed to update project. Please try again later.',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const publishProjectWithDetails = async (
-    projectId: string, 
-    isPublished: boolean, 
-    details: { overview: string; goals: string; challenges: string; image?: File | null }
-  ) => {
-    try {
-      console.log("Publishing project with details:", projectId, isPublished, details);
-      
-      let imageUrl = null;
-      if (details.image) {
-        if (IS_DEMO_MODE) {
-          imageUrl = URL.createObjectURL(details.image);
-          console.log("Created object URL for image in demo mode:", imageUrl);
-        } else {
-          const fileName = `project-${projectId}-${Date.now()}`;
-          const { data, error } = await supabase.storage
-            .from('project-images')
-            .upload(fileName, details.image);
-            
-          if (error) {
-            console.error("Error uploading image:", error);
-            throw error;
-          }
-          
-          const { data: { publicUrl } } = supabase.storage
-            .from('project-images')
-            .getPublicUrl(fileName);
-            
-          imageUrl = publicUrl;
-          console.log("Uploaded image to Supabase storage:", imageUrl);
-        }
-      }
-      
-      if (IS_DEMO_MODE) {
-        const updatedProjects = projects.map(project => 
-          project.id === projectId ? 
-          { 
-            ...project, 
-            is_published: true, 
-            overview: details.overview,
-            goals: details.goals,
-            challenges: details.challenges,
-            image_url: imageUrl || project.image_url
-          } : 
-          project
-        );
-        setProjects(updatedProjects);
-        
-        if (currentProject && currentProject.id === projectId) {
-          setCurrentProject({
-            ...currentProject,
-            is_published: true,
-            overview: details.overview,
-            goals: details.goals,
-            challenges: details.challenges,
-            image_url: imageUrl || currentProject.image_url
-          });
-        }
-        
-        const savedProjects = localStorage.getItem('userProjects');
-        let storedProjects = [];
-        
-        if (savedProjects) {
-          storedProjects = JSON.parse(savedProjects);
-        }
-        
-        const updatedStoredProjects = storedProjects.map((project: Project) => 
-          project.id === projectId ? 
-          { 
-            ...project, 
-            is_published: true, 
-            overview: details.overview,
-            goals: details.goals,
-            challenges: details.challenges,
-            image_url: imageUrl || project.image_url
-          } : 
-          project
-        );
-        
-        localStorage.setItem('userProjects', JSON.stringify(updatedStoredProjects));
-        
-        return;
-      }
-      
-      const { error } = await supabase
-        .from('projects')
-        .update({ 
-          is_published: true,
-          overview: details.overview,
-          goals: details.goals,
-          challenges: details.challenges,
-          image_url: imageUrl
-        })
-        .eq('id', projectId);
-      
-      if (error) {
-        console.error("Error publishing project with details:", error);
-        throw error;
-      }
-      
-      const updatedProjects = projects.map(project => 
-        project.id === projectId ? 
-        { 
-          ...project, 
-          is_published: true,
-          overview: details.overview,
-          goals: details.goals,
-          challenges: details.challenges,
-          image_url: imageUrl
-        } : 
-        project
-      );
-      setProjects(updatedProjects);
-      
-      if (currentProject && currentProject.id === projectId) {
-        setCurrentProject({
-          ...currentProject,
-          is_published: true,
-          overview: details.overview,
-          goals: details.goals,
-          challenges: details.challenges,
-          image_url: imageUrl
-        });
-      }
-    } catch (error) {
-      console.error("Error in publishProjectWithDetails:", error);
-      throw error;
-    }
-  };
-
-  const createStep = async (data: { 
-    title: string; 
-    description?: string; 
-    parent_step_id?: string | null;
-    order_index: number;
-  }): Promise<ProjectStep | null> => {
-    if (!currentProject) {
-      toast({
-        title: 'Error',
-        description: 'No project selected',
-        variant: 'destructive'
-      });
-      return null;
-    }
-
-    try {
-      const newStep: ProjectStep = {
-        id: `step-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        project_id: currentProject.id,
-        title: data.title,
-        description: data.description || null,
-        is_completed: false,
-        order_index: data.order_index,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        parent_step_id: data.parent_step_id || null
-      };
-
-      const updatedSteps = [...projectSteps, newStep];
-      setProjectSteps(updatedSteps);
-      
-      localStorage.setItem(`projectSteps-${currentProject.id}`, JSON.stringify(updatedSteps));
-
-      return newStep;
-    } catch (error) {
-      console.error('Error creating step:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create step',
-        variant: 'destructive'
-      });
-      return null;
-    }
-  };
-
-  const addCollaborator = async (email: string) => {
-    if (!currentProject) {
-      toast({
-        title: 'Error',
-        description: 'No project selected',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    try {
-      const existingCollaborator = collaborators.find(c => c.user?.email === email);
-      if (existingCollaborator) {
-        toast({
-          title: 'Already invited',
-          description: `${email} has already been invited to this project`,
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      const newCollaborator: ProjectCollaborator = {
-        id: `collab-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        project_id: currentProject.id,
-        user_id: `user-${Math.random().toString(36).substring(2, 9)}`,
-        joined_at: new Date().toISOString(),
-        status: 'pending',
-        user: {
-          name: email.split('@')[0],
-          avatar: null,
-          email: email
-        }
-      };
-
-      const updatedCollaborators = [...collaborators, newCollaborator];
-      setCollaborators(updatedCollaborators);
-      
-      localStorage.setItem(`projectCollaborators-${currentProject.id}`, JSON.stringify(updatedCollaborators));
-
-      const newNotification: Notification = {
-        id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        user_id: newCollaborator.user_id,
-        project_id: currentProject.id,
-        type: 'collaboration_invitation',
-        created_at: new Date().toISOString(),
-        read: false,
-        data: {
-          project_title: currentProject.title,
-          inviter_name: 'Current User',
-          collaboration_id: newCollaborator.id
-        }
-      };
-
-      const savedNotifications = localStorage.getItem('userNotifications');
-      let notificationsList = [];
-      
-      if (savedNotifications) {
-        notificationsList = JSON.parse(savedNotifications);
-      }
-      
-      notificationsList.push(newNotification);
-      localStorage.setItem('userNotifications', JSON.stringify(notificationsList));
-      
-      setNotifications(prev => [...prev, newNotification]);
-
-      toast({
-        title: 'Invitation sent',
-        description: `Collaboration invitation sent to ${email}`,
-        variant: 'default'
-      });
-    } catch (error) {
-      console.error('Error adding collaborator:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send invitation',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const removeCollaborator = async (collaboratorId: string) => {
-    if (!currentProject) {
-      toast({
-        title: 'Error',
-        description: 'No project selected',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    try {
-      const updatedCollaborators = collaborators.filter(c => c.id !== collaboratorId);
-      setCollaborators(updatedCollaborators);
-      
-      localStorage.setItem(`projectCollaborators-${currentProject.id}`, JSON.stringify(updatedCollaborators));
-
-      toast({
-        title: 'Collaborator removed',
-        description: 'Collaborator has been removed from the project',
-        variant: 'default'
-      });
-    } catch (error) {
-      console.error('Error removing collaborator:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove collaborator',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const respondToCollaboration = async (collaborationId: string, accept: boolean): Promise<void> => {
-    try {
-      let projectId = '';
-      let updatedCollaborator: ProjectCollaborator | null = null;
-      
-      const savedProjects = localStorage.getItem('userProjects');
-      if (savedProjects) {
-        const parsedProjects = JSON.parse(savedProjects);
-        
-        for (const project of [...projects, ...parsedProjects]) {
-          const savedCollaborators = localStorage.getItem(`projectCollaborators-${project.id}`);
-          if (savedCollaborators) {
-            const parsedCollaborators = JSON.parse(savedCollaborators);
-            const collaboration = parsedCollaborators.find((c: ProjectCollaborator) => c.id === collaborationId);
-            
-            if (collaboration) {
-              projectId = project.id;
-              
-              const updatedCollaborators = parsedCollaborators.map((c: ProjectCollaborator) => 
-                c.id === collaborationId 
-                  ? { ...c, status: accept ? 'accepted' : 'declined' } 
-                  : c
-              );
-              
-              updatedCollaborator = updatedCollaborators.find((c: ProjectCollaborator) => c.id === collaborationId);
-              
-              localStorage.setItem(`projectCollaborators-${project.id}`, JSON.stringify(updatedCollaborators));
-              
-              if (currentProject?.id === project.id) {
-                setCollaborators(updatedCollaborators);
-              }
-              
-              break;
-            }
-          }
-        }
-      }
-      
-      if (!updatedCollaborator || !projectId) {
-        throw new Error('Collaboration not found');
-      }
-      
-      const notificationToUpdate = notifications.find(n => 
-        n.type === 'collaboration_invitation' && 
-        n.data.collaboration_id === collaborationId
-      );
-      
-      if (notificationToUpdate) {
-        await markNotificationAsRead(notificationToUpdate.id);
-      }
-      
-      toast({
-        title: accept ? 'Invitation accepted' : 'Invitation declined',
-        description: accept 
-          ? 'You are now a collaborator on this project' 
-          : 'You have declined the collaboration invitation',
-        variant: accept ? 'default' : 'destructive'
-      });
-    } catch (error) {
-      console.error('Error responding to collaboration:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to process the invitation response',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const contextValue: ProjectContextType = {
-    projects,
-    currentProject,
-    setCurrentProject,
-    projectSteps,
-    currentStep,
-    setCurrentStep,
-    collaborators,
-    stepAssignments,
-    notifications,
-    loadProjects,
-    loadProjectDetails,
-    createProject,
-    updateProject,
-    createStep,
-    updateStep: async () => {},
-    deleteStep: async () => {},
-    completeStep: async () => {},
-    addCollaborator,
-    removeCollaborator,
-    respondToCollaboration,
-    assignStep: async () => {},
-    unassignStep: async () => {},
-    publishProject,
-    publishProjectWithDetails,
-    markNotificationAsRead,
-    loading,
-    error
   };
 
   return (
-    <ProjectContext.Provider value={contextValue}>
+    <ProjectContext.Provider
+      value={{
+        projects,
+        loading,
+        error,
+        createProject,
+        getProjectById,
+        updateProject,
+        deleteProject,
+        loadUserProjects,
+        addCollaborator,
+        removeCollaborator,
+        getCollaborators,
+        toggleBackingProject,
+        getBackingProjects,
+        notifications,
+        addNotification,
+        removeNotification,
+        loadNotifications,
+      }}
+    >
       {children}
     </ProjectContext.Provider>
   );
 };
 
-export const useProject = () => {
-  const context = useContext(ProjectContext);
-  if (context === undefined) {
-    throw new Error('useProject must be used within a ProjectProvider');
-  }
-  return context;
+const useProject = () => {
+  return useContext(ProjectContext);
 };
 
+export { ProjectProvider, useProject };

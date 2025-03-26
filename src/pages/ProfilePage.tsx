@@ -42,6 +42,9 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (user) {
+      // Make sure to set the userId correctly for ownership detection
+      const userId = user?.id || 'user-1';
+      
       // Simulating project fetch for demo mode
       // In a real implementation, this would be a database query
       const mockProjects = [
@@ -54,6 +57,7 @@ const ProfilePage = () => {
           backersCount: 24,
           createdAt: '2023-11-15',
           updatedAt: '2023-12-05',
+          owner_id: userId // Set this to the current user's ID
         },
         {
           id: '2',
@@ -64,6 +68,7 @@ const ProfilePage = () => {
           backersCount: 18,
           createdAt: '2023-09-23',
           updatedAt: '2023-10-15',
+          owner_id: userId // Set this to the current user's ID
         },
         {
           id: '3',
@@ -74,6 +79,7 @@ const ProfilePage = () => {
           backersCount: 0,
           createdAt: '2023-07-09',
           updatedAt: '2023-08-01',
+          owner_id: 'different-user' // This project should appear in collaborative projects
         }
       ];
       

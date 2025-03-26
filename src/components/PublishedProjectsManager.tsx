@@ -52,13 +52,25 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   const [updateContent, setUpdateContent] = useState('');
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
-  // Filter projects based on ownership and published status
+  // Debugging logs to verify what's happening with project filtering
   console.log("PublishedProjectsManager - User ID:", userId);
-  console.log("PublishedProjectsManager - All projects:", projects);
+  console.log("PublishedProjectsManager - Projects before filtering:", projects);
   
-  const publishedProjects = projects.filter(project => project.published);
-  const ownedProjects = publishedProjects.filter(project => project.owner_id === userId);
-  const collaborativeProjects = publishedProjects.filter(project => project.owner_id !== userId);
+  // First filter the published projects
+  const publishedProjects = projects.filter(project => 
+    project.published === true || project.is_published === true
+  );
+  
+  console.log("PublishedProjectsManager - Published projects:", publishedProjects);
+  
+  // Then separate owned vs. collaborative projects
+  const ownedProjects = publishedProjects.filter(project => 
+    project.owner_id === userId
+  );
+  
+  const collaborativeProjects = publishedProjects.filter(project => 
+    project.owner_id !== userId
+  );
   
   console.log("PublishedProjectsManager - Owned projects:", ownedProjects);
   console.log("PublishedProjectsManager - Collaborative projects:", collaborativeProjects);
