@@ -20,10 +20,8 @@ const NotificationDropdown = () => {
   
   const handleAccept = async (notification: Notification) => {
     if (notification.type === 'collaboration_invitation') {
-      const success = await respondToCollaboration(notification.data.collaboration_id, true);
-      if (success) {
-        navigate(`/forge/${notification.project_id}`);
-      }
+      await respondToCollaboration(notification.data.collaboration_id, true);
+      navigate(`/forge/${notification.project_id}`);
     }
   };
   

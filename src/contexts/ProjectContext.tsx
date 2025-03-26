@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '../hooks/use-toast';
 
@@ -677,7 +676,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const respondToCollaboration = async (collaborationId: string, accept: boolean) => {
+  const respondToCollaboration = async (collaborationId: string, accept: boolean): Promise<void> => {
     try {
       // Find the collaboration in all project collaborations
       let projectId = '';
@@ -742,8 +741,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           : 'You have declined the collaboration invitation',
         variant: accept ? 'default' : 'destructive'
       });
-      
-      return true;
     } catch (error) {
       console.error('Error responding to collaboration:', error);
       toast({
@@ -751,7 +748,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         description: 'Failed to process the invitation response',
         variant: 'destructive'
       });
-      return false;
     }
   };
 
