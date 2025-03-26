@@ -1,5 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from '../hooks/use-toast';
+import { supabase } from '../integrations/supabase/client';
+
+// Define a constant to indicate if we're in demo mode (not using real backend)
+const IS_DEMO_MODE = true; // Set to true to use mock data, false to use Supabase
 
 export interface ProjectStep {
   id: string;
