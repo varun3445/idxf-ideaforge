@@ -65,6 +65,9 @@ export interface Project {
   backers_count?: number;
   is_published?: boolean;
   image_url?: string | null;
+  overview?: string;
+  goals?: string;
+  challenges?: string;
 }
 
 interface ProjectContextType {
@@ -91,6 +94,7 @@ interface ProjectContextType {
   assignStep: (stepId: string, userId: string) => Promise<void>;
   unassignStep: (assignmentId: string) => Promise<void>;
   publishProject: (projectId: string, isPublished: boolean) => Promise<void>;
+  publishProjectWithDetails: (projectId: string, isPublished: boolean, details: { overview: string; goals: string; challenges: string }) => Promise<void>;
   markNotificationAsRead: (notificationId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -110,13 +114,11 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Load notifications for the current user
   useEffect(() => {
     loadNotifications();
   }, []);
 
   const loadNotifications = () => {
-    // Mock data for notifications
     const mockNotifications: Notification[] = [
       {
         id: 'notif-1',
@@ -253,12 +255,10 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         setCurrentProject(mockProject);
       }
       
-      // Load project steps from localStorage
       const savedSteps = localStorage.getItem(`projectSteps-${projectId}`);
       if (savedSteps) {
         setProjectSteps(JSON.parse(savedSteps));
       } else {
-        // Use mock steps only if there are no saved steps
         const mockSteps: ProjectStep[] = [
           {
             id: 'step-1',
@@ -299,12 +299,10 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         localStorage.setItem(`projectSteps-${projectId}`, JSON.stringify(mockSteps));
       }
       
-      // Load project collaborators from localStorage
       const savedCollaborators = localStorage.getItem(`projectCollaborators-${projectId}`);
       if (savedCollaborators) {
         setCollaborators(JSON.parse(savedCollaborators));
       } else {
-        // Only use mock collaborators for mock project IDs (1, 2), not for new projects
         if (projectId === '1' || projectId === '2') {
           const mockCollaborators: ProjectCollaborator[] = [
             {
@@ -336,7 +334,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
           setCollaborators(mockCollaborators);
           localStorage.setItem(`projectCollaborators-${projectId}`, JSON.stringify(mockCollaborators));
         } else {
-          // For new projects, start with an empty collaborators list
           setCollaborators([]);
           localStorage.setItem(`projectCollaborators-${projectId}`, JSON.stringify([]));
         }
@@ -391,10 +388,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       projects.push(newProject);
       localStorage.setItem('userProjects', JSON.stringify(projects));
       
-      // Initialize empty steps for the new project
       localStorage.setItem(`projectSteps-${newProject.id}`, JSON.stringify([]));
       
-      // Initialize empty collaborators for the new project
       localStorage.setItem(`projectCollaborators-${newProject.id}`, JSON.stringify([]));
       
       toast({
@@ -514,6 +509,84 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const publishProjectWithDetails = async (
+    projectId: string, 
+    isPublished: boolean, 
+    details: { overview: string; goals: string; challenges: string }
+  ) => {
+    try {
+      console.log("Publishing project with details:", projectId, isPublished, details);
+      
+      if (IS_DEMO_MODE) {
+        const updatedProjects = projects.map(project => 
+          project.id === projectId ? 
+          { 
+            ...project, 
+            is_published: true, 
+            overview: details.overview,
+            goals: details.goals,
+            challenges: details.challenges
+          } : 
+          project
+        );
+        setProjects(updatedProjects);
+        
+        if (currentProject && currentProject.id === projectId) {
+          setCurrentProject({
+            ...currentProject,
+            is_published: true,
+            overview: details.overview,
+            goals: details.goals,
+            challenges: details.challenges
+          });
+        }
+        
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('projects')
+        .update({ 
+          is_published: true,
+          overview: details.overview,
+          goals: details.goals,
+          challenges: details.challenges 
+        })
+        .eq('id', projectId);
+      
+      if (error) {
+        console.error("Error publishing project with details:", error);
+        throw error;
+      }
+      
+      const updatedProjects = projects.map(project => 
+        project.id === projectId ? 
+        { 
+          ...project, 
+          is_published: true, 
+          overview: details.overview,
+          goals: details.goals,
+          challenges: details.challenges
+        } : 
+        project
+      );
+      setProjects(updatedProjects);
+      
+      if (currentProject && currentProject.id === projectId) {
+        setCurrentProject({
+          ...currentProject,
+          is_published: true,
+          overview: details.overview,
+          goals: details.goals,
+          challenges: details.challenges
+        });
+      }
+    } catch (error) {
+      console.error("Error in publishProjectWithDetails:", error);
+      throw error;
+    }
+  };
+
   const createStep = async (data: { 
     title: string; 
     description?: string; 
@@ -545,7 +618,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       const updatedSteps = [...projectSteps, newStep];
       setProjectSteps(updatedSteps);
       
-      // Save to localStorage
       localStorage.setItem(`projectSteps-${currentProject.id}`, JSON.stringify(updatedSteps));
 
       return newStep;
@@ -571,7 +643,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     try {
-      // Check if the collaborator already exists
       const existingCollaborator = collaborators.find(c => c.user?.email === email);
       if (existingCollaborator) {
         toast({
@@ -582,7 +653,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         return;
       }
 
-      // Create a new collaboration request
       const newCollaborator: ProjectCollaborator = {
         id: `collab-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         project_id: currentProject.id,
@@ -599,10 +669,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       const updatedCollaborators = [...collaborators, newCollaborator];
       setCollaborators(updatedCollaborators);
       
-      // Save to localStorage
       localStorage.setItem(`projectCollaborators-${currentProject.id}`, JSON.stringify(updatedCollaborators));
 
-      // Create a notification for the invited user
       const newNotification: Notification = {
         id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         user_id: newCollaborator.user_id,
@@ -658,7 +726,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
       const updatedCollaborators = collaborators.filter(c => c.id !== collaboratorId);
       setCollaborators(updatedCollaborators);
       
-      // Save to localStorage
       localStorage.setItem(`projectCollaborators-${currentProject.id}`, JSON.stringify(updatedCollaborators));
 
       toast({
@@ -678,17 +745,14 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const respondToCollaboration = async (collaborationId: string, accept: boolean): Promise<void> => {
     try {
-      // Find the collaboration in all project collaborations
       let projectId = '';
       let updatedCollaborator: ProjectCollaborator | null = null;
       
-      // Find the project with this collaboration
       const savedProjects = localStorage.getItem('userProjects');
       if (savedProjects) {
         const parsedProjects = JSON.parse(savedProjects);
         
         for (const project of [...projects, ...parsedProjects]) {
-          // Check if there are saved collaborators for this project
           const savedCollaborators = localStorage.getItem(`projectCollaborators-${project.id}`);
           if (savedCollaborators) {
             const parsedCollaborators = JSON.parse(savedCollaborators);
@@ -697,7 +761,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
             if (collaboration) {
               projectId = project.id;
               
-              // Update the collaborator status
               const updatedCollaborators = parsedCollaborators.map((c: ProjectCollaborator) => 
                 c.id === collaborationId 
                   ? { ...c, status: accept ? 'accepted' : 'declined' } 
@@ -706,10 +769,8 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
               
               updatedCollaborator = updatedCollaborators.find((c: ProjectCollaborator) => c.id === collaborationId);
               
-              // Save updated collaborators
               localStorage.setItem(`projectCollaborators-${project.id}`, JSON.stringify(updatedCollaborators));
               
-              // If this is the current project, update the collaborators state
               if (currentProject?.id === project.id) {
                 setCollaborators(updatedCollaborators);
               }
@@ -724,7 +785,6 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         throw new Error('Collaboration not found');
       }
       
-      // Mark the notification as read
       const notificationToUpdate = notifications.find(n => 
         n.type === 'collaboration_invitation' && 
         n.data.collaboration_id === collaborationId
@@ -751,37 +811,38 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  const contextValue: ProjectContextType = {
+    projects,
+    currentProject,
+    setCurrentProject,
+    projectSteps,
+    currentStep,
+    setCurrentStep,
+    collaborators,
+    stepAssignments,
+    notifications,
+    loadProjects,
+    loadProjectDetails,
+    createProject,
+    updateProject,
+    createStep,
+    updateStep: async () => {},
+    deleteStep: async () => {},
+    completeStep: async () => {},
+    addCollaborator,
+    removeCollaborator,
+    respondToCollaboration,
+    assignStep: async () => {},
+    unassignStep: async () => {},
+    publishProject,
+    publishProjectWithDetails,
+    markNotificationAsRead,
+    loading,
+    error
+  };
+
   return (
-    <ProjectContext.Provider
-      value={{
-        projects,
-        currentProject,
-        setCurrentProject,
-        projectSteps,
-        currentStep,
-        setCurrentStep,
-        collaborators,
-        stepAssignments,
-        notifications,
-        loadProjects,
-        loadProjectDetails,
-        createProject,
-        updateProject,
-        createStep,
-        updateStep: async () => {},
-        deleteStep: async () => {},
-        completeStep: async () => {},
-        addCollaborator,
-        removeCollaborator,
-        respondToCollaboration,
-        assignStep: async () => {},
-        unassignStep: async () => {},
-        publishProject,
-        markNotificationAsRead,
-        loading,
-        error
-      }}
-    >
+    <ProjectContext.Provider value={contextValue}>
       {children}
     </ProjectContext.Provider>
   );

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2 } from 'lucide-react';
+import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2, Info, Code, Target } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PortfolioItem {
   id: string;
@@ -30,6 +37,9 @@ interface PortfolioItem {
   backers_count?: number;
   owner_id?: string;
   created_at: string;
+  overview?: string;
+  goals?: string;
+  challenges?: string;
 }
 
 const Explore = () => {
@@ -41,6 +51,8 @@ const Explore = () => {
   
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<PortfolioItem | null>(null);
+  const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -65,7 +77,10 @@ const Explore = () => {
           techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
           backers_count: 24,
           owner_id: 'user-1',
-          created_at: '2023-11-15T00:00:00Z'
+          created_at: '2023-11-15T00:00:00Z',
+          overview: 'This project aims to revolutionize the design workflow by providing AI-powered assistance throughout the creative process.',
+          goals: 'Create an intuitive design tool that learns from designer preferences, enhance productivity with smart suggestions, and democratize access to professional-level design tools.',
+          challenges: 'Implementing real-time ML algorithms that run efficiently in the browser, creating a natural UI for complex operations, and balancing automation with creative control.'
         },
         {
           id: '2',
@@ -78,7 +93,10 @@ const Explore = () => {
           techStack: ['Solidity', 'React', 'Ethers.js', 'IPFS'],
           backers_count: 18,
           owner_id: 'user-2',
-          created_at: '2023-09-23T00:00:00Z'
+          created_at: '2023-09-23T00:00:00Z',
+          overview: 'A revolutionary marketplace that connects creators directly with buyers using blockchain technology to ensure fair compensation and ownership rights.',
+          goals: 'Eliminate middlemen fees, provide transparent royalty tracking, and create a sustainable ecosystem for digital creators.',
+          challenges: 'Ensuring smart contract security, optimizing gas fees for an affordable user experience, and creating an intuitive interface for non-technical users.'
         },
         {
           id: '3',
@@ -91,7 +109,10 @@ const Explore = () => {
           techStack: ['Unity', 'C#', 'WebXR', 'Three.js'],
           backers_count: 31,
           owner_id: 'user-3',
-          created_at: '2023-10-05T00:00:00Z'
+          created_at: '2023-10-05T00:00:00Z',
+          overview: 'This platform transforms education by creating immersive, interactive VR environments where students can explore complex concepts in 3D space.',
+          goals: 'Increase student engagement through experiential learning, provide access to virtual labs and simulations for schools with limited resources, and develop adaptive learning paths.',
+          challenges: 'Creating intuitive VR interfaces for young users, ensuring accessibility across different hardware capabilities, and developing content that aligns with educational standards.'
         }
       ];
       
@@ -120,7 +141,10 @@ const Explore = () => {
           created_at: project.created_at,
           collaborators: 1, // Default value
           category: 'Project', // Default category
-          techStack: ['Web Development'] // Default tech stack
+          techStack: ['Web Development'], // Default tech stack
+          overview: project.overview || '',
+          goals: project.goals || '',
+          challenges: project.challenges || ''
         }));
       }
       
@@ -154,6 +178,11 @@ const Explore = () => {
 
   const handleViewProject = (projectId: string) => {
     navigate(`/project/${projectId}`);
+  };
+
+  const handleViewProjectDetails = (project: PortfolioItem) => {
+    setSelectedProject(project);
+    setProjectDetailsOpen(true);
   };
 
   const filteredPortfolioItems = portfolioItems.filter(item => 
@@ -259,6 +288,18 @@ const Explore = () => {
                       </div>
                       
                       <div className="flex items-center justify-end gap-2">
+                        {(item.overview || item.goals || item.challenges) && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center font-medium gap-1 sm:gap-2"
+                            onClick={() => handleViewProjectDetails(item)}
+                          >
+                            <Info size={16} />
+                            <span>Details</span>
+                          </Button>
+                        )}
+                        
                         <Button 
                           variant="default" 
                           size="sm" 
@@ -276,6 +317,64 @@ const Explore = () => {
             </div>
           )}
         </section>
+
+        <Dialog open={projectDetailsOpen} onOpenChange={setProjectDetailsOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-playfair">{selectedProject?.title}</DialogTitle>
+              <DialogDescription>
+                {selectedProject?.description}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedProject && (
+              <div className="space-y-6 mt-4">
+                {selectedProject.overview && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Info size={18} className="text-primary" />
+                      Project Overview
+                    </h3>
+                    <p className="text-gray-600 whitespace-pre-line">
+                      {selectedProject.overview}
+                    </p>
+                  </div>
+                )}
+                
+                {selectedProject.goals && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Target size={18} className="text-primary" />
+                      Project Goals
+                    </h3>
+                    <p className="text-gray-600 whitespace-pre-line">
+                      {selectedProject.goals}
+                    </p>
+                  </div>
+                )}
+                
+                {selectedProject.challenges && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Code size={18} className="text-primary" />
+                      Technical Challenges
+                    </h3>
+                    <p className="text-gray-600 whitespace-pre-line">
+                      {selectedProject.challenges}
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex justify-end pt-4 border-t">
+                  <Button onClick={() => handleViewProject(selectedProject.id)}>
+                    View Full Project
+                    <ArrowRight size={16} className="ml-2" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AnimatedTransition>;
 };

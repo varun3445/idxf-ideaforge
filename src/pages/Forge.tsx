@@ -14,6 +14,7 @@ import ProjectShareDialog from '@/components/ProjectShareDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import PublishProjectDialog from '@/components/PublishProjectDialog';
 
 const ForgeStyles = () => <style>
     {`
@@ -54,12 +55,14 @@ const ProjectContent: React.FC = () => {
     setCurrentStep,
     updateProject,
     publishProject,
+    publishProjectWithDetails,
     loading,
     error
   } = useProject();
   const [addStepDialogOpen, setAddStepDialogOpen] = useState(false);
   const [addCollaboratorDialogOpen, setAddCollaboratorDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [parentStepId, setParentStepId] = useState<string | null>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
 
@@ -86,21 +89,44 @@ const ProjectContent: React.FC = () => {
   const handleTogglePublish = async () => {
     if (!currentProject) return;
     
+    if (currentProject.is_published) {
+      try {
+        await publishProject(currentProject.id, false);
+        
+        toast({
+          title: 'Project Unpublished',
+          description: 'Your project is now hidden from the explore page',
+          variant: 'default'
+        });
+      } catch (error) {
+        console.error('Error unpublishing project:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update project publishing status',
+          variant: 'destructive'
+        });
+      }
+    } else {
+      setPublishDialogOpen(true);
+    }
+  };
+
+  const handlePublishWithDetails = async (projectId: string, details: { overview: string; goals: string; challenges: string }) => {
+    if (!currentProject) return;
+    
     try {
-      await publishProject(currentProject.id, !currentProject.is_published);
+      await publishProjectWithDetails(projectId, currentProject.is_published || false, details);
       
       toast({
-        title: currentProject.is_published ? 'Project Unpublished' : 'Project Published',
-        description: currentProject.is_published 
-          ? 'Your project is now hidden from the explore page' 
-          : 'Your project is now visible on the explore page',
+        title: 'Project Published',
+        description: 'Your project is now visible on the explore page',
         variant: 'default'
       });
     } catch (error) {
       console.error('Error publishing project:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update project publishing status',
+        description: 'Failed to publish project',
         variant: 'destructive'
       });
     }
@@ -267,6 +293,15 @@ const ProjectContent: React.FC = () => {
       <AddCollaboratorDialog open={addCollaboratorDialogOpen} onOpenChange={setAddCollaboratorDialogOpen} />
       
       {currentProject && <ProjectShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} projectTitle={currentProject.title} shareCode={currentProject.share_code} />}
+      
+      {currentProject && <PublishProjectDialog 
+        open={publishDialogOpen} 
+        onOpenChange={setPublishDialogOpen} 
+        projectId={currentProject.id} 
+        projectTitle={currentProject.title}
+        onPublish={handlePublishWithDetails}
+        isPublished={currentProject.is_published}
+      />}
       
       <div className="fixed z-30 top-4 right-4">
         <NotificationDropdown />
