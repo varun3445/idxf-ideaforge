@@ -12,22 +12,17 @@ import AvatarUpload from '../components/AvatarUpload';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import PublishedProjectsManager from '../components/PublishedProjectsManager';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ProfilePage = () => {
   const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [projectsLoading, setProjectsLoading] = useState(false);
-  const [projectsError, setProjectsError] = useState<string | null>(null);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [location, setLocation] = useState(user?.location || '');
   const [skills, setSkills] = useState<string[]>([]);
   const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
   const [projects, setProjects] = useState<any[]>([]);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -47,61 +42,44 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (user) {
-      loadUserProjects();
-    }
-  }, [user, retryCount]);
-
-  const loadUserProjects = async () => {
-    if (!user) return;
-    
-    setProjectsLoading(true);
-    setProjectsError(null);
-    
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('owner_id', user.id);
-        
-      if (error) {
-        console.error('Error fetching user projects:', error);
-        setProjectsError(error.message);
-        toast({
-          title: "Error fetching projects",
-          description: "There was an error loading your projects.",
-          variant: "destructive"
-        });
-      } else if (data) {
-        // Transform project data - ensuring consistent property mapping
-        const userProjects = data.map(project => ({
-          id: project.id,
-          title: project.title || 'Untitled Project',
-          description: project.description || 'No description available',
+      // Simulating project fetch for demo mode
+      // In a real implementation, this would be a database query
+      const mockProjects = [
+        {
+          id: '1',
+          title: 'AI-Powered Visual Design Assistant',
+          description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
+          imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
+          published: true,
+          backersCount: 24,
+          createdAt: '2023-11-15',
+          updatedAt: '2023-12-05',
+        },
+        {
+          id: '2',
+          title: 'Decentralized Creative Marketplace',
+          description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
           imageUrl: 'https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=1332&auto=format&fit=crop',
-          published: project.is_published || false,
-          backersCount: project.backers_count || 0,
-          createdAt: project.created_at,
-          updatedAt: project.updated_at
-        }));
-        setProjects(userProjects);
-        setProjectsError(null);
-      }
-    } catch (error) {
-      console.error('Error in loadUserProjects:', error);
-      setProjectsError('Failed to fetch your projects');
-      toast({
-        title: "Error",
-        description: "Failed to load your projects. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setProjectsLoading(false);
+          published: true,
+          backersCount: 18,
+          createdAt: '2023-09-23',
+          updatedAt: '2023-10-15',
+        },
+        {
+          id: '3',
+          title: 'Immersive Learning Environment',
+          description: 'A VR-based educational platform that creates interactive, spatial learning experiences for complex subjects.',
+          imageUrl: 'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?q=80&w=1170&auto=format&fit=crop',
+          published: false,
+          backersCount: 0,
+          createdAt: '2023-07-09',
+          updatedAt: '2023-08-01',
+        }
+      ];
+      
+      setProjects(mockProjects);
     }
-  };
-
-  const handleRetryProjectLoad = () => {
-    setRetryCount(prev => prev + 1);
-  };
+  }, [user]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,58 +148,9 @@ const ProfilePage = () => {
     ));
   };
 
-  const renderProjectsError = () => {
-    if (!projectsError) return null;
-    
-    const isRecursionError = projectsError.includes("infinite recursion");
-    
-    return (
-      <Alert variant="destructive" className="mb-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{isRecursionError ? "Database Policy Error" : "Error Loading Projects"}</AlertTitle>
-        <AlertDescription>
-          {isRecursionError ? (
-            <>
-              There's an issue with the database security policies that's preventing your projects from loading.
-              This could happen if you've recently updated security rules.
-              <div className="mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={handleRetryProjectLoad}
-                >
-                  <RefreshCw className="h-3 w-3" /> 
-                  Retry
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              {projectsError}
-              <div className="mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={handleRetryProjectLoad}
-                >
-                  <RefreshCw className="h-3 w-3" /> 
-                  Retry
-                </Button>
-              </div>
-            </>
-          )}
-        </AlertDescription>
-      </Alert>
-    );
-  };
-
   return (
     <AnimatedTransition>
       <div className="container mx-auto py-8 px-4 md:px-6">
-        {renderProjectsError()}
-        
         <Tabs defaultValue="profile" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -308,20 +237,12 @@ const ProfilePage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {projectsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <PublishedProjectsManager 
-                    projects={projects}
-                    error={projectsError}
-                    onRefresh={handleRetryProjectLoad}
-                    onUpdateProject={handleUpdateProject}
-                    onPublishStatusChange={handlePublishStatusChange}
-                    onAddUpdate={handleAddUpdate}
-                  />
-                )}
+                <PublishedProjectsManager 
+                  projects={projects}
+                  onUpdateProject={handleUpdateProject}
+                  onPublishStatusChange={handlePublishStatusChange}
+                  onAddUpdate={handleAddUpdate}
+                />
               </CardContent>
             </Card>
           </TabsContent>
