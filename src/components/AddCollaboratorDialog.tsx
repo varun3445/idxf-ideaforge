@@ -40,16 +40,24 @@ const AddCollaboratorDialog: React.FC<AddCollaboratorDialogProps> = ({
       return;
     }
     
-    // Adding collaborator with role and permissions
-    await addCollaborator(
-      email.trim(), 
-      projectId, 
-      'collaborator', 
-      ['view', 'edit']
-    );
-    
-    setEmail('');
-    onOpenChange(false);
+    try {
+      // Pass only the email as required by the updated method
+      await addCollaborator(email.trim());
+      
+      setEmail('');
+      onOpenChange(false);
+      
+      toast({
+        title: 'Collaborator invited',
+        description: 'An invitation has been sent to the collaborator',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add collaborator',
+        variant: 'destructive'
+      });
+    }
   };
   
   return (
