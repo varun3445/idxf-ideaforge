@@ -30,6 +30,7 @@ const ProjectsList: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const userId = user?.id || 'user-1';
   
   const {
     projects,
@@ -226,8 +227,8 @@ const ProjectsList: React.FC = () => {
     }
   };
   
-  const ownedProjects = projects.filter(p => p.owner_id === (user?.id || 'user-1'));
-  const collaborativeProjects = projects.filter(p => p.owner_id !== (user?.id || 'user-1'));
+  const ownedProjects = projects.filter(p => p.owner_id === userId);
+  const collaborativeProjects = projects.filter(p => p.owner_id !== userId);
   
   const renderProjectsGrid = (projectsList: Project[]) => {
     if (projectsList.length === 0) {
@@ -252,12 +253,13 @@ const ProjectsList: React.FC = () => {
         const waitlistCount = projectWaitlists[project.id] || 0;
         const isBackingProject = backingProjects[project.id] || false;
         
-        const collaboratorCount = (project.owner_id === (user?.id || 'user-1')) ? 1 : 3;
+        const isOwnedByCurrentUser = project.owner_id === userId;
+        const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
         
         return <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
               <CardHeader className="cursor-pointer" onClick={() => navigate(`/forge/${project.id}`)}>
                 <CardTitle className="text-xl text-left">{project.title}</CardTitle>
-                {nextDeadline && project.owner_id === 'user-1' && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
+                {nextDeadline && <Badge variant={getDeadlineBadgeVariant(nextDeadline)} className="mt-2 inline-flex items-center">
                     <Clock className="mr-1 h-3 w-3" />
                     {getDeadlineDisplayText(nextDeadline)}
                   </Badge>}
@@ -397,4 +399,3 @@ const ProjectsWithProvider: React.FC = () => {
 };
 
 export default ProjectsWithProvider;
-
