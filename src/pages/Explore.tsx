@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Users, Award, Heart, MessageSquare, Bell, Loader2 } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import GlassmorphicCard from '../components/GlassmorphicCard';
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '../AuthContext';
 
 interface PortfolioItem {
   id: string;
@@ -39,7 +37,6 @@ const Explore = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,39 +51,9 @@ const Explore = () => {
     console.log("Loading published projects...");
     
     try {
-      // Get published projects from Supabase
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('is_published', true);
-        
-      if (error) {
-        console.error("Supabase query error:", error);
-        throw error;
-      }
-      
-      console.log("Published projects data:", data);
-      
-      // Process and format the data
-      if (data && data.length > 0) {
-        const formattedItems: PortfolioItem[] = data.map(project => ({
-          id: project.id,
-          title: project.title,
-          description: project.description || '',
-          imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
-          collaborators: 3,
-          category: 'Design',
-          techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
-          backers_count: project.backers_count || 0,
-          owner_id: project.owner_id,
-          created_at: project.created_at
-        }));
-        
-        setPortfolioItems(formattedItems);
-      } else {
-        console.log("No published projects found, using fallback data");
-        // Fallback to mock data if no published projects
-        setPortfolioItems([{
+      // Use mock data since we're disabling authentication
+      const mockProjects: PortfolioItem[] = [
+        {
           id: '1',
           title: 'AI-Powered Visual Design Assistant',
           description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
@@ -95,9 +62,40 @@ const Explore = () => {
           collaborators: 5,
           category: 'AI & Design',
           techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
+          backers_count: 24,
+          owner_id: 'user-1',
           created_at: '2023-11-15T00:00:00Z'
-        }]);
-      }
+        },
+        {
+          id: '2',
+          title: 'Decentralized Creative Marketplace',
+          description: 'A blockchain-based platform where creatives can sell their work directly to clients without intermediaries, using smart contracts.',
+          imageUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1064&auto=format&fit=crop',
+          creator: 'Bob Johnson',
+          collaborators: 3,
+          category: 'Blockchain',
+          techStack: ['Solidity', 'React', 'Ethers.js', 'IPFS'],
+          backers_count: 18,
+          owner_id: 'user-2',
+          created_at: '2023-09-23T00:00:00Z'
+        },
+        {
+          id: '3',
+          title: 'Immersive VR Educational Platform',
+          description: 'An educational platform using VR technology to create interactive learning experiences for students across various subjects.',
+          imageUrl: 'https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?q=80&w=1064&auto=format&fit=crop',
+          creator: 'Charlie Smith',
+          collaborators: 4,
+          category: 'Education & VR',
+          techStack: ['Unity', 'C#', 'WebXR', 'Three.js'],
+          backers_count: 31,
+          owner_id: 'user-3',
+          created_at: '2023-10-05T00:00:00Z'
+        }
+      ];
+      
+      setPortfolioItems(mockProjects);
+      console.log("Mock projects loaded:", mockProjects);
     } catch (error) {
       console.error('Error loading published projects:', error);
       toast({
@@ -105,19 +103,6 @@ const Explore = () => {
         description: 'Failed to load published projects',
         variant: 'destructive'
       });
-      
-      // Fallback to mock data
-      setPortfolioItems([{
-        id: '1',
-        title: 'AI-Powered Visual Design Assistant',
-        description: 'An intelligent design assistant that provides real-time feedback and suggestions as designers work on their projects.',
-        imageUrl: 'https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop',
-        creator: 'Alice Wonderland',
-        collaborators: 5,
-        category: 'AI & Design',
-        techStack: ['React', 'TensorFlow.js', 'WebGL', 'Three.js'],
-        created_at: '2023-11-15T00:00:00Z'
-      }]);
     } finally {
       setLoading(false);
     }
