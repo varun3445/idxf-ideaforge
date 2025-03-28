@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Layers, Users, Link2, Eye, Bookmark, Share2, ArrowLeft } from 'lucide-react';
+import { Calendar, Layers, Users, Link2, Eye, Bookmark, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
@@ -46,6 +46,7 @@ const Explore: React.FC = () => {
       const enhancedProjects = publishedProjects.map((project: any) => ({
         ...project,
         creator: "Default User",
+        // Using a placeholder
         collaborators: 1,
         category: "Technology",
         techStack: ["React", "JavaScript", "Tailwind CSS"],
@@ -62,6 +63,7 @@ const Explore: React.FC = () => {
   };
 
   const handleViewProject = (projectId: string) => {
+    // Make sure we're navigating to the correct route that matches the route in App.tsx
     navigate(`/project/${projectId}`);
   };
 
@@ -71,73 +73,56 @@ const Explore: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[80vh] w-full items-center justify-center">
+    return <div className="flex h-[80vh] w-full items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-creative-pink"></div>
           <p className="mt-4 text-creative-purple text-sm">Loading creative projects...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   if (error) {
-    return (
-      <div className="flex h-[80vh] w-full items-center justify-center">
+    return <div className="flex h-[80vh] w-full items-center justify-center">
         <GlassmorphicCard className="max-w-md">
           <div className="text-center">
             <h3 className="text-lg font-medium mb-2">Error loading projects</h3>
             <p className="text-sm text-gray-400 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} className="bg-creative-purple hover:bg-creative-purple/90 text-white rounded-full">
+            <Button onClick={() => window.location.reload()} className="bg-creative-purple hover:bg-creative-purple/90 text-white">
               Try again
             </Button>
           </div>
         </GlassmorphicCard>
-      </div>
-    );
+      </div>;
   }
 
-  return (
-    <AnimatedTransition>
-      <div className="container mx-auto py-12 px-4 md:px-6 space-y-8 mt-8 md:mt-0">
+  return <AnimatedTransition>
+      <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
         {/* Figma-like header section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h1 className="text-2xl font-medium">Explore Projects</h1>
           <div className="flex gap-3">
             {/* Search or filter controls can go here */}
           </div>
         </div>
 
-        {/* Category filters - more spaced out with rounded corners */}
+        {/* Category filters - more spaced out */}
         <div className="flex flex-wrap gap-3 mb-8">
-          <button 
-            onClick={() => filterProjects('all')} 
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'all' ? 'bg-creative-pink text-creative-black' : 'bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-white/10'}`}
-          >
+          <button onClick={() => filterProjects('all')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'all' ? 'bg-creative-pink text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
             All Projects
           </button>
-          <button 
-            onClick={() => filterProjects('design')} 
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'design' ? 'bg-creative-purple text-creative-black' : 'bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-white/10'}`}
-          >
+          <button onClick={() => filterProjects('design')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'design' ? 'bg-creative-purple text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
             Design
           </button>
-          <button 
-            onClick={() => filterProjects('development')} 
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'development' ? 'bg-creative-yellow text-creative-black' : 'bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-white/10'}`}
-          >
+          <button onClick={() => filterProjects('development')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'development' ? 'bg-creative-yellow text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
             Development
           </button>
-          <button 
-            onClick={() => filterProjects('marketing')} 
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'marketing' ? 'bg-creative-green text-creative-black' : 'bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-white/10'}`}
-          >
+          <button onClick={() => filterProjects('marketing')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'marketing' ? 'bg-creative-green text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
             Marketing
           </button>
         </div>
         
         {projects.length === 0 ? (
-          <GlassmorphicCard className="text-center py-12 border border-dashed border-white/10 rounded-2xl">
+          <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-6">
               <Layers className="h-8 w-8 text-creative-purple" />
             </div>
@@ -145,51 +130,38 @@ const Explore: React.FC = () => {
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               There are no published projects available at the moment. Be the first to share your creative work!
             </p>
-            <Button 
-              className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2 rounded-full" 
-              onClick={() => navigate('/projects/new')}
-            >
+            <Button className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2" onClick={() => navigate('/projects/new')}>
               Create Project
             </Button>
-          </GlassmorphicCard>
+          </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map(project => (
-              <div 
-                key={project.id} 
-                className="bg-black/80 backdrop-blur-lg border border-white/10 hover:border-creative-purple/30 transition-all duration-300 rounded-2xl overflow-hidden shadow-md hover:shadow-lg flex flex-col"
-              >
+              <Card key={project.id} className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
                 <div className="relative">
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-52 object-cover" 
-                  />
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-52 object-cover border-b border-white/10" />
                   <div className="absolute top-3 right-3 flex space-x-2">
-                    <button className="bg-black/60 backdrop-blur-sm p-2 rounded-full hover:bg-black/70 transition-colors">
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
                       <Bookmark className="h-4 w-4 text-creative-pink" />
                     </button>
-                    <button className="bg-black/60 backdrop-blur-sm p-2 rounded-full hover:bg-black/70 transition-colors">
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
                       <Share2 className="h-4 w-4 text-creative-yellow" />
                     </button>
                   </div>
                 </div>
-                <div className="p-5 flex flex-col flex-grow">
-                  <h3 className="text-xl font-medium mb-2 line-clamp-1">{project.title}</h3>
-                  <p className="line-clamp-2 text-gray-400 mb-4 text-sm">{project.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
+                  <CardDescription className="line-clamp-2 mt-2 text-gray-400">{project.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-4 space-y-4 flex-grow">
+                  <div className="flex flex-wrap gap-2">
                     {project.techStack.map((tech, index) => (
-                      <span 
-                        key={index} 
-                        className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full"
-                      >
+                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
                         {tech}
                       </span>
                     ))}
                   </div>
-                  
-                  <div className="mt-auto space-y-3 pt-3 border-t border-white/10">
+                  <div className="space-y-3 pt-3 border-t border-white/10">
                     <div className="flex items-center text-sm text-gray-400">
                       <Calendar className="mr-2 h-4 w-4" />
                       <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
@@ -199,23 +171,19 @@ const Explore: React.FC = () => {
                       <span>{project.collaborators} Collaborator{project.collaborators !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-4 border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10 rounded-full" 
-                    onClick={() => handleViewProject(project.id)}
-                  >
+                </CardContent>
+                <CardFooter className="pt-2 pb-4">
+                  <Button variant="outline" className="w-full border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10" onClick={() => handleViewProject(project.id)}>
                     <Eye className="mr-2 h-4 w-4" />
                     View Project
                   </Button>
-                </div>
-              </div>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         )}
       </div>
-    </AnimatedTransition>
-  );
+    </AnimatedTransition>;
 };
 
 export default Explore;
