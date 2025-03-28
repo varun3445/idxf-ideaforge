@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Layers, Users, Link2, Eye, Bookmark, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
+
 interface Project {
   id: string;
   title: string;
@@ -17,15 +19,18 @@ interface Project {
   created_at: string;
   is_published: boolean;
 }
+
 const Explore: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const navigate = useNavigate();
+
   useEffect(() => {
     loadPublishedProjects();
   }, []);
+
   const loadPublishedProjects = async () => {
     console.log("Loading published projects...");
     try {
@@ -56,13 +61,17 @@ const Explore: React.FC = () => {
       throw error;
     }
   };
+
   const handleViewProject = (projectId: string) => {
+    // Make sure we're navigating to the correct route that matches the route in App.tsx
     navigate(`/project/${projectId}`);
   };
+
   const filterProjects = (category: string) => {
     setActiveFilter(category);
     // In a real implementation, this would filter projects by category
   };
+
   if (loading) {
     return <div className="flex h-[80vh] w-full items-center justify-center">
         <div className="flex flex-col items-center">
@@ -71,6 +80,7 @@ const Explore: React.FC = () => {
         </div>
       </div>;
   }
+
   if (error) {
     return <div className="flex h-[80vh] w-full items-center justify-center">
         <GlassmorphicCard className="max-w-md">
@@ -84,14 +94,14 @@ const Explore: React.FC = () => {
         </GlassmorphicCard>
       </div>;
   }
+
   return <AnimatedTransition>
       <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
         {/* Figma-like header section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <h1 className="text-2xl font-medium">Explore Projects</h1>
           <div className="flex gap-3">
-            
-            
+            {/* Search or filter controls can go here */}
           </div>
         </div>
 
@@ -111,7 +121,8 @@ const Explore: React.FC = () => {
           </button>
         </div>
         
-        {projects.length === 0 ? <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
+        {projects.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-6">
               <Layers className="h-8 w-8 text-creative-purple" />
             </div>
@@ -122,8 +133,11 @@ const Explore: React.FC = () => {
             <Button className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2" onClick={() => navigate('/projects/new')}>
               Create Project
             </Button>
-          </div> : <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {projects.map(project => <Card key={project.id} className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
+          </div>
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {projects.map(project => (
+              <Card key={project.id} className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
                 <div className="relative">
                   <img src={project.imageUrl} alt={project.title} className="w-full h-52 object-cover border-b border-white/10" />
                   <div className="absolute top-3 right-3 flex space-x-2">
@@ -141,9 +155,11 @@ const Explore: React.FC = () => {
                 </CardHeader>
                 <CardContent className="pb-4 space-y-4 flex-grow">
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.map((tech, index) => <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
+                    {project.techStack.map((tech, index) => (
+                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
                         {tech}
-                      </span>)}
+                      </span>
+                    ))}
                   </div>
                   <div className="space-y-3 pt-3 border-t border-white/10">
                     <div className="flex items-center text-sm text-gray-400">
@@ -155,14 +171,19 @@ const Explore: React.FC = () => {
                       <span>{project.collaborators} Collaborator{project.collaborators !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full mt-4 border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10" onClick={() => handleViewProject(project.id)}>
+                </CardContent>
+                <CardFooter className="pt-2 pb-4">
+                  <Button variant="outline" className="w-full border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10" onClick={() => handleViewProject(project.id)}>
                     <Eye className="mr-2 h-4 w-4" />
                     View Project
                   </Button>
-                </CardContent>
-              </Card>)}
-          </div>}
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </AnimatedTransition>;
 };
+
 export default Explore;
