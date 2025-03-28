@@ -5,6 +5,7 @@ import { AuthProvider } from './AuthContext';
 import Navbar from './components/Navbar';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { useAuth } from './AuthContext';
+import { ProjectProvider } from './contexts/ProjectContext';
 
 import Index from './pages/Index';
 import Explore from './pages/Explore';
@@ -99,7 +100,9 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ProjectProvider>
+        <AppContent />
+      </ProjectProvider>
     </AuthProvider>
   );
 }
