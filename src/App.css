@@ -21,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #002AFFaa); /* CTA color */
+  filter: drop-shadow(0 0 2em #FF6B6Baa); /* Updated to coral color */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #002AFFaa); /* CTA color */
+  filter: drop-shadow(0 0 2em #9381FFaa); /* Updated to purple color */
 }
 
 @keyframes logo-spin {
@@ -42,26 +42,27 @@
   }
 }
 
+/* Updated card styling with creative branding */
 .card {
   padding: 1.5em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(0, 42, 255, 0.15);
+  border: 2px solid rgba(255, 107, 107, 0.15); /* Coral color */
   border-radius: 8px;
   backdrop-filter: blur(8px);
   background-color: rgba(25, 25, 25, 0.7);
 }
 
 .read-the-docs {
-  color: #FFFFFF; /* Changed to new text color */
+  color: #FFFFFF;
 }
 
 /* Button styles */
 .button-primary {
-  @apply bg-primary text-primary-foreground px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:bg-primary/90 font-medium transition-all duration-300 shadow-sm border-2 border-primary/20;
+  @apply bg-creative-coral text-creative-white px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:bg-creative-coral/90 font-medium transition-all duration-300 shadow-sm border-2 border-creative-coral/20;
 }
 
 .button-secondary {
-  @apply bg-secondary text-secondary-foreground border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-creative-purple text-creative-white border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
 }
 
 /* Mobile specific adjustments */
@@ -87,16 +88,55 @@
   }
 }
 
+/* Creative components inspired by the image */
+.creative-shape {
+  @apply relative inline-block;
+  transform-origin: center;
+}
+
+.creative-circle {
+  @apply rounded-full bg-creative-coral inline-block;
+  width: 80px;
+  height: 80px;
+}
+
+.creative-hexagon {
+  @apply bg-creative-yellow relative inline-block;
+  width: 100px;
+  height: 100px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  transform: rotate(15deg);
+}
+
+.creative-arc {
+  @apply bg-creative-yellow inline-block;
+  width: 120px;
+  height: 60px;
+  border-radius: 120px 120px 0 0;
+}
+
+.creative-rect {
+  @apply bg-creative-green inline-block;
+  width: 80px;
+  height: 30px;
+  border-radius: 4px;
+}
+
+.creative-tag {
+  @apply bg-creative-blue inline-block text-creative-white py-1 px-3 text-xs font-medium;
+  border-radius: 4px;
+}
+
 /* Highlight animation for steps */
 @keyframes highlight-pulse {
   0% {
-    background-color: rgba(var(--primary-rgb), 0.1);
+    background-color: rgba(255, 107, 107, 0.1); /* Coral */
   }
   50% {
-    background-color: rgba(var(--primary-rgb), 0.2);
+    background-color: rgba(255, 107, 107, 0.2);
   }
   100% {
-    background-color: rgba(var(--primary-rgb), 0.1);
+    background-color: rgba(255, 107, 107, 0.1);
   }
 }
 
@@ -114,11 +154,11 @@
 
 /* Glassmorphism styles */
 .glassmorphic {
-  @apply bg-card/80 backdrop-blur-sm border-2 border-border/30 shadow-lg;
+  @apply bg-card/80 backdrop-blur-sm border-2 border-creative-coral/30 shadow-lg;
 }
 
 .glassmorphic-card {
-  @apply bg-card/80 backdrop-blur-sm border border-border/30 shadow-md;
+  @apply bg-card/80 backdrop-blur-sm border border-creative-purple/30 shadow-md;
 }
 
 .text-shadow {
@@ -158,15 +198,32 @@
 
 /* Added Glassmorphism and floating styles */
 .floating-card {
-  @apply rounded-2xl bg-card/70 backdrop-blur-md border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply rounded-2xl bg-card/70 backdrop-blur-md border border-creative-coral/20 shadow-lg hover:shadow-xl transition-all duration-300;
 }
 
 .glass-effect {
-  @apply bg-black/30 backdrop-blur-lg border border-primary/20 rounded-2xl shadow-md;
+  @apply bg-black/30 backdrop-blur-lg border border-creative-purple/20 rounded-2xl shadow-md;
 }
 
 .floating-nav {
   @apply fixed left-4 top-4 z-50 rounded-2xl shadow-lg;
+}
+
+/* New creative UI elements */
+.creative-grid {
+  @apply grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4;
+  background-image: linear-gradient(90deg, rgba(226, 217, 255, 0.2) 1px, transparent 1px),
+                    linear-gradient(180deg, rgba(226, 217, 255, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.creative-accent-box {
+  @apply relative p-4 rounded-lg overflow-hidden;
+}
+
+.creative-accent-box::before {
+  content: '';
+  @apply absolute -bottom-4 -left-4 bg-creative-yellow w-16 h-16 rounded-full opacity-30;
 }
 
 /* Mobile nav adjustments */

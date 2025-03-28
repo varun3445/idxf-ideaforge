@@ -69,6 +69,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// New creative color palette from the image
+				creative: {
+					coral: '#FF6B6B',    // Coral red from the image
+					yellow: '#FFD166',   // Yellow from the image
+					purple: '#9381FF',   // Purple from the image
+					blue: '#3D84F7',     // Blue from the image
+					green: '#06D6A0',    // Green from the image
+					black: '#000000',    // Black for text
+					white: '#FFFFFF',    // White background
+					lavender: '#E2D9FF', // Light purple background
 				}
 			},
 			borderRadius: {
@@ -116,6 +127,14 @@ export default {
 				'pulse-soft': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.8' }
+				},
+				'rotate': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
+				},
+				'bounce-subtle': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
 				}
 			},
 			animation: {
@@ -128,7 +147,9 @@ export default {
 				'scale-in': 'scale-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
 				'scale-out': 'scale-out 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
 				'float': 'float 5s ease-in-out infinite',
-				'pulse-soft': 'pulse-soft 3s ease-in-out infinite'
+				'pulse-soft': 'pulse-soft 3s ease-in-out infinite',
+				'rotate': 'rotate 12s linear infinite',
+				'bounce-subtle': 'bounce-subtle 3s ease-in-out infinite'
 			},
 			backdropBlur: {
 				'xs': '2px',
