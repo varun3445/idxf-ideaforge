@@ -104,13 +104,13 @@ const Explore: React.FC = () => {
 
   return (
     <AnimatedTransition>
-      <div className="figma-workspace">
-        {/* Figma-like toolbar */}
-        <div className="figma-toolbar mb-6 -mx-6 px-6 py-3">
-          <h1 className="text-xl font-medium">Explore Projects</h1>
-          <div className="ml-auto flex space-x-2">
+      <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
+        {/* Figma-like header section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <h1 className="text-2xl font-medium">Explore Projects</h1>
+          <div className="flex gap-3">
             <Button variant="outline" size="sm" className="border-creative-purple/30 text-creative-purple">
-              <Eye size={16} className="mr-1" /> Browse
+              <Eye size={16} className="mr-2" /> Browse
             </Button>
             <Button size="sm" className="bg-creative-pink text-creative-black hover:bg-creative-pink/90">
               Create New
@@ -118,11 +118,11 @@ const Explore: React.FC = () => {
           </div>
         </div>
 
-        {/* Category filters */}
-        <div className="mb-6 flex flex-wrap gap-2">
+        {/* Category filters - more spaced out */}
+        <div className="flex flex-wrap gap-3 mb-8">
           <button
             onClick={() => filterProjects('all')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'all' 
                 ? 'bg-creative-pink text-creative-black' 
                 : 'bg-white/5 hover:bg-white/10'
@@ -132,7 +132,7 @@ const Explore: React.FC = () => {
           </button>
           <button
             onClick={() => filterProjects('design')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'design' 
                 ? 'bg-creative-purple text-creative-black' 
                 : 'bg-white/5 hover:bg-white/10'
@@ -142,7 +142,7 @@ const Explore: React.FC = () => {
           </button>
           <button
             onClick={() => filterProjects('development')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'development' 
                 ? 'bg-creative-yellow text-creative-black' 
                 : 'bg-white/5 hover:bg-white/10'
@@ -152,7 +152,7 @@ const Explore: React.FC = () => {
           </button>
           <button
             onClick={() => filterProjects('marketing')}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeFilter === 'marketing' 
                 ? 'bg-creative-green text-creative-black' 
                 : 'bg-white/5 hover:bg-white/10'
@@ -163,68 +163,68 @@ const Explore: React.FC = () => {
         </div>
         
         {projects.length === 0 ? (
-          <div className="text-center py-10 border border-dashed border-white/10 rounded-md bg-white/5 p-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-4">
+          <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-6">
               <Layers className="h-8 w-8 text-creative-purple" />
             </div>
-            <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+            <h3 className="text-xl font-medium mb-4">No projects yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               There are no published projects available at the moment. Be the first to share your creative work!
             </p>
             <Button 
-              className="bg-creative-pink text-creative-black hover:bg-creative-pink/90"
+              className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2"
               onClick={() => navigate('/projects/new')}
             >
               Create Project
             </Button>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map((project) => (
               <Card 
                 key={project.id} 
-                className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg"
+                className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col"
               >
                 <div className="relative">
                   <img
                     src={project.imageUrl}
                     alt={project.title}
-                    className="w-full h-48 object-cover border-b border-white/10"
+                    className="w-full h-52 object-cover border-b border-white/10"
                   />
                   <div className="absolute top-3 right-3 flex space-x-2">
-                    <button className="bg-black/50 backdrop-blur-sm p-1.5 rounded-md hover:bg-black/70 transition-colors">
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
                       <Bookmark className="h-4 w-4 text-creative-pink" />
                     </button>
-                    <button className="bg-black/50 backdrop-blur-sm p-1.5 rounded-md hover:bg-black/70 transition-colors">
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
                       <Share2 className="h-4 w-4 text-creative-yellow" />
                     </button>
                   </div>
                 </div>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
-                  <CardDescription className="line-clamp-2 mt-1 text-gray-400">{project.description}</CardDescription>
+                  <CardDescription className="line-clamp-2 mt-2 text-gray-400">{project.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="pb-2 space-y-3">
-                  <div className="flex flex-wrap gap-1">
+                <CardContent className="pb-4 space-y-4 flex-grow">
+                  <div className="flex flex-wrap gap-2">
                     {project.techStack.map((tech, index) => (
-                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-0.5 rounded-full">
+                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
                         {tech}
                       </span>
                     ))}
                   </div>
-                  <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="space-y-3 pt-3 border-t border-white/10">
                     <div className="flex items-center text-sm text-gray-400">
-                      <Calendar className="mr-1 h-4 w-4" />
+                      <Calendar className="mr-2 h-4 w-4" />
                       <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-400">
-                      <Users className="mr-1 h-4 w-4" />
+                      <Users className="mr-2 h-4 w-4" />
                       <span>{project.collaborators} Collaborator{project.collaborators !== 1 ? 's' : ''}</span>
                     </div>
                   </div>
                   <Button 
                     variant="outline" 
-                    className="w-full mt-3 border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10"
+                    className="w-full mt-4 border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10"
                     onClick={() => handleViewProject(project.id)}
                   >
                     <Eye className="mr-2 h-4 w-4" />
