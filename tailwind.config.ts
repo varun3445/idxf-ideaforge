@@ -70,16 +70,19 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// New creative color palette from the image
+				// Updated creative color palette with pastel colors
 				creative: {
-					coral: '#FF6B6B',    // Coral red from the image
-					yellow: '#FFD166',   // Yellow from the image
-					purple: '#9381FF',   // Purple from the image
-					blue: '#3D84F7',     // Blue from the image
-					green: '#06D6A0',    // Green from the image
-					black: '#000000',    // Black for text
-					white: '#FFFFFF',    // White background
-					lavender: '#E2D9FF', // Light purple background
+					coral: '#FFB6B6',    // Pastel coral
+					yellow: '#FFF2B6',   // Pastel yellow
+					purple: '#D9C7FF',   // Pastel purple
+					blue: '#B6E0FF',     // Pastel blue
+					green: '#B6FFE0',    // Pastel green
+					black: '#1A1A1A',    // Soft black for backgrounds
+					white: '#FFFFFF',    // White for text
+					lavender: '#E9E2FF', // Pastel lavender
+					pink: '#FFD6E5',     // Pastel pink
+					mint: '#C7F5D9',     // Pastel mint
+					peach: '#FFE0C7',    // Pastel peach
 				}
 			},
 			borderRadius: {

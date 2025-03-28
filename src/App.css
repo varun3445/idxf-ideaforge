@@ -21,10 +21,10 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em #FF6B6Baa); /* Updated to coral color */
+  filter: drop-shadow(0 0 2em #FFB6B6aa); /* Updated to pastel coral color */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #9381FFaa); /* Updated to purple color */
+  filter: drop-shadow(0 0 2em #D9C7FFaa); /* Updated to pastel purple color */
 }
 
 @keyframes logo-spin {
@@ -42,14 +42,14 @@
   }
 }
 
-/* Updated card styling with creative branding */
+/* Updated card styling with Figma-like branding */
 .card {
   padding: 1.5em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(255, 107, 107, 0.15); /* Coral color */
-  border-radius: 8px;
+  border: 1px solid rgba(255, 182, 182, 0.15); /* Pastel coral color */
+  border-radius: 4px;
   backdrop-filter: blur(8px);
-  background-color: rgba(25, 25, 25, 0.7);
+  background-color: rgba(26, 26, 26, 0.7);
 }
 
 .read-the-docs {
@@ -58,11 +58,11 @@
 
 /* Button styles */
 .button-primary {
-  @apply bg-creative-coral text-creative-white px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:bg-creative-coral/90 font-medium transition-all duration-300 shadow-sm border-2 border-creative-coral/20;
+  @apply bg-creative-pink text-creative-black px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:bg-creative-pink/90 font-medium transition-all duration-300 shadow-sm border border-creative-pink/20;
 }
 
 .button-secondary {
-  @apply bg-creative-purple text-creative-white border-2 border-border px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
+  @apply bg-creative-purple text-creative-black border border-border px-4 py-2 sm:px-6 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
 }
 
 /* Mobile specific adjustments */
@@ -88,14 +88,14 @@
   }
 }
 
-/* Creative components inspired by the image */
+/* Creative components with pastel colors */
 .creative-shape {
   @apply relative inline-block;
   transform-origin: center;
 }
 
 .creative-circle {
-  @apply rounded-full bg-creative-coral inline-block;
+  @apply rounded-full bg-creative-pink inline-block;
   width: 80px;
   height: 80px;
 }
@@ -123,20 +123,20 @@
 }
 
 .creative-tag {
-  @apply bg-creative-blue inline-block text-creative-white py-1 px-3 text-xs font-medium;
+  @apply bg-creative-blue inline-block text-creative-black py-1 px-3 text-xs font-medium;
   border-radius: 4px;
 }
 
 /* Highlight animation for steps */
 @keyframes highlight-pulse {
   0% {
-    background-color: rgba(255, 107, 107, 0.1); /* Coral */
+    background-color: rgba(255, 182, 182, 0.1); /* Pastel Coral */
   }
   50% {
-    background-color: rgba(255, 107, 107, 0.2);
+    background-color: rgba(255, 182, 182, 0.2);
   }
   100% {
-    background-color: rgba(255, 107, 107, 0.1);
+    background-color: rgba(255, 182, 182, 0.1);
   }
 }
 
@@ -146,15 +146,15 @@
 
 /* QR Code styles */
 .qr-code-container {
-  background-color: #222222;
+  background-color: #1A1A1A;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   display: inline-block;
 }
 
 /* Glassmorphism styles */
 .glassmorphic {
-  @apply bg-card/80 backdrop-blur-sm border-2 border-creative-coral/30 shadow-lg;
+  @apply bg-card/80 backdrop-blur-sm border border-creative-pink/30 shadow-lg;
 }
 
 .glassmorphic-card {
@@ -196,24 +196,44 @@
   @apply text-base sm:text-lg md:text-xl text-foreground/80 mt-3 sm:mt-4 mb-6 sm:mb-8;
 }
 
-/* Added Glassmorphism and floating styles */
-.floating-card {
-  @apply rounded-2xl bg-card/70 backdrop-blur-md border border-creative-coral/20 shadow-lg hover:shadow-xl transition-all duration-300;
+/* Figma-inspired UI elements */
+.figma-ui-card {
+  @apply bg-creative-black border border-white/10 rounded-md p-4 shadow-lg hover:border-creative-purple/30 transition-all duration-300;
 }
 
-.glass-effect {
-  @apply bg-black/30 backdrop-blur-lg border border-creative-purple/20 rounded-2xl shadow-md;
+.figma-ui-button {
+  @apply bg-creative-purple text-white px-3 py-1.5 rounded-md text-sm shadow-sm hover:bg-creative-purple/90 transition-all duration-200;
 }
 
-.floating-nav {
-  @apply fixed left-4 top-4 z-50 rounded-2xl shadow-lg;
+.figma-ui-tag {
+  @apply bg-creative-purple/20 text-creative-purple px-2 py-0.5 rounded-full text-xs;
 }
 
-/* New creative UI elements */
+.figma-ui-input {
+  @apply bg-creative-black/60 border border-white/10 rounded-md px-3 py-2 text-white placeholder-white/40 focus:border-creative-purple/50 focus:outline-none transition-all duration-200;
+}
+
+.figma-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.figma-property-panel {
+  @apply bg-creative-black/80 border-l border-white/10 p-4 fixed right-0 top-0 h-screen w-64 shadow-lg;
+}
+
+.figma-toolbar {
+  @apply fixed top-0 left-0 right-0 bg-creative-black border-b border-white/10 px-4 py-2 flex items-center justify-between z-10;
+}
+
+.figma-workspace {
+  @apply p-6 mt-12;
+}
+
+/* Additional creative UI elements */
 .creative-grid {
   @apply grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4;
-  background-image: linear-gradient(90deg, rgba(226, 217, 255, 0.2) 1px, transparent 1px),
-                    linear-gradient(180deg, rgba(226, 217, 255, 0.2) 1px, transparent 1px);
+  background-image: linear-gradient(90deg, rgba(217, 199, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(180deg, rgba(217, 199, 255, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -223,17 +243,42 @@
 
 .creative-accent-box::before {
   content: '';
-  @apply absolute -bottom-4 -left-4 bg-creative-yellow w-16 h-16 rounded-full opacity-30;
+  @apply absolute -bottom-4 -left-4 bg-creative-yellow w-16 h-16 rounded-full opacity-20;
 }
 
 /* Mobile nav adjustments */
 @media (max-width: 768px) {
   .floating-nav {
-    @apply fixed bottom-0 left-0 right-0 top-auto rounded-t-2xl rounded-b-none;
+    @apply fixed bottom-0 left-0 right-0 top-auto rounded-t-lg rounded-b-none;
   }
   
   /* Ensure content doesn't overlap with bottom navigation */
   .fixed-nav-content-mobile {
     padding-bottom: 70px;
   }
+}
+
+/* Figma-like component styles */
+.component-library {
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.component-card {
+  @apply bg-creative-black border border-white/10 rounded-md overflow-hidden hover:border-creative-purple/40 transition-all duration-200;
+}
+
+.component-preview {
+  @apply p-4 h-32 flex items-center justify-center bg-opacity-10 bg-white/5;
+}
+
+.component-info {
+  @apply p-3 border-t border-white/10 text-sm;
+}
+
+.component-title {
+  @apply font-medium mb-1;
+}
+
+.component-description {
+  @apply text-xs text-white/60;
 }
