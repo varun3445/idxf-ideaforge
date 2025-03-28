@@ -43,6 +43,24 @@ const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({
       return;
     }
     
+    if (!goals.trim()) {
+      toast({
+        title: "Project goals required",
+        description: "Please specify the goals of your project.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!challenges.trim()) {
+      toast({
+        title: "Technical challenges required",
+        description: "Please describe the technical challenges of your project.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       await onPublish(projectId, { overview, goals, challenges, image });
@@ -175,24 +193,26 @@ const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="project-goals">Project Goals</Label>
+            <Label htmlFor="project-goals">Project Goals <span className="text-red-500">*</span></Label>
             <Textarea
               id="project-goals"
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
               placeholder="What are the main goals you're trying to achieve?"
               rows={3}
+              required
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="technical-challenges">Technical Challenges</Label>
+            <Label htmlFor="technical-challenges">Technical Challenges <span className="text-red-500">*</span></Label>
             <Textarea
               id="technical-challenges"
               value={challenges}
               onChange={(e) => setChallenges(e.target.value)}
               placeholder="Describe any technical challenges you're facing or anticipate..."
               rows={3}
+              required
             />
           </div>
         </div>
@@ -201,7 +221,10 @@ const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handlePublish} disabled={loading || !overview.trim()}>
+          <Button 
+            onClick={handlePublish} 
+            disabled={loading || !overview.trim() || !goals.trim() || !challenges.trim()}
+          >
             {loading ? 
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{isPublished ? 'Updating...' : 'Publishing...'}</> : 
               (isPublished ? 'Update Details' : 'Publish Project')}

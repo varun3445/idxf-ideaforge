@@ -18,6 +18,9 @@ interface Project {
   imageUrl: string;
   created_at: string;
   is_published: boolean;
+  overview?: string;
+  goals?: string;
+  challenges?: string;
 }
 
 const Explore: React.FC = () => {
@@ -46,11 +49,11 @@ const Explore: React.FC = () => {
       const enhancedProjects = publishedProjects.map((project: any) => ({
         ...project,
         creator: "Default User",
-        // Using a placeholder
         collaborators: 1,
         category: "Technology",
         techStack: ["React", "JavaScript", "Tailwind CSS"],
-        imageUrl: "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop"
+        // Use the project's uploaded image if available, otherwise use default
+        imageUrl: project.imageUrl || "https://images.unsplash.com/photo-1664575198263-269a022d6e14?q=80&w=1170&auto=format&fit=crop"
       }));
       setProjects(enhancedProjects);
       setLoading(false);
