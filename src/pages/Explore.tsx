@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layers, Users, Eye } from 'lucide-react';
+import { Calendar, Layers, Users, Link2, Eye, Bookmark, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
@@ -140,57 +140,48 @@ const Explore: React.FC = () => {
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map(project => (
-              <div 
-                key={project.id} 
-                className="group relative rounded-3xl bg-creative-yellow/80 p-3 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
-                onClick={() => handleViewProject(project.id)}
-              >
-                {/* Main image container - big black rounded rectangle */}
-                <div className="w-full aspect-[4/3] bg-creative-black rounded-2xl overflow-hidden mb-3">
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                </div>
-
-                {/* Project title and meta information */}
-                <div className="px-1">
-                  {/* Title as three lines */}
-                  <div className="space-y-1.5 mb-2">
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[180px]"></div>
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[160px]"></div>
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[120px]"></div>
+              <Card key={project.id} className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
+                <div className="relative">
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-52 object-cover border-b border-white/10" />
+                  <div className="absolute top-3 right-3 flex space-x-2">
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
+                      <Bookmark className="h-4 w-4 text-creative-pink" />
+                    </button>
+                    <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
+                      <Share2 className="h-4 w-4 text-creative-yellow" />
+                    </button>
                   </div>
-
-                  {/* Tech Stack as rounded pills */}
+                </div>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl line-clamp-1">{project.title}</CardTitle>
+                  <CardDescription className="line-clamp-2 mt-2 text-gray-400">{project.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-4 space-y-4 flex-grow">
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.slice(0, 3).map((tech, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-block h-6 w-16 bg-white/30 rounded-full"
-                      ></span>
+                    {project.techStack.map((tech, index) => (
+                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
+                        {tech}
+                      </span>
                     ))}
                   </div>
-
-                  {/* Hidden overlay with actual project details that appears on hover */}
-                  <div className="absolute inset-0 bg-creative-black/80 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                    <p className="text-sm mb-4 line-clamp-3">{project.description}</p>
-                    <Button 
-                      variant="outline" 
-                      className="border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewProject(project.id);
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Project
-                    </Button>
+                  <div className="space-y-3 pt-3 border-t border-white/10">
+                    <div className="flex items-center text-sm text-gray-400">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-400">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>{project.collaborators} Collaborator{project.collaborators !== 1 ? 's' : ''}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+                <CardFooter className="pt-2 pb-4">
+                  <Button variant="outline" className="w-full border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10" onClick={() => handleViewProject(project.id)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Project
+                  </Button>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         )}
