@@ -77,8 +77,8 @@ const Explore: React.FC = () => {
   if (loading) {
     return <div className="flex h-[80vh] w-full items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-creative-pink"></div>
-          <p className="mt-4 text-creative-purple text-sm">Loading creative projects...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e3f988]"></div>
+          <p className="mt-4 text-[#e3f988] text-sm font-satoshi">Loading creative projects...</p>
         </div>
       </div>;
   }
@@ -87,9 +87,9 @@ const Explore: React.FC = () => {
     return <div className="flex h-[80vh] w-full items-center justify-center">
         <GlassmorphicCard className="max-w-md">
           <div className="text-center">
-            <h3 className="text-lg font-medium mb-2">Error loading projects</h3>
-            <p className="text-sm text-gray-400 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} className="bg-creative-purple hover:bg-creative-purple/90 text-white">
+            <h3 className="text-lg font-medium mb-2 font-satoshi">Error loading projects</h3>
+            <p className="text-sm text-gray-400 mb-4 font-satoshi">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-[#e3f988] hover:bg-[#e3f988]/90 text-black font-satoshi">
               Try again
             </Button>
           </div>
@@ -99,9 +99,9 @@ const Explore: React.FC = () => {
 
   return <AnimatedTransition>
       <div className="container mx-auto py-6 px-4 max-w-7xl">
-        {/* New header style matching the image */}
+        {/* Header section with Satoshi font */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-4">Explore</h1>
+          <h1 className="text-3xl font-bold mb-4 font-satoshi">Explore</h1>
           
           {/* Search bar with lime styling */}
           <div className="relative mb-6">
@@ -110,7 +110,7 @@ const Explore: React.FC = () => {
               placeholder="Search for projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 bg-[#e3f988] text-creative-black rounded-full px-5 py-3 outline-none"
+              className="w-full h-12 bg-[#e3f988] text-creative-black rounded-full px-5 py-3 outline-none font-satoshi"
             />
             <Search className="absolute right-4 top-3.5 h-5 w-5 text-creative-black/70" />
           </div>
@@ -118,14 +118,14 @@ const Explore: React.FC = () => {
         
         {projects.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-6">
-              <Layers className="h-8 w-8 text-creative-purple" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#e3f988]/10 mb-6">
+              <Layers className="h-8 w-8 text-[#e3f988]" />
             </div>
-            <h3 className="text-xl font-medium mb-4">No projects yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <h3 className="text-xl font-medium mb-4 font-satoshi">No projects yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto font-satoshi">
               There are no published projects available at the moment. Be the first to share your creative work!
             </p>
-            <Button className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2" onClick={() => navigate('/projects/new')}>
+            <Button className="bg-[#e3f988] text-creative-black hover:bg-[#e3f988]/90 px-6 py-2 font-satoshi" onClick={() => navigate('/projects/new')}>
               Create Project
             </Button>
           </div>
@@ -164,11 +164,11 @@ const Explore: React.FC = () => {
 
                 {/* Hidden overlay with project details */}
                 <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6 text-white rounded-3xl">
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-sm mb-4 line-clamp-3">{project.description}</p>
+                  <h3 className="text-xl font-bold mb-2 font-satoshi">{project.title}</h3>
+                  <p className="text-sm mb-4 line-clamp-3 font-satoshi">{project.description}</p>
                   <Button 
                     variant="outline" 
-                    className="border-white/30 text-white hover:bg-white/10"
+                    className="border-white/30 text-white hover:bg-white/10 font-satoshi"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleViewProject(project.id);

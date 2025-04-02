@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,301,300,400&display=swap');
+
 @layer base {
   :root {
     /* Figma-like color palette with pastel accents */
@@ -62,7 +64,7 @@
   }
   
   body {
-    @apply bg-creative-black text-foreground font-inter;
+    @apply bg-creative-black text-foreground font-satoshi;
     font-feature-settings: "rlig" 1, "calt" 1;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -76,11 +78,11 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair;
+    @apply font-satoshi font-bold;
   }
 
   p, div, span, button, a {
-    @apply font-inter;
+    @apply font-satoshi;
   }
   
   h1 {
@@ -103,7 +105,6 @@
     @apply leading-7;
   }
   
-  /* Creative shape dividers */
   .wave-divider {
     position: relative;
     height: 70px;
