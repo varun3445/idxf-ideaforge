@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layers, Users, Eye } from 'lucide-react';
+import { Layers, Users, Eye, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import GlassmorphicCard from '@/components/GlassmorphicCard';
@@ -28,6 +27,7 @@ const Explore: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,7 +66,6 @@ const Explore: React.FC = () => {
   };
 
   const handleViewProject = (projectId: string) => {
-    // Make sure we're navigating to the correct route that matches the route in App.tsx
     navigate(`/project/${projectId}`);
   };
 
@@ -99,29 +98,22 @@ const Explore: React.FC = () => {
   }
 
   return <AnimatedTransition>
-      <div className="container mx-auto py-8 px-4 md:px-6 space-y-8">
-        {/* Figma-like header section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-medium">Explore Projects</h1>
-          <div className="flex gap-3">
-            {/* Search or filter controls can go here */}
+      <div className="container mx-auto py-6 px-4 max-w-7xl">
+        {/* New header style matching the image */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-4">Explore</h1>
+          
+          {/* Search bar with lime styling */}
+          <div className="relative mb-6">
+            <input
+              type="text"
+              placeholder="Search for projects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-12 bg-[#e3f988] text-creative-black rounded-full px-5 py-3 outline-none"
+            />
+            <Search className="absolute right-4 top-3.5 h-5 w-5 text-creative-black/70" />
           </div>
-        </div>
-
-        {/* Category filters - more spaced out */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          <button onClick={() => filterProjects('all')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'all' ? 'bg-creative-pink text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
-            All Projects
-          </button>
-          <button onClick={() => filterProjects('design')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'design' ? 'bg-creative-purple text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
-            Design
-          </button>
-          <button onClick={() => filterProjects('development')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'development' ? 'bg-creative-yellow text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
-            Development
-          </button>
-          <button onClick={() => filterProjects('marketing')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'marketing' ? 'bg-creative-green text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
-            Marketing
-          </button>
         </div>
         
         {projects.length === 0 ? (
@@ -138,57 +130,53 @@ const Explore: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map(project => (
               <div 
                 key={project.id} 
-                className="group relative rounded-3xl bg-creative-yellow/80 p-3 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group relative rounded-3xl bg-[#e3f988] p-4 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
                 onClick={() => handleViewProject(project.id)}
               >
-                {/* Main image container - big black rounded rectangle */}
-                <div className="w-full aspect-[4/3] bg-creative-black rounded-2xl overflow-hidden mb-3">
+                {/* Image container with curved corners */}
+                <div className="w-full aspect-[4/3] bg-creative-black rounded-3xl overflow-hidden mb-4">
                   <img 
                     src={project.imageUrl} 
                     alt={project.title} 
-                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                    className="w-full h-full object-cover"
                   />
                 </div>
 
-                {/* Project title and meta information */}
-                <div className="px-1">
-                  {/* Title as three lines */}
-                  <div className="space-y-1.5 mb-2">
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[180px]"></div>
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[160px]"></div>
-                    <div className="h-2 bg-creative-black rounded-full w-full max-w-[120px]"></div>
-                  </div>
+                {/* Project title as black lines */}
+                <div className="space-y-1.5 mb-3">
+                  <div className="h-2.5 bg-black rounded-full w-full max-w-[180px]"></div>
+                  <div className="h-2.5 bg-black rounded-full w-full max-w-[150px]"></div>
+                </div>
 
-                  {/* Tech Stack as rounded pills */}
-                  <div className="flex flex-wrap gap-2">
-                    {project.techStack.slice(0, 3).map((tech, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-block h-6 w-16 bg-white/30 rounded-full"
-                      ></span>
-                    ))}
-                  </div>
+                {/* Tech Stack indicators as rounded pills */}
+                <div className="flex flex-wrap gap-2">
+                  {project.techStack.slice(0, 3).map((tech, index) => (
+                    <span 
+                      key={index} 
+                      className="inline-block h-5 w-14 bg-white/50 rounded-full"
+                    ></span>
+                  ))}
+                </div>
 
-                  {/* Hidden overlay with actual project details that appears on hover */}
-                  <div className="absolute inset-0 bg-creative-black/80 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                    <p className="text-sm mb-4 line-clamp-3">{project.description}</p>
-                    <Button 
-                      variant="outline" 
-                      className="border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewProject(project.id);
-                      }}
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Project
-                    </Button>
-                  </div>
+                {/* Hidden overlay with project details */}
+                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6 text-white rounded-3xl">
+                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                  <p className="text-sm mb-4 line-clamp-3">{project.description}</p>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/30 text-white hover:bg-white/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewProject(project.id);
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Project
+                  </Button>
                 </div>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Plus } from 'lucide-react';
+import { Globe, Search, PenTool, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
@@ -16,7 +16,7 @@ const Navbar = () => {
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - removed Talk section and adjusted to 4 items
+  // Updated menu items to match the image
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -28,7 +28,7 @@ const Navbar = () => {
   }, {
     name: 'Create',
     path: '/projects',
-    icon: <Plus className="h-5 w-5" />
+    icon: <PenTool className="h-5 w-5" />
   }, {
     name: 'Profile',
     path: '/profile-page',
@@ -61,17 +61,20 @@ const Navbar = () => {
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation with equal spacing - updated to 4 columns */}
-      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl mx-0 my-0 py-[15px]">
+      {/* Mobile Bottom Navigation - simplified to match the image design */}
+      {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10 py-4">
           <div className="w-full grid grid-cols-4 gap-0">
             {menuItems.map(item => {
-          const isActiveItem = isActive(item.path);
-          const isCreateButton = item.name === 'Create';
-          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
-                  {item.icon}
-                  <span className="text-xs mt-1">{item.name}</span>
-                </Button>;
-        })}
+              const isActiveItem = isActive(item.path);
+              return <button 
+                key={item.name} 
+                className={`flex flex-col items-center justify-center py-1 ${isActiveItem ? 'text-[#e3f988]' : 'text-white/80'}`}
+                onClick={() => navigate(item.path)}
+              >
+                {item.icon}
+                <span className="text-xs mt-1">{item.name}</span>
+              </button>;
+            })}
           </div>
         </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
@@ -81,7 +84,7 @@ const Navbar = () => {
               </div>
             </div>
             <ul className="space-y-1 flex-grow">
-              {/* Removed the slice to show all items except the last one (Profile) */}
+              {/* Show all top menu items */}
               {menuItems.slice(0, 3).map(item => <li key={item.name}>
                   <Button variant={isActive(item.path) ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate(item.path)}>
                     <span className="mr-1">{item.icon}</span>
