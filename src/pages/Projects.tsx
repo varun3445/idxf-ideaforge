@@ -13,7 +13,6 @@ import { useToast } from '../hooks/use-toast';
 import { useProject, Project } from '../contexts/ProjectContext';
 import { useAuth } from '../AuthContext';
 import { createLocalProject, debugProjectStorage } from '../utils/projectUtils';
-import ProjectShareDialog from '../components/ProjectShareDialog';
 
 interface ShareProjectProps {
   project: Project;

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -46,9 +46,6 @@ const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share Project</DialogTitle>
-          <DialogDescription>
-            Share your project with collaborators or get feedback.
-          </DialogDescription>
         </DialogHeader>
         
         <div className="flex flex-col items-center space-y-5 py-4">
