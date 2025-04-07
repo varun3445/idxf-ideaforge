@@ -1,3 +1,4 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
@@ -54,23 +55,16 @@ const Navbar = () => {
       {isMobile && <div className="fixed top-2 right-2 z-50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Open notifications</span>
-              </Button>
+              
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>No new notifications</DropdownMenuItem>
-            </DropdownMenuContent>
+            
           </DropdownMenu>
         </div>}
 
       {/* Mobile center logo */}
       {isMobile && <div className="fixed top-3 left-0 right-0 z-50 flex justify-center">
           <div className="h-8 w-16">
-            <img src="/lovable-uploads/c6e48869-9ce9-4e6a-b36b-47605ec8017a.png" alt="IDXF" className="h-full" />
+            
           </div>
         </div>}
 
