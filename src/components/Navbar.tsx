@@ -1,7 +1,8 @@
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, Bell, User, LogOut, Plus } from 'lucide-react';
+import { Globe, Search, Bell, User, LogOut, Plus, LogIn } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
@@ -12,11 +13,12 @@ const Navbar = () => {
   const location = useLocation();
   const {
     user,
-    logout
+    logout,
+    isAuthenticated
   } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Mobile menu items - removed Talk section and adjusted to 4 items
+  // Mobile menu items - added Login section
   const menuItems = [{
     name: 'Explore',
     path: '/explore',
@@ -29,11 +31,16 @@ const Navbar = () => {
     name: 'Create',
     path: '/projects',
     icon: <Plus className="h-5 w-5" />
-  }, {
+  }, 
+  ...(!isAuthenticated ? [{
+    name: 'Login',
+    path: '/login',
+    icon: <LogIn className="h-5 w-5" />
+  }] : [{
     name: 'Profile',
     path: '/profile-page',
     icon: <User className="h-5 w-5" />
-  }];
+  }])];
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -61,7 +68,7 @@ const Navbar = () => {
           </div>
         </div>}
 
-      {/* Mobile Bottom Navigation with equal spacing - updated to 4 columns */}
+      {/* Mobile Bottom Navigation with equal spacing */}
       {isMobile ? <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center backdrop-blur-md border-t border-border bg-background/90 p-2 rounded-t-xl mx-0 my-0 py-[15px]">
           <div className="w-full grid grid-cols-4 gap-0">
             {menuItems.map(item => {
@@ -81,8 +88,8 @@ const Navbar = () => {
               </div>
             </div>
             <ul className="space-y-1 flex-grow">
-              {/* Removed the slice to show all items except the last one (Profile) */}
-              {menuItems.slice(0, 3).map(item => <li key={item.name}>
+              {/* Show all menu items except login/profile which will be at bottom */}
+              {menuItems.filter(item => item.name !== 'Login' && item.name !== 'Profile').map(item => <li key={item.name}>
                   <Button variant={isActive(item.path) ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate(item.path)}>
                     <span className="mr-1">{item.icon}</span>
                     {item.name}
@@ -90,17 +97,26 @@ const Navbar = () => {
                 </li>)}
             </ul>
             <div className="pt-4 border-t border-border">
-              <Button variant={isActive('/profile-page') ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate('/profile-page')}>
-                <Avatar className="h-5 w-5 mr-1">
-                  <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
-                  <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                Profile
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-1" onClick={() => logout()}>
-                <LogOut className="h-4 w-4 mr-1" />
-                Logout
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button variant={isActive('/profile-page') ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate('/profile-page')}>
+                    <Avatar className="h-5 w-5 mr-1">
+                      <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
+                      <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    Profile
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive/90 hover:bg-destructive/10 mt-1" onClick={() => logout()}>
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button variant={isActive('/login') ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => navigate('/login')}>
+                  <LogIn className="h-5 w-5 mr-1" />
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         </div>}
