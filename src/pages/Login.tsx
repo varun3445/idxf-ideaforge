@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from '../components/ui/button';
@@ -23,11 +23,12 @@ const Login = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  // If already authenticated, redirect to explore page
-  if (isAuthenticated) {
-    navigate('/explore');
-    return null;
-  }
+  // Use useEffect to handle the redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/explore');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +89,10 @@ const Login = () => {
     }
   };
 
+  // If still loading or checking authentication, render nothing to prevent flickering
+  // This will not cause the warning since we're not using navigate during render
+  if (isAuthenticated) return null;
+
   return (
     <AnimatedTransition>
       <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8">
@@ -125,7 +130,7 @@ const Login = () => {
                   <Label htmlFor="password">Password</Label>
                   <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
                     <DialogTrigger asChild>
-                      <button type="button" className="text-xs text-primary hover:underline">
+                      <button type="button" className="text-xs text-blue-500 hover:underline">
                         Forgot password?
                       </button>
                     </DialogTrigger>
@@ -183,7 +188,7 @@ const Login = () => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -196,7 +201,7 @@ const Login = () => {
             <div className="mt-6 text-center text-sm">
               <p>
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-primary hover:underline">
+                <Link to="/signup" className="text-blue-500 hover:underline">
                   Sign up
                 </Link>
               </p>
