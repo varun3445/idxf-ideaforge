@@ -53,10 +53,10 @@ const Index = () => {
             />
           </div>
           <div className="flex gap-4">
-            <Link to="/login" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/login" className="text-foreground hover:text-blue-500 transition-colors">
               Login
             </Link>
-            <Link to="/signup" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/signup" className="text-foreground hover:text-blue-500 transition-colors">
               Sign Up
             </Link>
           </div>
@@ -75,11 +75,11 @@ const Index = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/signup" className="bg-primary text-primary-foreground px-8 py-3 rounded-md font-medium hover:bg-primary/90 transition-colors">
+                <Link to="/signup" className="bg-blue-500 text-white px-8 py-3 rounded-md font-medium hover:bg-blue-600 transition-colors">
                   Get Started
                 </Link>
                 
-                <Link to="/login" className="bg-secondary text-secondary-foreground border-2 border-border px-8 py-3 rounded-md font-medium hover:border-primary/50 transition-colors">
+                <Link to="/login" className="bg-black/80 text-white border-2 border-border px-8 py-3 rounded-md font-medium hover:border-blue-500/50 transition-colors">
                   Log In
                 </Link>
               </div>
@@ -88,7 +88,7 @@ const Index = () => {
         </section>
         
         {/* Features Section */}
-        <section className="py-12 md:py-20 bg-secondary">
+        <section className="py-12 md:py-20 bg-black/80">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
@@ -99,9 +99,9 @@ const Index = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {features.map((feature, index) => (
-                <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-md">
-                  <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                    <feature.icon className="text-foreground" size={20} />
+                <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-blue-500/50 hover:shadow-md">
+                  <div className="bg-blue-500/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                    <feature.icon className="text-blue-500" size={20} />
                   </div>
                   
                   <h3 className="font-playfair text-xl font-bold mb-3">{feature.title}</h3>
@@ -109,7 +109,7 @@ const Index = () => {
                     {feature.description}
                   </p>
                   
-                  <Link to="/signup" className="inline-flex items-center text-foreground font-medium hover:text-primary transition-colors">
+                  <Link to="/signup" className="inline-flex items-center text-blue-500 font-medium hover:text-blue-400 transition-colors">
                     <span>Learn more</span>
                     <ArrowRight size={16} className="ml-2" />
                   </Link>
