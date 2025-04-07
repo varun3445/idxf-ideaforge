@@ -234,6 +234,64 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   </Dialog>
 );
 
+interface ProjectShareDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  projectTitle: string;
+  shareCode: string;
+}
+
+const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({ open, onOpenChange, projectTitle, shareCode }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Share Project</DialogTitle>
+        <DialogDescription>
+          Share your project with collaborators or get feedback.
+        </DialogDescription>
+      </DialogHeader>
+      
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Project Link
+          </label>
+          <div className="flex">
+            <Input
+              value={`https://ideaforge.app/join-project/${shareCode}`}
+              readOnly
+            />
+            <Button 
+              className="ml-2"
+              onClick={() => {
+                if (shareCode) {
+                  navigator.clipboard.writeText(`https://ideaforge.app/join-project/${shareCode}`);
+                  toast({
+                    title: "Link copied",
+                    description: "The project link has been copied to your clipboard.",
+                  });
+                  setIsShareDialogOpen(false);
+                }
+              }}
+            >
+              Copy
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Anyone with this link can view and request to join your project.
+          </p>
+        </div>
+      </div>
+      
+      <DialogFooter className="mt-4">
+        <Button onClick={() => setIsShareDialogOpen(false)}>
+          Done
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
+
 const Projects: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -541,54 +599,14 @@ const Projects: React.FC = () => {
           isSubmitting={isSubmitting}
         />
 
-        <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Share Project</DialogTitle>
-              <DialogDescription>
-                Share your project with collaborators or get feedback.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Project Link
-                </label>
-                <div className="flex">
-                  <Input
-                    value={`https://ideaforge.app/join-project/${selectedProject?.share_code || ''}`}
-                    readOnly
-                  />
-                  <Button 
-                    className="ml-2"
-                    onClick={() => {
-                      if (selectedProject?.share_code) {
-                        navigator.clipboard.writeText(`https://ideaforge.app/join-project/${selectedProject.share_code}`);
-                        toast({
-                          title: "Link copied",
-                          description: "The project link has been copied to your clipboard.",
-                        });
-                        setIsShareDialogOpen(false);
-                      }
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Anyone with this link can view and request to join your project.
-                </p>
-              </div>
-            </div>
-            
-            <DialogFooter className="mt-4">
-              <Button onClick={() => setIsShareDialogOpen(false)}>
-                Done
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {selectedProject && (
+          <ProjectShareDialog 
+            open={isShareDialogOpen} 
+            onOpenChange={setIsShareDialogOpen} 
+            projectTitle={selectedProject.title} 
+            shareCode={selectedProject.share_code} 
+          />
+        )}
       </div>
     </AnimatedTransition>
   );
