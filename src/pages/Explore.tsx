@@ -78,8 +78,8 @@ const Explore: React.FC = () => {
   if (loading) {
     return <div className="flex h-[80vh] w-full items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-creative-pink"></div>
-          <p className="mt-4 text-creative-purple text-sm">Loading creative projects...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-blue-500 text-sm">Loading creative projects...</p>
         </div>
       </div>;
   }
@@ -90,7 +90,7 @@ const Explore: React.FC = () => {
           <div className="text-center">
             <h3 className="text-lg font-medium mb-2">Error loading projects</h3>
             <p className="text-sm text-gray-400 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} className="bg-creative-purple hover:bg-creative-purple/90 text-white">
+            <Button onClick={() => window.location.reload()} className="bg-blue-500 hover:bg-blue-600 text-white">
               Try again
             </Button>
           </div>
@@ -110,45 +110,45 @@ const Explore: React.FC = () => {
 
         {/* Category filters - more spaced out */}
         <div className="flex flex-wrap gap-3 mb-8">
-          <button onClick={() => filterProjects('all')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'all' ? 'bg-creative-pink text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
+          <button onClick={() => filterProjects('all')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-white/5 hover:bg-white/10'}`}>
             All Projects
           </button>
-          <button onClick={() => filterProjects('design')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'design' ? 'bg-creative-purple text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
+          <button onClick={() => filterProjects('design')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'design' ? 'bg-blue-600 text-white' : 'bg-white/5 hover:bg-white/10'}`}>
             Design
           </button>
-          <button onClick={() => filterProjects('development')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'development' ? 'bg-creative-yellow text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
+          <button onClick={() => filterProjects('development')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'development' ? 'bg-blue-700 text-white' : 'bg-white/5 hover:bg-white/10'}`}>
             Development
           </button>
-          <button onClick={() => filterProjects('marketing')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'marketing' ? 'bg-creative-green text-creative-black' : 'bg-white/5 hover:bg-white/10'}`}>
+          <button onClick={() => filterProjects('marketing')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeFilter === 'marketing' ? 'bg-blue-800 text-white' : 'bg-white/5 hover:bg-white/10'}`}>
             Marketing
           </button>
         </div>
         
         {projects.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-white/10 rounded-md bg-white/5 p-10 mt-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-creative-purple/10 mb-6">
-              <Layers className="h-8 w-8 text-creative-purple" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 mb-6">
+              <Layers className="h-8 w-8 text-blue-500" />
             </div>
             <h3 className="text-xl font-medium mb-4">No projects yet</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               There are no published projects available at the moment. Be the first to share your creative work!
             </p>
-            <Button className="bg-creative-pink text-creative-black hover:bg-creative-pink/90 px-6 py-2" onClick={() => navigate('/projects/new')}>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600 px-6 py-2" onClick={() => navigate('/projects/new')}>
               Create Project
             </Button>
           </div>
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {projects.map(project => (
-              <Card key={project.id} className="bg-creative-black border border-white/10 hover:border-creative-purple/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
+              <Card key={project.id} className="bg-black border border-white/10 hover:border-blue-500/30 transition-all duration-300 overflow-hidden shadow-md hover:shadow-lg flex flex-col">
                 <div className="relative">
                   <img src={project.imageUrl} alt={project.title} className="w-full h-52 object-cover border-b border-white/10" />
                   <div className="absolute top-3 right-3 flex space-x-2">
                     <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
-                      <Bookmark className="h-4 w-4 text-creative-pink" />
+                      <Bookmark className="h-4 w-4 text-blue-500" />
                     </button>
                     <button className="bg-black/50 backdrop-blur-sm p-2 rounded-md hover:bg-black/70 transition-colors">
-                      <Share2 className="h-4 w-4 text-creative-yellow" />
+                      <Share2 className="h-4 w-4 text-blue-400" />
                     </button>
                   </div>
                 </div>
@@ -159,7 +159,7 @@ const Explore: React.FC = () => {
                 <CardContent className="pb-4 space-y-4 flex-grow">
                   <div className="flex flex-wrap gap-2">
                     {project.techStack.map((tech, index) => (
-                      <span key={index} className="text-xs bg-creative-purple/20 text-creative-purple px-2 py-1 rounded-full">
+                      <span key={index} className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">
                         {tech}
                       </span>
                     ))}
@@ -176,7 +176,7 @@ const Explore: React.FC = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-2 pb-4">
-                  <Button variant="outline" className="w-full border-creative-purple/30 text-creative-purple hover:bg-creative-purple/10" onClick={() => handleViewProject(project.id)}>
+                  <Button variant="outline" className="w-full border-blue-500/30 text-blue-500 hover:bg-blue-500/10" onClick={() => handleViewProject(project.id)}>
                     <Eye className="mr-2 h-4 w-4" />
                     View Project
                   </Button>

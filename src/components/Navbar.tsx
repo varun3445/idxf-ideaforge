@@ -67,13 +67,13 @@ const Navbar = () => {
             {menuItems.map(item => {
           const isActiveItem = isActive(item.path);
           const isCreateButton = item.name === 'Create';
-          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-primary' : ''} ${isActiveItem ? 'text-primary font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
+          return <Button key={item.name} variant="ghost" size="sm" className={`flex flex-col items-center justify-center py-1 ${isCreateButton ? 'text-blue-500' : ''} ${isActiveItem ? 'text-blue-500 font-medium' : 'text-foreground/80'}`} onClick={() => navigate(item.path)}>
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>
                 </Button>;
         })}
           </div>
-        </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-secondary/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
+        </div> : <div className="left-0 top-0 z-50 w-56 h-screen bg-black/80 backdrop-blur-md border-r border-border fixed rounded-r-xl">
           <div className="px-3 py-4 h-full flex flex-col">
             <div className="flex items-center mb-6 px-2">
               <div className="h-7 w-16 mr-2">
