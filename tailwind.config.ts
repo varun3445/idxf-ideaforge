@@ -83,7 +83,6 @@ export default {
 					pink: '#FFD6E5',     // Pastel pink
 					mint: '#C7F5D9',     // Pastel mint
 					peach: '#FFE0C7',    // Pastel peach
-					neonYellow: '#E4FF98' // New neon yellow color
 				}
 			},
 			borderRadius: {
