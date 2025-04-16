@@ -13,7 +13,6 @@ import { useToast } from '../hooks/use-toast';
 import { useProject, Project } from '../contexts/ProjectContext';
 import { useAuth } from '../AuthContext';
 import { createLocalProject, debugProjectStorage } from '../utils/projectUtils';
-import ProjectShareDialogComponent from '../components/ProjectShareDialog';
 
 interface ShareProjectProps {
   project: Project;
@@ -235,74 +234,63 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   </Dialog>
 );
 
-interface FixedProjectShareDialogProps {
+interface ProjectShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectTitle: string;
-  shareCode: string | null;
+  shareCode: string;
 }
 
-const ProjectShareDialog: React.FC<FixedProjectShareDialogProps> = ({ 
-  open, 
-  onOpenChange, 
-  projectTitle, 
-  shareCode 
-}) => {
-  const { toast } = useToast();
-  
-  const handleCopyLink = () => {
-    if (shareCode) {
-      navigator.clipboard.writeText(`https://ideaforge.app/join-project/${shareCode}`);
-      toast({
-        title: "Link copied",
-        description: "The project link has been copied to your clipboard.",
-      });
-      onOpenChange(false);
-    }
-  };
-  
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Share Project</DialogTitle>
-          <DialogDescription>
-            Share your project with collaborators or get feedback.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Project Link
-            </label>
-            <div className="flex">
-              <Input
-                value={`https://ideaforge.app/join-project/${shareCode || ''}`}
-                readOnly
-              />
-              <Button 
-                className="ml-2"
-                onClick={handleCopyLink}
-              >
-                Copy
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Anyone with this link can view and request to join your project.
-            </p>
+const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({ open, onOpenChange, projectTitle, shareCode }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Share Project</DialogTitle>
+        <DialogDescription>
+          Share your project with collaborators or get feedback.
+        </DialogDescription>
+      </DialogHeader>
+      
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Project Link
+          </label>
+          <div className="flex">
+            <Input
+              value={`https://ideaforge.app/join-project/${shareCode}`}
+              readOnly
+            />
+            <Button 
+              className="ml-2"
+              onClick={() => {
+                if (shareCode) {
+                  navigator.clipboard.writeText(`https://ideaforge.app/join-project/${shareCode}`);
+                  toast({
+                    title: "Link copied",
+                    description: "The project link has been copied to your clipboard.",
+                  });
+                  setIsShareDialogOpen(false);
+                }
+              }}
+            >
+              Copy
+            </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Anyone with this link can view and request to join your project.
+          </p>
         </div>
-        
-        <DialogFooter className="mt-4">
-          <Button onClick={() => onOpenChange(false)}>
-            Done
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+      </div>
+      
+      <DialogFooter className="mt-4">
+        <Button onClick={() => setIsShareDialogOpen(false)}>
+          Done
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
