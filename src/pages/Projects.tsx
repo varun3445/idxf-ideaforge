@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, Layers, Users, Share2, Loader2, Heart } from 'lucide-react';
@@ -235,64 +236,6 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   </Dialog>
 );
 
-interface ProjectShareDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  projectTitle: string;
-  shareCode: string;
-}
-
-const ProjectShareDialog: React.FC<ProjectShareDialogProps> = ({ open, onOpenChange, projectTitle, shareCode }) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Share Project</DialogTitle>
-        <DialogDescription>
-          Share your project with collaborators or get feedback.
-        </DialogDescription>
-      </DialogHeader>
-      
-      <div className="space-y-4 py-2">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Project Link
-          </label>
-          <div className="flex">
-            <Input
-              value={`https://ideaforge.app/join-project/${shareCode}`}
-              readOnly
-            />
-            <Button 
-              className="ml-2"
-              onClick={() => {
-                if (shareCode) {
-                  navigator.clipboard.writeText(`https://ideaforge.app/join-project/${shareCode}`);
-                  toast({
-                    title: "Link copied",
-                    description: "The project link has been copied to your clipboard.",
-                  });
-                  setIsShareDialogOpen(false);
-                }
-              }}
-            >
-              Copy
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Anyone with this link can view and request to join your project.
-          </p>
-        </div>
-      </div>
-      
-      <DialogFooter className="mt-4">
-        <Button onClick={() => setIsShareDialogOpen(false)}>
-          Done
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-);
-
 const Projects: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -424,73 +367,15 @@ const Projects: React.FC = () => {
           const collaboratorCount = isOwnedByCurrentUser ? 1 : 3;
           
           return (
-            <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl line-clamp-1 pr-4 cursor-pointer" 
-                    onClick={() => navigate(`/forge/${project.id}`)}>
-                    {project.title}
-                  </CardTitle>
-                  {project.is_published && (
-                    <Badge variant="secondary" className="ml-2 shrink-0">
-                      Published
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription className="line-clamp-2 mt-1">
-                  {project.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-2 flex-grow">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="mr-1 h-4 w-4" />
-                    <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Layers className="mr-1 h-4 w-4" />
-                    <span>3 steps completed</span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="mr-1 h-4 w-4" />
-                    <span>{collaboratorCount} {collaboratorCount === 1 ? 'collaborator' : 'collaborators'}</span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between pt-2 border-t">
-                <Button variant="outline" size="sm" onClick={() => navigate(`/forge/${project.id}`)}>
-                  Open Project
-                </Button>
-                
-                {!isOwnedByCurrentUser && (
-                  <Button 
-                    variant={isBackingProject ? "secondary" : "outline"} 
-                    size="sm"
-                    onClick={() => toggleBackingProject(project.id)}
-                  >
-                    {isBackingProject ? (
-                      <>
-                        <Heart className="mr-1 h-4 w-4 fill-current" /> Backing
-                      </>
-                    ) : (
-                      <>
-                        <Heart className="mr-1 h-4 w-4" /> Back Project
-                      </>
-                    )}
-                  </Button>
-                )}
-                
-                {isOwnedByCurrentUser && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleShareProject(project)}
-                  >
-                    <Share2 className="mr-1 h-4 w-4" /> Share
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
+            <ProjectCard 
+              key={project.id}
+              project={project}
+              isBackingProject={isBackingProject}
+              isOwnedByCurrentUser={isOwnedByCurrentUser}
+              collaboratorCount={collaboratorCount}
+              toggleBackingProject={toggleBackingProject}
+              handleShareProject={handleShareProject}
+            />
           );
         })}
       </div>
@@ -519,36 +404,7 @@ const Projects: React.FC = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {ownedProjects.length === 0 ? (
-                  <div className="col-span-full text-center py-10">
-                    <p className="text-muted-foreground mb-4">
-                      You haven't created any projects yet.
-                    </p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                      <Plus className="mr-2 h-4 w-4" /> Create New Project
-                    </Button>
-                  </div>
-                ) : (
-                  ownedProjects.map((project) => {
-                    const isBackingProject = backingProjects[project.id] || false;
-                    const isOwnedByCurrentUser = project.owner_id === userId;
-                    const collaboratorCount = 1;
-                    
-                    return (
-                      <ProjectCard 
-                        key={project.id}
-                        project={project}
-                        isBackingProject={isBackingProject}
-                        isOwnedByCurrentUser={isOwnedByCurrentUser}
-                        collaboratorCount={collaboratorCount}
-                        toggleBackingProject={toggleBackingProject}
-                        handleShareProject={handleShareProject}
-                      />
-                    );
-                  })
-                )}
-              </div>
+              renderProjectsGrid(ownedProjects)
             )}
           </TabsContent>
           
@@ -558,33 +414,7 @@ const Projects: React.FC = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {collaborativeProjects.length === 0 ? (
-                  <div className="col-span-full text-center py-10">
-                    <p className="text-muted-foreground mb-4">
-                      You're not collaborating on any projects yet.
-                    </p>
-                  </div>
-                ) : (
-                  collaborativeProjects.map((project) => {
-                    const isBackingProject = backingProjects[project.id] || false;
-                    const isOwnedByCurrentUser = project.owner_id === userId;
-                    const collaboratorCount = 3;
-                    
-                    return (
-                      <ProjectCard 
-                        key={project.id}
-                        project={project}
-                        isBackingProject={isBackingProject}
-                        isOwnedByCurrentUser={isOwnedByCurrentUser}
-                        collaboratorCount={collaboratorCount}
-                        toggleBackingProject={toggleBackingProject}
-                        handleShareProject={handleShareProject}
-                      />
-                    );
-                  })
-                )}
-              </div>
+              renderProjectsGrid(collaborativeProjects)
             )}
           </TabsContent>
         </Tabs>
