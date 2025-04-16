@@ -1,16 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, Heart, Lightbulb, ArrowRight } from 'lucide-react';
 import AnimatedTransition from '../components/AnimatedTransition';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "../components/ui/navigation-menu";
-import { Button } from "../components/ui/button";
-import Footer from '../components/Footer';
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [activeSlide, setActiveSlide] = useState(1);
   
   useEffect(() => {
     setIsVisible(true);
@@ -19,109 +16,96 @@ const Index = () => {
   const features = [
     {
       title: 'Explore',
-      description: 'Discover projects and connect with creative professionals from around the world.',
-      icon: Grid,
-      path: '/explore',
-      delay: 100
+      description: 'Discover projects and co-create with creative professionals.',
+      color: '#E4FF98',
+      id: 0
     }, 
     {
-      title: 'Matches',
+      title: 'Search',
       description: 'Find collaborators with complementary skills for your next project.',
-      icon: Heart,
-      path: '/matches',
-      delay: 200
+      color: '#E4FF98',
+      id: 1
     }, 
     {
-      title: 'Experiment Lab',
-      description: 'Get inspired and develop your ideas through guided creative exercises.',
-      icon: Lightbulb,
-      path: '/lab',
-      delay: 300
+      title: 'Create',
+      description: 'Get inspired and develop your ideas through guided creative collaboration.',
+      color: '#E4FF98',
+      id: 2
     }
   ];
+
+  const handleDotClick = (index) => {
+    setActiveSlide(index);
+  };
   
   return (
     <AnimatedTransition>
-      <div className="min-h-screen bg-background flex flex-col">
-        {/* Navigation Bar */}
-        <nav className="py-4 px-6 border-b border-border/20 flex justify-between items-center">
-          <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/4e4b3c3d-9ef2-4e5f-8850-d3b647902ecb.png" 
-              alt="IDXF Logo" 
-              className="h-8" 
-            />
-          </div>
-          <div className="flex gap-4">
-            <Link to="/login" className="text-foreground hover:text-blue-500 transition-colors">
+      <div className="min-h-screen bg-[#121212] flex flex-col relative">
+        {/* Logo Area */}
+        <div className="w-full h-[127px] bg-[#121212] flex justify-center items-end pb-4">
+          <img 
+            src="/lovable-uploads/4e4b3c3d-9ef2-4e5f-8850-d3b647902ecb.png" 
+            alt="IDXF Logo" 
+            className="w-[160px] h-auto"
+          />
+        </div>
+        
+        {/* Welcome Text */}
+        <div className="px-6 mt-[19px]">
+          <h2 className="text-white text-[25px] font-bold font-satoshi">
+            Welcome to Idea Forge :)
+          </h2>
+          
+          <p className="text-white text-[25px] font-bold font-satoshi mt-6 leading-[34px]">
+            An exclusive third space for creatives to: Connect, Collaborate, and Co-create!
+          </p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="mt-auto px-6 mb-[76px]">
+          <div className="flex flex-col gap-3">
+            <Link 
+              to="/signup" 
+              className="bg-[#E4FF98] text-[#121212] h-[48px] rounded-[50px] flex items-center justify-center font-satoshi font-bold text-[25px]"
+            >
+              Get started
+            </Link>
+            
+            <Link 
+              to="/login" 
+              className="bg-white text-[#121212] h-[48px] rounded-[50px] flex items-center justify-center font-satoshi font-bold text-[25px]"
+            >
               Login
             </Link>
-            <Link to="/signup" className="text-foreground hover:text-blue-500 transition-colors">
-              Sign Up
-            </Link>
           </div>
-        </nav>
+        </div>
         
-        {/* Hero Section */}
-        <section className="relative overflow-hidden py-10 md:py-20 lg:py-32 hero-section">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center max-w-4xl mx-auto">
-              <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                An Exclusive Community of<br />Like-Minded Creators
-              </h1>
-              
-              <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto">
-                Empowering aspiring creators, innovators, and entrepreneurs establish their identity.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/signup" className="bg-blue-500 text-white px-8 py-3 rounded-md font-medium hover:bg-blue-600 transition-colors">
-                  Get Started
-                </Link>
-                
-                <Link to="/login" className="bg-black/80 text-white border-2 border-border px-8 py-3 rounded-md font-medium hover:border-blue-500/50 transition-colors">
-                  Log In
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Features Section */}
-        <section className="py-12 md:py-20 bg-black/80">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-              <p className="text-foreground/70 max-w-2xl mx-auto">
-                Our platform makes it easy to bring your creative ideas to life through collaboration
+        {/* Feature Cards Carousel */}
+        <div className="w-full h-[200px] overflow-x-auto flex px-4 gap-4 mb-[65px] no-scrollbar">
+          {features.map((feature, index) => (
+            <div 
+              key={index} 
+              className="flex-none w-[352px] h-[200px] bg-[#E4FF98] rounded-[50px] flex items-center justify-center p-4"
+            >
+              <p className="text-[#121212] text-[40px] leading-[54px] font-bold font-satoshi text-center">
+                {feature.title} <span className="block text-[32px]">{feature.description}</span>
               </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className="bg-background border-2 border-border/20 rounded-lg p-6 transition-all duration-300 hover:border-blue-500/50 hover:shadow-md">
-                  <div className="bg-blue-500/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                    <feature.icon className="text-blue-500" size={20} />
-                  </div>
-                  
-                  <h3 className="font-playfair text-xl font-bold mb-3">{feature.title}</h3>
-                  <p className="text-foreground/70 mb-4">
-                    {feature.description}
-                  </p>
-                  
-                  <Link to="/signup" className="inline-flex items-center text-blue-500 font-medium hover:text-blue-400 transition-colors">
-                    <span>Learn more</span>
-                    <ArrowRight size={16} className="ml-2" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          ))}
+        </div>
         
-        {/* Footer */}
-        <div className="mt-auto">
-          <Footer />
+        {/* Pagination Dots */}
+        <div className="flex justify-center gap-3 mb-16">
+          {[0, 1, 2].map((index) => (
+            <button
+              key={index}
+              onClick={() => handleDotClick(index)}
+              className={`w-2 h-2 rounded-full ${
+                activeSlide === index ? 'bg-white' : 'bg-white/50'
+              }`}
+              aria-label={`Slide ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
     </AnimatedTransition>
