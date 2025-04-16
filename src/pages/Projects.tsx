@@ -605,7 +605,7 @@ const Projects: React.FC = () => {
             open={isShareDialogOpen} 
             onOpenChange={setIsShareDialogOpen} 
             projectTitle={selectedProject.title} 
-            shareCode={selectedProject.share_code} 
+            shareCode={selectedProject.share_code || ''} 
           />
         )}
       </div>
