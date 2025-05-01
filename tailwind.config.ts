@@ -24,6 +24,7 @@ export default {
 				satoshi: ['Satoshi', 'sans-serif'],
 				playfair: ['"Playfair Display"', 'serif'],
 				inter: ['Inter', 'sans-serif'],
+				idxf: ['Arial Rounded MT Bold', 'Arial', 'sans-serif'], // New font for IDXF brand
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -69,6 +70,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// IDXF app color palette
+				idxf: {
+					lime: '#DEFA69',      // Main accent color - bright lime
+					olive: '#A5B86B',     // Secondary tab color - olive green
+					black: '#0F0F0F',     // Background color - nearly black
+					gray: '#1A1A1A',      // Card background - dark gray
+					white: '#FFFFFF',     // Text color - white
+					lightText: '#EBEBEB',  // Light text color
+					success: '#2ECC71',   // Success color
+					error: '#E74C3C',     // Error color
 				},
 				// Updated creative color palette with pastel colors
 				creative: {

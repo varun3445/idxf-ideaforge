@@ -1,59 +1,39 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Figma-like color palette with pastel accents */
-    --background: 0 0% 10%; /* Dark background */
+    /* IDXF color palette */
+    --background: 0 0% 6%; /* Black background #0F0F0F */
     --foreground: 0 0% 100%; /* White text for contrast */
-    --card: 0 0% 15%; /* Slightly lighter than background */
+    --card: 0 0% 10%; /* Dark card background #1A1A1A */
     --card-foreground: 0 0% 100%; /* White text on cards */
-    --popover: 0 0% 15%; /* Slightly lighter than background */
+    --popover: 0 0% 10%; /* Dark popover background #1A1A1A */
     --popover-foreground: 0 0% 100%; /* White text on popovers */
-    --primary: 340 80% 85%; /* Pastel pink/coral as primary */
-    --primary-foreground: 0 0% 10%; /* Dark text on primary */
-    --secondary: 260 50% 85%; /* Pastel purple as secondary */
-    --secondary-foreground: 0 0% 10%; /* Dark text on secondary */
+    --primary: 75 96% 70%; /* Lime green #DEFA69 */
+    --primary-foreground: 0 0% 6%; /* Black text on primary #0F0F0F */
+    --secondary: 80 30% 57%; /* Olive green #A5B86B */
+    --secondary-foreground: 0 0% 6%; /* Black text on secondary #0F0F0F */
     --muted: 0 0% 20%; /* Muted dark gray */
     --muted-foreground: 0 0% 70%; /* Light gray for muted text */
-    --accent: 45 100% 85%; /* Pastel yellow accent */
-    --accent-foreground: 0 0% 10%; /* Dark text on accent */
-    --destructive: 0 70% 80%; /* Pastel red for destructive */
-    --destructive-foreground: 0 0% 10%; /* Dark text on destructive */
-    --border: 0 0% 30%; /* Dark border */
+    --accent: 75 96% 70%; /* Lime accent same as primary */
+    --accent-foreground: 0 0% 6%; /* Black text on accent */
+    --destructive: 0 70% 50%; /* Red for destructive */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive */
+    --border: 0 0% 20%; /* Dark border */
     --input: 0 0% 20%; /* Dark input */
-    --ring: 340 80% 85%; /* Ring matches primary */
-    --radius: 0.5rem; /* Figma-like radius */
+    --ring: 75 96% 70%; /* Ring matches primary */
+    --radius: 1rem; /* Rounded corners */
   }
 
-  .dark {
-    /* We're using dark mode as default */
-    --background: 0 0% 10%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 340 80% 85%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 260 50% 85%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 45 100% 85%;
-    --accent-foreground: 0 0% 10%;
-    --destructive: 0 70% 80%;
-    --destructive-foreground: 0 0% 10%;
-    --border: 0 0% 30%;
-    --input: 0 0% 20%;
-    --ring: 340 80% 85%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+  /* Apply IDXF black background to body */
+  body {
+    @apply bg-idxf-black text-white font-inter;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
   }
   
   /* Remove all scrollbars */
@@ -61,389 +41,124 @@
     display: none;
   }
   
-  body {
-    @apply bg-creative-black text-foreground font-inter;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(255, 182, 182, 0.05) 0%, transparent 20%),
-      radial-gradient(circle at 80% 40%, rgba(217, 199, 255, 0.05) 0%, transparent 20%),
-      radial-gradient(circle at 30% 80%, rgba(182, 255, 224, 0.05) 0%, transparent 20%),
-      radial-gradient(circle at 70% 90%, rgba(255, 242, 182, 0.05) 0%, transparent 20%);
-    background-size: 100% 100%;
-    background-attachment: fixed;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair;
+  /* Make bold text more distinctive */
+  strong, b {
+    font-weight: 700;
   }
 
-  p, div, span, button, a {
-    @apply font-inter;
+  /* IDXF Typography */
+  .idxf-title {
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.05em;
   }
   
+  .idxf-heading {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
   h1 {
-    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+    @apply text-3xl font-bold tracking-tight;
   }
 
   h2 {
-    @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+    @apply text-2xl font-bold tracking-tight;
   }
 
   h3 {
-    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+    @apply text-xl font-bold tracking-tight;
   }
 
-  h4 {
-    @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  /* IDXF Layout Elements */
+  .idxf-container {
+    @apply max-w-full px-4 sm:px-6 pb-24;
   }
 
-  p {
-    @apply leading-7;
-  }
-  
-  /* Creative shape dividers */
-  .wave-divider {
-    position: relative;
-    height: 70px;
-    width: 100%;
-    overflow: hidden;
+  .idxf-card {
+    @apply bg-idxf-lime rounded-3xl p-5 text-idxf-black shadow-lg;
   }
   
-  .wave-divider::before {
-    content: "";
-    position: absolute;
-    width: 200%;
-    height: 100%;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='%23353535' opacity='0.2'%3E%3C/path%3E%3C/svg%3E");
-    left: -50%;
-    background-size: 50% 100%;
-    animation: wave 15s linear infinite;
+  .idxf-card-dark {
+    @apply bg-idxf-gray rounded-3xl p-5 text-white shadow-lg;
   }
   
-  @keyframes wave {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(50%);
-    }
+  .idxf-card-olive {
+    @apply bg-idxf-olive rounded-3xl p-5 text-idxf-black shadow-lg; 
+  }
+  
+  /* IDXF Tabs */
+  .idxf-tabs {
+    @apply flex w-full bg-idxf-olive/30 rounded-full p-1;
+  }
+  
+  .idxf-tab {
+    @apply py-3 flex-1 text-center transition-all rounded-full;
+  }
+  
+  .idxf-tab-active {
+    @apply bg-idxf-lime text-idxf-black font-medium;
+  }
+  
+  /* IDXF Form Elements */
+  .idxf-input {
+    @apply bg-idxf-black/30 rounded-lg p-3 text-idxf-black placeholder:text-idxf-black/50 w-full border-0;
+  }
+  
+  .idxf-textarea {
+    @apply bg-idxf-black/30 rounded-lg p-3 text-idxf-black placeholder:text-idxf-black/50 w-full border-0;
+  }
+  
+  /* IDXF Buttons */
+  .idxf-button {
+    @apply bg-idxf-black text-white rounded-full py-2 px-4 font-medium transition-all;
+  }
+  
+  .idxf-button-lime {
+    @apply bg-idxf-lime text-idxf-black rounded-full py-2 px-4 font-medium transition-all;
+  }
+  
+  /* IDXF Progress Indicators */
+  .idxf-progress-container {
+    @apply w-full h-2 bg-idxf-black/20 rounded-full overflow-hidden;
+  }
+  
+  .idxf-progress-bar {
+    @apply h-full rounded-full;
+  }
+  
+  /* IDXF Badges */
+  .idxf-badge {
+    @apply bg-idxf-black text-white text-xs rounded-full py-1 px-3 font-medium;
+  }
+  
+  /* IDXF Avatar */
+  .idxf-avatar {
+    @apply rounded-full bg-idxf-olive overflow-hidden;
   }
 }
 
-.page-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 mb-8 md:mb-24;
+/* Custom IDXF animations */
+@keyframes idxf-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
-.with-sidebar {
-  @apply pt-0 md:pl-64;
+.idxf-floating {
+  animation: idxf-float 3s ease-in-out infinite;
 }
 
-.fixed-nav-content {
-  @apply md:pl-72 min-h-screen pb-24 pt-4;
-}
-
-.page-header {
-  @apply text-2xl font-bold mb-2;
-}
-
-.page-subheader {
-  @apply text-muted-foreground mb-4 text-sm;
-}
-
-.glassmorphic-card {
-  @apply rounded-xl border border-border/20 bg-card/80 shadow-md backdrop-blur-sm p-4 sm:p-6;
-}
-
-.glassmorphism {
-  @apply bg-background/80 backdrop-blur-sm border-b-2 border-border shadow-sm;
-}
-
-.chip {
-  @apply text-xs px-2 py-0.5 rounded-full border border-border bg-muted/50 inline-block;
-}
-
-.chip-active {
-  @apply bg-primary text-primary-foreground border border-primary;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.grid-card {
-  @apply relative overflow-hidden rounded-md border border-border shadow-sm;
-}
-
-.matches-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4;
-}
-
-.match-card {
-  @apply bg-card/90 backdrop-blur-sm border-2 border-creative-coral/20 p-3 sm:p-4 flex flex-col gap-2 hover:border-creative-coral transition-colors duration-200 shadow-md rounded-xl;
-}
-
-.match-card-image {
-  @apply w-full aspect-square object-cover transition-all duration-300 rounded-lg;
-  filter: saturate(1.2);
-}
-
-.match-card-title {
-  @apply font-bold text-sm;
-}
-
-.match-card-subtitle {
-  @apply text-xs text-muted-foreground;
-}
-
-.match-card-meta {
-  @apply mt-auto pt-2 text-[10px] text-muted-foreground border-t border-border;
-}
-
-.minimal-page-container {
-  @apply max-w-full px-4 sm:px-6 py-4 sm:py-8 mx-auto;
-}
-
-.minimal-search {
-  @apply bg-transparent border-b-2 border-creative-purple rounded-full px-3 sm:px-6 py-2 focus:ring-0 placeholder:text-muted-foreground tracking-wider focus:border-creative-coral transition-colors duration-300;
-}
-
-.minimal-header {
-  @apply text-lg sm:text-xl md:text-2xl font-bold mb-4 sm:mb-8 relative inline-block;
-}
-
-.minimal-header::after {
-  content: '';
-  @apply absolute -bottom-1 left-0 right-0 h-1 bg-creative-coral rounded-full;
-  width: 60%;
-}
-
-.minimal-subheader {
-  @apply text-creative-coral font-medium text-xs sm:text-sm mb-2 sm:mb-4;
-}
-
-.profile-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6;
-}
-
-.profile-card {
-  @apply flex flex-col border-b-2 border-border pb-4 sm:pb-6 hover:border-creative-coral transition-all duration-300 shadow-sm hover:shadow-md;
-}
-
-.profile-image {
-  @apply mb-4 aspect-square bg-creative-lavender flex items-center justify-center text-3xl font-bold text-creative-coral shadow-inner;
-}
-
-.profile-name {
-  @apply font-bold text-base text-left;
-}
-
-.profile-location {
-  @apply text-sm text-muted-foreground mb-3 text-left;
-}
-
-.profile-skills {
-  @apply flex flex-wrap gap-2 mt-2;
-}
-
-.profile-metadata {
-  @apply mt-auto pt-3 text-xs text-muted-foreground flex justify-between items-center border-t border-border/50;
-}
-
-.minimal-container {
-  @apply max-w-full px-4 sm:px-8 py-6 sm:py-12 md:pl-72;
-}
-
-.letter-spacing-wide {
-  letter-spacing: 0.05em;
-}
-
-.scroll-smooth {
-  scroll-behavior: smooth;
-}
-
-.modern-search {
-  @apply bg-card pl-10 pr-4 py-3 rounded-full shadow-md border-0 w-full focus:ring-2 focus:ring-creative-coral focus:outline-none;
-}
-
-.modern-card {
-  @apply bg-card/80 backdrop-blur-sm rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg border-2 border-creative-purple/20 hover:border-creative-purple/40;
-}
-
-.feature-icon {
-  @apply bg-creative-coral/10 text-creative-coral rounded-full p-3 mb-4 shadow-sm;
-}
-
-.action-button {
-  @apply bg-creative-coral text-white font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full transition-all duration-300 hover:bg-creative-coral/90 hover:shadow-lg border border-creative-coral/30;
-}
-
-.secondary-button {
-  @apply bg-background text-black font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-border transition-all duration-300 hover:border-creative-coral hover:shadow-md;
-}
-
-.hero-headline {
-  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight relative inline-block;
-}
-
-.hero-headline::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 60%;
-  height: 4px;
-  background-color: theme('colors.creative.coral');
-  border-radius: 2px;
-}
-
-.hero-subheadline {
-  @apply text-base sm:text-lg md:text-xl text-foreground/70 mt-3 sm:mt-4 mb-6 sm:mb-8;
-}
-
-.navbar-dark {
-  @apply bg-black text-white shadow-md;
-}
-
-.navbar-item {
-  @apply text-white/80 hover:text-white transition-colors;
-}
-
-.navbar-item-active {
-  @apply text-creative-coral;
-}
-
-.beta-indicator {
-  @apply fixed top-4 right-4 z-50 flex items-center bg-card/90 backdrop-blur-sm border border-border/40 rounded-full px-3 py-1.5 shadow-md;
-}
-
-.blink {
-  animation: blink 1.5s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-/* Creative design elements */
-.geometric-shape {
-  @apply absolute pointer-events-none;
-  z-index: -1;
-}
-
-.creative-circle {
-  @apply rounded-full;
-}
-
-.creative-hexagon {
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-
-.creative-arc {
-  @apply rounded-t-full;
-}
-
-.shape-coral {
-  @apply bg-creative-coral/30;
-}
-
-.shape-yellow {
-  @apply bg-creative-yellow/30;
-}
-
-.shape-purple {
-  @apply bg-creative-purple/30;
-}
-
-.shape-blue {
-  @apply bg-creative-blue/30;
-}
-
-.shape-green {
-  @apply bg-creative-green/30;
-}
-
-/* Mobile specific styles */
+/* Mobile layout adjustments */
 @media (max-width: 768px) {
-  .fixed-nav-content {
-    @apply pl-0 pb-16;
+  .idxf-container {
+    @apply pb-28;
   }
   
-  .with-sidebar {
-    @apply pl-0;
+  .idxf-create-button {
+    @apply fixed bottom-20 left-1/2 -translate-x-1/2 z-50;
   }
-  
-  .minimal-container {
-    @apply pl-4;
-  }
-  
-  .hero-section {
-    @apply py-10;
-  }
-  
-  .page-container {
-    @apply px-3 py-3 pt-[25px];
-  }
-  
-  /* Mobile navbar specific styles */
-  nav.fixed {
-    @apply scrollbar-hide;
-  }
-}
-
-/* Figma-like UI classes */
-.figma-card {
-  @apply bg-card/90 backdrop-blur-sm border border-creative-purple/20 rounded-md shadow-md hover:shadow-lg transition-all duration-200;
-}
-
-.figma-button {
-  @apply px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2;
-}
-
-.figma-button-primary {
-  @apply bg-creative-pink text-creative-black hover:bg-creative-pink/90;
-}
-
-.figma-button-secondary {
-  @apply bg-creative-purple text-creative-black hover:bg-creative-purple/90;
-}
-
-.figma-button-ghost {
-  @apply bg-transparent text-foreground hover:bg-white/5;
-}
-
-.figma-input {
-  @apply bg-card border border-border/50 rounded-md px-3 py-2 focus:ring-1 focus:ring-creative-purple/50 focus:outline-none;
-}
-
-.figma-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
-}
-
-.figma-toolbar {
-  @apply flex items-center gap-2 p-2 bg-card/80 backdrop-blur-sm border-b border-border/30;
-}
-
-.figma-icon-button {
-  @apply p-2 rounded-md hover:bg-white/5 transition-all duration-200;
-}
-
-.figma-tag {
-  @apply text-xs px-2 py-0.5 rounded-full bg-creative-purple/20 text-creative-purple;
-}
-
-/* Additional classes for Figma-like experience */
-.figma-panel {
-  @apply border border-border/30 rounded-md bg-card/80 backdrop-blur-sm;
-}
-
-.figma-divider {
-  @apply h-px w-full bg-border/30 my-2;
 }

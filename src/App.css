@@ -4,6 +4,8 @@
   margin: 0 auto;
   padding: 0;
   text-align: left;
+  background-color: #0F0F0F; /* IDXF black background */
+  min-height: 100vh;
 }
 
 /* Remove all scrollbars */
@@ -17,288 +19,292 @@
 }
 
 .logo {
-  height: 4em;
-  padding: 1em;
-  will-change: filter;
-  transition: filter 300ms;
+  font-family: Arial Rounded MT Bold, Arial, sans-serif;
+  font-weight: bold;
+  letter-spacing: -1px;
+  color: white;
 }
 
-@media (min-width: 640px) {
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-  }
+.idxf-logo {
+  font-family: Arial Rounded MT Bold, Arial, sans-serif;
+  font-weight: bold;
+  letter-spacing: -0.5px;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #FFB6B6aa); /* Updated to pastel coral color */
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #D9C7FFaa); /* Updated to pastel purple color */
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* App Container */
+.idxf-container {
+  background-color: #0F0F0F;
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px; /* Space for bottom nav */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Tab Styling */
+.idxf-tabs {
+  width: 100%;
+  padding: 8px;
+  display: flex;
+  border-radius: 99px;
+  background-color: rgba(165, 184, 107, 0.3); /* Olive with opacity */
+  overflow: hidden;
 }
 
-/* Updated card styling with Figma-like branding */
-.card {
-  padding: 2em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 182, 182, 0.15); /* Pastel coral color */
+.idxf-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 99px;
+  transition: all 0.3s ease;
+}
+
+.idxf-tab-active {
+  background-color: #DEFA69; /* Lime */
+  color: #0F0F0F; /* Black */
+}
+
+.idxf-tab-inactive {
+  color: white;
+}
+
+/* Card Styling */
+.idxf-card {
+  background-color: #DEFA69; /* Lime */
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  color: #0F0F0F; /* Black */
+  overflow: hidden;
+}
+
+.idxf-card-dark {
+  background-color: #1A1A1A; /* Dark Gray */
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.idxf-card-olive {
+  background-color: #A5B86B; /* Olive */
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  color: #0F0F0F; /* Black */
+}
+
+/* Button Styling */
+.idxf-button {
+  background-color: #0F0F0F; /* Black */
+  color: white;
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.idxf-button:hover {
+  transform: scale(1.05);
+}
+
+.idxf-button-lime {
+  background-color: #DEFA69; /* Lime */
+  color: #0F0F0F; /* Black */
+}
+
+.idxf-button-outline {
+  background-color: transparent;
+  border: 2px solid #DEFA69; /* Lime */
+  color: white;
+}
+
+/* Navigation Bar */
+.idxf-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #0F0F0F; /* Black */
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.idxf-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.idxf-nav-item-active {
+  color: #DEFA69; /* Lime */
+}
+
+.idxf-search-input {
+  background-color: #DEFA69; /* Lime */
+  border-radius: 99px;
+  padding: 12px 20px;
+  width: 100%;
+  color: #0F0F0F; /* Black */
+  font-weight: 500;
+}
+
+/* QR code container */
+.idxf-qr-container {
+  background-color: #0F0F0F;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* Skills tags */
+.idxf-skill-tag {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 0.875rem;
+  display: inline-block;
+  margin: 0 4px 4px 0;
+}
+
+/* Project metrics */
+.idxf-metric {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  margin-right: 16px;
+}
+
+/* Create button */
+.idxf-create-button {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #0F0F0F;
+  color: white;
+  border-radius: 99px;
+  padding: 12px 24px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+/* Dialog styles */
+.idxf-dialog {
+  background-color: #DEFA69; /* Lime */
+  border-radius: 24px;
+  padding: 24px;
+  color: #0F0F0F; /* Black */
+  width: calc(100% - 48px);
+  max-width: 500px;
+  margin: 24px auto;
+}
+
+.idxf-dialog-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.idxf-input {
+  background-color: rgba(15, 15, 15, 0.2);
   border-radius: 8px;
-  backdrop-filter: blur(8px);
-  background-color: rgba(26, 26, 26, 0.7);
+  padding: 12px 16px;
+  width: 100%;
+  margin-bottom: 16px;
+  color: #0F0F0F;
 }
 
-.read-the-docs {
-  color: #FFFFFF;
+.idxf-input::placeholder {
+  color: rgba(15, 15, 15, 0.6);
 }
 
-/* Button styles */
-.button-primary {
-  @apply bg-creative-pink text-creative-black px-5 py-2.5 sm:px-7 sm:py-3 rounded-md hover:bg-creative-pink/90 font-medium transition-all duration-300 shadow-sm border border-creative-pink/20;
+.idxf-textarea {
+  background-color: rgba(15, 15, 15, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  width: 100%;
+  min-height: 120px;
+  margin-bottom: 16px;
+  color: #0F0F0F;
 }
 
-.button-secondary {
-  @apply bg-creative-purple text-creative-black border border-border px-5 py-2.5 sm:px-7 sm:py-3 rounded-md hover:shadow-md font-medium transition-all duration-300;
+/* Progress bars */
+.idxf-progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  margin: 8px 0;
 }
 
-/* Mobile specific adjustments */
-@media (max-width: 768px) {
-  .button-primary, .button-secondary {
-    @apply px-4 py-2.5 text-sm;
-  }
-  
-  /* Add top and bottom padding for mobile pages to account for the header and footer */
-  .mobile-page-padding {
-    padding-top: 80px; /* Increased for logo and profile button */
-    padding-bottom: 80px; /* For bottom navbar */
-  }
-
-  /* Mobile navbar specific styles */
-  .mobile-navbar {
-    @apply rounded-t-xl border border-border/30 shadow-lg;
-  }
-  
-  /* Improved spacing for mobile navbar items */
-  .mobile-navbar-item {
-    @apply mx-3;
-  }
+.idxf-progress-bar {
+  height: 100%;
+  border-radius: 4px;
 }
 
-/* Creative components with pastel colors */
-.creative-shape {
-  @apply relative inline-block;
-  transform-origin: center;
+.idxf-progress-danger {
+  background-color: #E74C3C;
 }
 
-.creative-circle {
-  @apply rounded-full bg-creative-pink inline-block;
+.idxf-progress-warning {
+  background-color: #F39C12;
+}
+
+.idxf-progress-success {
+  background-color: #2ECC71;
+}
+
+.idxf-step-card {
+  background-color: #DEFA69;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  color: #0F0F0F;
+}
+
+.idxf-step-focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid #DEFA69;
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Avatar styling */
+.idxf-avatar {
   width: 80px;
   height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #A5B86B; /* Olive */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0F0F0F;
 }
 
-.creative-hexagon {
-  @apply bg-creative-yellow relative inline-block;
-  width: 100px;
-  height: 100px;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  transform: rotate(15deg);
+.idxf-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.creative-arc {
-  @apply bg-creative-yellow inline-block;
-  width: 120px;
-  height: 60px;
-  border-radius: 120px 120px 0 0;
-}
-
-.creative-rect {
-  @apply bg-creative-green inline-block;
-  width: 80px;
-  height: 30px;
-  border-radius: 4px;
-}
-
-.creative-tag {
-  @apply bg-creative-blue inline-block text-creative-black py-1.5 px-3.5 text-xs font-medium;
-  border-radius: 4px;
-}
-
-/* Highlight animation for steps */
-@keyframes highlight-pulse {
-  0% {
-    background-color: rgba(255, 182, 182, 0.1); /* Pastel Coral */
-  }
-  50% {
-    background-color: rgba(255, 182, 182, 0.2);
-  }
-  100% {
-    background-color: rgba(255, 182, 182, 0.1);
-  }
-}
-
-.highlight-step {
-  animation: highlight-pulse 2s ease-in-out;
-}
-
-/* QR Code styles */
-.qr-code-container {
-  background-color: #1A1A1A;
-  padding: 16px;
-  border-radius: 8px;
-  display: inline-block;
-}
-
-/* Glassmorphism styles */
-.glassmorphic {
-  @apply bg-card/80 backdrop-blur-sm border border-creative-pink/30 shadow-lg;
-}
-
-.glassmorphic-card {
-  @apply bg-card/80 backdrop-blur-sm border border-creative-purple/30 shadow-md;
-}
-
-.text-shadow {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.card-content {
-  @apply text-left space-y-4;
-}
-
-.card-title {
-  @apply text-xl font-bold mb-3 tracking-wide font-playfair;
-}
-
-.card-description {
-  @apply text-sm text-muted-foreground leading-relaxed;
-}
-
-/* Improved readability for text on dark backgrounds */
-.improved-text-contrast {
-  @apply tracking-wide leading-relaxed;
-}
-
-/* Card hover animations */
-.hover-lift {
-  @apply transition-all duration-300 hover:translate-y-[-3px] hover:shadow-xl;
-}
-
-/* Hero text styles */
-.hero-headline {
-  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight font-playfair;
-}
-
-.hero-subheadline {
-  @apply text-base sm:text-lg md:text-xl text-foreground/80 mt-3 sm:mt-4 mb-6 sm:mb-8;
-}
-
-/* Figma-inspired UI elements */
-.figma-ui-card {
-  @apply bg-creative-black border border-white/10 rounded-md p-5 shadow-lg hover:border-creative-purple/30 transition-all duration-300;
-}
-
-.figma-ui-button {
-  @apply bg-creative-purple text-white px-4 py-2 rounded-md text-sm shadow-sm hover:bg-creative-purple/90 transition-all duration-200;
-}
-
-.figma-ui-tag {
-  @apply bg-creative-purple/20 text-creative-purple px-2.5 py-1 rounded-full text-xs;
-}
-
-.figma-ui-input {
-  @apply bg-creative-black/60 border border-white/10 rounded-md px-4 py-2.5 text-white placeholder-white/40 focus:border-creative-purple/50 focus:outline-none transition-all duration-200;
-}
-
-.figma-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6;
-}
-
-.figma-property-panel {
-  @apply bg-creative-black/80 border-l border-white/10 p-5 fixed right-0 top-0 h-screen w-72 shadow-lg;
-}
-
-.figma-toolbar {
-  @apply fixed top-0 left-0 right-0 bg-creative-black border-b border-white/10 px-5 py-3 flex items-center justify-between z-10;
-}
-
-.figma-workspace {
-  @apply p-8 mt-16 space-y-8;
-}
-
-/* Additional creative UI elements */
-.creative-grid {
-  @apply grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4;
-  background-image: linear-gradient(90deg, rgba(217, 199, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(180deg, rgba(217, 199, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.creative-accent-box {
-  @apply relative p-5 rounded-lg overflow-hidden;
-}
-
-.creative-accent-box::before {
-  content: '';
-  @apply absolute -bottom-4 -left-4 bg-creative-yellow w-16 h-16 rounded-full opacity-20;
-}
-
-/* Mobile nav adjustments */
-@media (max-width: 768px) {
-  .floating-nav {
-    @apply fixed bottom-0 left-0 right-0 top-auto rounded-t-lg rounded-b-none;
-  }
-  
-  /* Ensure content doesn't overlap with bottom navigation */
-  .fixed-nav-content-mobile {
-    padding-bottom: 80px;
-  }
-}
-
-/* Figma-like component styles */
-.component-library {
-  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6;
-}
-
-.component-card {
-  @apply bg-creative-black border border-white/10 rounded-md overflow-hidden hover:border-creative-purple/40 transition-all duration-200;
-}
-
-.component-preview {
-  @apply p-5 h-36 flex items-center justify-center bg-opacity-10 bg-white/5;
-}
-
-.component-info {
-  @apply p-4 border-t border-white/10 text-sm;
-}
-
-.component-title {
-  @apply font-medium mb-2;
-}
-
-.component-description {
-  @apply text-xs text-white/60;
-}
-
-/* Fix Navbar spacing */
-.fixed-nav-content {
-  @apply md:pl-80 min-h-screen pb-24 pt-6;
-}
-
-/* Container consistency */
-.container {
-  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+/* Match percentage badge */
+.idxf-match-badge {
+  background-color: #0F0F0F; /* Black */
+  color: white;
+  border-radius: 99px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
