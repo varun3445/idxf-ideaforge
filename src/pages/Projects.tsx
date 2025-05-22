@@ -14,10 +14,56 @@ import { useToast } from '../hooks/use-toast';
 import { useProject, Project } from '../contexts/ProjectContext';
 import { useAuth } from '../AuthContext';
 import { createLocalProject, debugProjectStorage } from '../utils/projectUtils';
-import ProjectShareDialog from '../components/ProjectShareDialog';
+import IdxfDialog from '../components/IdxfDialog';
 
-// We'll use the imported ProjectShareDialog component and rename our local component 
-// to avoid naming conflicts
+// Custom Share Dialog - Let's use our IdxfDialog for consistent styling
+interface ShareProjectProps {
+  project: Project | null;
+  onCopyLink: () => void;
+  onClose: () => void;
+  open: boolean;
+}
+
+const ShareProjectDialog: React.FC<ShareProjectProps> = ({ project, onCopyLink, onClose, open }) => (
+  <IdxfDialog 
+    open={open} 
+    onOpenChange={() => onClose()}
+    title="Share Project"
+    description="Share your project with collaborators or get feedback."
+  >
+    <div className="space-y-4 py-2">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-idxf-black/80">
+          Project Link
+        </label>
+        <div className="flex">
+          <Input
+            value={`https://ideaforge.app/join-project/${project?.share_code || ''}`}
+            readOnly
+            className="bg-idxf-black/10 border-0 text-idxf-black rounded-lg"
+          />
+          <Button
+            variant="black"
+            className="ml-2"
+            onClick={onCopyLink}
+          >
+            Copy
+          </Button>
+        </div>
+        <p className="text-xs text-idxf-black/70">
+          Anyone with this link can view and request to join your project.
+        </p>
+      </div>
+    </div>
+    
+    <div className="mt-6 flex justify-end">
+      <Button variant="black" onClick={() => onClose()}>
+        Done
+      </Button>
+    </div>
+  </IdxfDialog>
+);
+
 interface ProjectCardProps {
   project: Project;
   isBackingProject: boolean;
@@ -36,8 +82,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   handleShareProject,
 }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const userId = user?.id || 'user-1';
 
   // Generate a random progress for design purposes (1-100)
   const randomProgress = Math.floor(Math.random() * 100) + 1;
@@ -151,78 +195,65 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   handleCreateProject,
   isSubmitting,
 }) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="bg-idxf-lime text-idxf-black border-0 rounded-3xl max-w-md">
-      <DialogHeader className="flex flex-row items-start justify-between">
-        <div>
-          <DialogTitle className="text-2xl font-bold">Create new project</DialogTitle>
-          <DialogDescription className="text-idxf-black/70">
-            Add a new project to start collaborating and bringing your ideas to life.
-          </DialogDescription>
+  <IdxfDialog 
+    open={open} 
+    onOpenChange={onOpenChange}
+    title="Create new project"
+    description="Add a new project to start collaborating and bringing your ideas to life."
+  >
+    <form onSubmit={handleCreateProject}>
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <label htmlFor="title" className="text-sm font-medium text-idxf-black/80 flex items-center">
+            <span className="text-idxf-lime bg-idxf-black rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">*</span>
+            Name your idea:
+          </label>
+          <Input
+            id="title"
+            placeholder="Enter a title for your project"
+            value={newProjectTitle}
+            onChange={(e) => setNewProjectTitle(e.target.value)}
+            required
+            className="bg-idxf-black/10 border-0 placeholder:text-idxf-black/40 text-idxf-black rounded-lg"
+          />
         </div>
+
+        <div className="space-y-2">
+          <label htmlFor="description" className="text-sm font-medium text-idxf-black/80 flex items-center">
+            <span className="text-idxf-lime bg-idxf-black rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">*</span>
+            Describe the idea:
+          </label>
+          <Textarea
+            id="description"
+            placeholder="Describe what your project is about"
+            value={newProjectDescription}
+            onChange={(e) => setNewProjectDescription(e.target.value)}
+            rows={3}
+            required
+            className="bg-idxf-black/10 border-0 placeholder:text-idxf-black/40 text-idxf-black rounded-lg"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6">
         <Button 
-          variant="ghost" 
-          className="rounded-full w-8 h-8 p-0 bg-idxf-black/10 text-idxf-black hover:bg-idxf-black/20" 
-          onClick={() => onOpenChange(false)}
+          type="submit" 
+          disabled={isSubmitting} 
+          variant="black"
+          className="w-full"
         >
-          <X className="h-4 w-4" />
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            'Commit now!'
+          )}
         </Button>
-      </DialogHeader>
-
-      <form onSubmit={handleCreateProject}>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium text-idxf-black/80 flex items-center">
-              <span className="text-idxf-lime bg-idxf-black rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">*</span>
-              Name your idea:
-            </label>
-            <Input
-              id="title"
-              placeholder="Enter a title for your project"
-              value={newProjectTitle}
-              onChange={(e) => setNewProjectTitle(e.target.value)}
-              required
-              className="bg-idxf-black/10 border-0 placeholder:text-idxf-black/40 text-idxf-black rounded-lg"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-idxf-black/80 flex items-center">
-              <span className="text-idxf-lime bg-idxf-black rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">*</span>
-              Describe the idea:
-            </label>
-            <Textarea
-              id="description"
-              placeholder="Describe what your project is about"
-              value={newProjectDescription}
-              onChange={(e) => setNewProjectDescription(e.target.value)}
-              rows={3}
-              required
-              className="bg-idxf-black/10 border-0 placeholder:text-idxf-black/40 text-idxf-black rounded-lg"
-            />
-          </div>
-        </div>
-
-        <DialogFooter className="mt-6">
-          <Button 
-            type="submit" 
-            disabled={isSubmitting} 
-            variant="black"
-            className="w-full"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Commit now!'
-            )}
-          </Button>
-        </DialogFooter>
-      </form>
-    </DialogContent>
-  </Dialog>
+      </div>
+    </form>
+  </IdxfDialog>
 );
 
 const Projects: React.FC = () => {
@@ -451,14 +482,12 @@ const Projects: React.FC = () => {
           isSubmitting={isSubmitting}
         />
 
-        {selectedProject && (
-          <ProjectShareDialog 
-            open={isShareDialogOpen} 
-            onOpenChange={setIsShareDialogOpen} 
-            projectTitle={selectedProject.title} 
-            shareCode={selectedProject.share_code || ''} 
-          />
-        )}
+        <ShareProjectDialog
+          open={isShareDialogOpen}
+          onClose={() => setIsShareDialogOpen(false)}
+          project={selectedProject}
+          onCopyLink={handleCopyLink}
+        />
         
         {/* Mobile Navigation */}
         <div className="fixed bottom-0 left-0 right-0 bg-idxf-black border-t border-white/10 p-3 flex justify-around">
