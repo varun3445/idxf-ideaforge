@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { X } from 'lucide-react';
-
 interface IdxfDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -12,41 +10,27 @@ interface IdxfDialogProps {
   children: React.ReactNode;
   showCloseButton?: boolean;
 }
-
 const IdxfDialog: React.FC<IdxfDialogProps> = ({
   open,
   onOpenChange,
   title,
   description,
   children,
-  showCloseButton = true,
+  showCloseButton = true
 }) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-idxf-lime text-idxf-black border-0 rounded-3xl max-w-md">
         <DialogHeader className="flex flex-row items-start justify-between">
           <div>
             <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
-            {description && (
-              <DialogDescription className="text-idxf-black/70">
+            {description && <DialogDescription className="text-idxf-black/70 text-center">
                 {description}
-              </DialogDescription>
-            )}
+              </DialogDescription>}
           </div>
-          {showCloseButton && (
-            <Button 
-              variant="ghost" 
-              className="rounded-full w-8 h-8 p-0 bg-idxf-black/10 text-idxf-black hover:bg-idxf-black/20" 
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+          {showCloseButton}
         </DialogHeader>
         {children}
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default IdxfDialog;
