@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { ChevronDown, ChevronRight, Trash, MoreHorizontal, UserPlus, CheckCircle2, Image, FileText, Paperclip } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash, MoreHorizontal, UserPlus, Image, FileText, Paperclip } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { useProject, ProjectStep, StepAssignment, ProjectCollaborator } from '../contexts/ProjectContext';
+import { useProject, ProjectStep, ProjectCollaborator } from '../contexts/ProjectContext';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import StepImageDialog from './StepImageDialog';
@@ -40,8 +40,10 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
   // Find substeps for current step
   const substeps = projectSteps.filter(s => s.parent_step_id === step.id).sort((a, b) => a.order_index - b.order_index);
 
-  // Find assignments for this step
-  const assignments = stepAssignments.filter(a => a.step_id === step.id);
+  // Find assignments for this step - using useMemo to prevent recalculation on every render
+  const assignments = useMemo(() => {
+    return stepAssignments.filter(a => a.step_id === step.id);
+  }, [stepAssignments, step.id]);
 
   // Handle step completion toggle
   const handleCompletionToggle = () => {
@@ -65,7 +67,7 @@ const ProjectStepCard: React.FC<ProjectStepCardProps> = ({
     unassignStep(assignmentId);
   };
 
-  // Get initials for avatar
+  // Get initials for avatar - extracted to a reusable function
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
   };

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -18,10 +18,15 @@ const CollaboratorsList: React.FC<CollaboratorsListProps> = ({
   const { collaborators, removeCollaborator, currentProject } = useProject();
   const { projectId } = useParams<{ projectId: string }>();
 
-  // Get accepted collaborators
-  const acceptedCollaborators = collaborators.filter(c => c.status === 'accepted');
-  // Get pending collaborators
-  const pendingCollaborators = collaborators.filter(c => c.status === 'pending');
+  // Get accepted collaborators - using useMemo to prevent recalculation on every render
+  const acceptedCollaborators = useMemo(() => {
+    return collaborators.filter(c => c.status === 'accepted');
+  }, [collaborators]);
+  
+  // Get pending collaborators - using useMemo to prevent recalculation on every render
+  const pendingCollaborators = useMemo(() => {
+    return collaborators.filter(c => c.status === 'pending');
+  }, [collaborators]);
 
   // Get initials for avatar
   const getInitials = (name: string) => {
@@ -35,7 +40,7 @@ const CollaboratorsList: React.FC<CollaboratorsListProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="border-idxf-black/10">
       <CardHeader className="px-6 py-4 flex flex-row items-center justify-between">
         <CardTitle className="text-md font-medium">Collaborators</CardTitle>
         <Button onClick={onAddCollaborator} size="sm" className="h-8 px-2">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -10,13 +11,13 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Eye, EyeOff, MessageSquare, Calendar, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from './ui/progress';
 
 interface ProjectUpdate {
   id: string;
@@ -57,7 +58,6 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
   const [expandedProjects, setExpandedProjects] = useState<{[key: string]: boolean}>({});
 
   // Filter only published projects
-  // Changed from is_published to published to match Project interface
   const publishedProjects = projects.filter(project => project.published);
 
   const handleUpdateSubmit = (e: React.FormEvent) => {
@@ -86,6 +86,18 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
     setUpdateDialogOpen(true);
   };
 
+  // Generate stable progress values based on project id
+  const getStableProgress = (projectId: string) => {
+    // Use a hash of the project ID to create a stable progress value
+    const hashCode = projectId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    // Generate a number between 10 and 90
+    return Math.abs(hashCode % 81) + 10;
+  };
+
   return (
     <div>
       {publishedProjects.length === 0 ? (
@@ -97,116 +109,133 @@ const PublishedProjectsManager: React.FC<PublishedProjectsManagerProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {publishedProjects.map(project => (
-            <Card key={project.id} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{project.title}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {project.description}
-                    </CardDescription>
+          {publishedProjects.map(project => {
+            // Generate stable progress value
+            const progressValue = getStableProgress(project.id);
+            
+            return (
+              <Card key={project.id} className="overflow-hidden border-idxf-black/10">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{project.title}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {project.description}
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onPublishStatusChange(project.id, !project.published)}
+                    >
+                      {project.published ? (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-2" />
+                          Unpublish
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Publish
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onPublishStatusChange(project.id, !project.published)}
-                  >
-                    {project.published ? (
-                      <>
-                        <EyeOff className="h-4 w-4 mr-2" />
-                        Unpublish
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Publish
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardHeader>
-              
-              {project.imageUrl && (
-                <div className="px-6">
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-48 object-cover rounded-md mb-4"
-                  />
-                </div>
-              )}
-              
-              <CardContent className="pb-2">
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>Created {format(new Date(project.createdAt), 'MMM d, yyyy')}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-1" />
-                    <span>{project.backersCount} backers</span>
-                  </div>
-                </div>
+                </CardHeader>
                 
-                <div className="border-t pt-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => toggleProjectExpanded(project.id)}
-                  >
-                    <span>Project Updates</span>
-                    {expandedProjects[project.id] ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
+                {project.imageUrl && (
+                  <div className="px-6">
+                    <img 
+                      src={project.imageUrl} 
+                      alt={project.title} 
+                      className="w-full h-48 object-cover rounded-md mb-4"
+                    />
+                  </div>
+                )}
+                
+                <CardContent className="pb-2">
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>Created {format(new Date(project.createdAt), 'MMM d, yyyy')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-1" />
+                      <span>{project.backersCount} backers</span>
+                    </div>
+                  </div>
                   
-                  {expandedProjects[project.id] && (
-                    <div className="mt-3 space-y-3">
-                      {project.updates && project.updates.length > 0 ? (
-                        project.updates.map(update => (
-                          <div key={update.id} className="bg-gray-50 p-3 rounded-md">
-                            <div className="flex items-start space-x-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback>U</AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="flex justify-between">
-                                  <span className="text-sm font-medium">Project Update</span>
-                                  <span className="text-xs text-gray-500">
-                                    {format(new Date(update.timestamp), 'MMM d, yyyy')}
-                                  </span>
+                  {/* Progress bar - stable value based on project id */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{progressValue}%</span>
+                    </div>
+                    <Progress 
+                      value={progressValue} 
+                      className="h-2 bg-idxf-black/10" 
+                    />
+                  </div>
+                  
+                  <div className="border-t pt-3">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                      onClick={() => toggleProjectExpanded(project.id)}
+                    >
+                      <span>Project Updates</span>
+                      {expandedProjects[project.id] ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    {expandedProjects[project.id] && (
+                      <div className="mt-3 space-y-3">
+                        {project.updates && project.updates.length > 0 ? (
+                          project.updates.map(update => (
+                            <div key={update.id} className="bg-gray-50/50 p-3 rounded-md">
+                              <div className="flex items-start space-x-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm font-medium">Project Update</span>
+                                    <span className="text-xs text-gray-500">
+                                      {format(new Date(update.timestamp), 'MMM d, yyyy')}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm mt-1">{update.content}</p>
                                 </div>
-                                <p className="text-sm mt-1">{update.content}</p>
                               </div>
                             </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500 text-center py-2">
-                          No updates yet
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              
-              <CardFooter className="pt-1">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => handleOpenUpdateDialog(project)}
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Post Update
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 text-center py-2">
+                            No updates yet
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleOpenUpdateDialog(project)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Post Update
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
       )}
       
