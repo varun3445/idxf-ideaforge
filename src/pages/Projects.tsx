@@ -330,7 +330,7 @@ const Projects: React.FC = () => {
           </Tabs>
           
           <div className="fixed bottom-24 right-0 left-0 flex justify-center">
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-idxf-black text-white rounded-full py-3 px-6 shadow-lg flex items-center font-bold">
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="text-white rounded-full py-3 px-6 shadow-lg flex items-center font-bold bg-zinc-800 hover:bg-zinc-700">
               Create project <span className="ml-2 text-idxf-lime">✧</span>
             </Button>
           </div>
