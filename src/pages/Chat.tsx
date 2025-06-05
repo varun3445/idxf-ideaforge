@@ -67,19 +67,29 @@ const Chat: React.FC = () => {
 
   const loadUserRooms = async () => {
     try {
+      // First, get all public rooms or rooms where user is a member
       const { data: roomsData, error } = await supabase
         .from('chat_rooms')
         .select(`
           *,
-          chat_room_members(count)
-        `);
+          chat_room_members!inner(user_id)
+        `)
+        .or(`is_private.eq.false,chat_room_members.user_id.eq.${user?.id}`);
 
       if (error) throw error;
 
-      const roomsWithCount = roomsData?.map(room => ({
-        ...room,
-        member_count: room.chat_room_members?.[0]?.count || 0
-      })) || [];
+      // Get member counts for each room
+      const roomsWithCount = await Promise.all((roomsData || []).map(async (room) => {
+        const { count } = await supabase
+          .from('chat_room_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('room_id', room.id);
+
+        return {
+          ...room,
+          member_count: count || 0
+        };
+      }));
 
       setRooms(roomsWithCount);
 
@@ -104,8 +114,7 @@ const Chat: React.FC = () => {
       const { data: messagesData, error } = await supabase
         .from('chat_messages')
         .select(`
-          *,
-          profiles(name, avatar)
+          *
         `)
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
@@ -113,11 +122,23 @@ const Chat: React.FC = () => {
 
       if (error) throw error;
 
-      const messagesWithUser = messagesData?.map(msg => ({
-        ...msg,
-        user_name: msg.profiles?.name || 'Unknown User',
-        user_avatar: msg.profiles?.avatar
-      })) || [];
+      // Get profile data for each unique user
+      const userIds = [...new Set(messagesData?.map(msg => msg.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, name, avatar')
+        .in('id', userIds);
+
+      const profilesMap = new Map(profilesData?.map(profile => [profile.id, profile]) || []);
+
+      const messagesWithUser = messagesData?.map(msg => {
+        const profile = profilesMap.get(msg.user_id);
+        return {
+          ...msg,
+          user_name: profile?.name || 'Unknown User',
+          user_avatar: profile?.avatar
+        };
+      }) || [];
 
       setMessages(messagesWithUser);
     } catch (error) {
