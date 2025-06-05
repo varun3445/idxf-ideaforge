@@ -19,6 +19,7 @@ import Forge from './pages/Forge';
 import JoinProject from './pages/JoinProject';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Chat from './pages/Chat';
 
 import './App.css';
 
@@ -87,6 +88,11 @@ const AppContent = () => {
           <Route path="/join-project/:shareCode" element={
             <ProtectedRoute>
               <JoinProject />
+            </ProtectedRoute>
+          } />
+          <Route path="/chat" element={
+            <ProtectedRoute>
+              <Chat />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />

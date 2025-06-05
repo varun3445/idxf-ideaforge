@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { Button } from './ui/button';
-import { Globe, Search, User, LogOut, Plus, LogIn } from 'lucide-react';
+import { Globe, Search, User, LogOut, Plus, LogIn, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { useEffect } from 'react';
@@ -54,6 +54,12 @@ const Navbar = () => {
           strokeLinecap="round" 
           strokeLinejoin="round"/>
       </svg>
+    )
+  }, {
+    name: 'Chat',
+    path: '/chat',
+    icon: (isActive: boolean) => (
+      <MessageCircle className={`h-6 w-6 ${isActive ? "text-idxf-lime" : "text-white"}`} />
     )
   }, 
   ...(!isAuthenticated ? [{
