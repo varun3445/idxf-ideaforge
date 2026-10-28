@@ -26,13 +26,6 @@ AI features run as Supabase edge functions: `search-with-ai` and `project-ai-ass
 
 React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui on Radix primitives, TanStack Query, React Router, Framer Motion, Recharts, Zod, Supabase (auth, Postgres, edge functions).
 
-## Run it locally
-
-```bash
-npm install
-npm run dev
-```
-
 ## Related
 
 - [`IDXF_Final-public_RCA`](https://github.com/varun3445/IDXF_Final-public_RCA): the full stack build submitted at the Royal College of Art.
