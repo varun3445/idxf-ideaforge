@@ -1,69 +1,43 @@
-# Welcome to your Lovable project
+<p align="center"><img src="docs/cover.svg" alt="IDXF Idea Forge cover" width="100%"></p>
 
-## Project info
+# IDXF: Idea Forge (MVP)
 
-**URL**: https://lovable.dev/projects/a460441e-9fe8-41f7-a296-528dc9106e23
+A collaboration platform for the creative economy. Creatives lose hours every week across disconnected tools and have no structured way to find collaborators. Idea Forge brings profiles, project matching, community and messaging into one place.
 
-## How can I edit this code?
+I founded the product and led design for a team of 10 core contributors from concept to MVP. At launch it reached **42K+ impressions in the first 48 hours**.
 
-There are several ways of editing your application.
+Live: [idxf.netlify.app](https://idxf.netlify.app)
 
-**Use Lovable**
+![React](https://img.shields.io/badge/React-18-61DAFB) ![Vite](https://img.shields.io/badge/Vite-5-646CFF) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6) ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a460441e-9fe8-41f7-a296-528dc9106e23) and start prompting.
+## What is in it
 
-Changes made via Lovable will be committed automatically to this repo.
+| Area | Pages |
+| --- | --- |
+| Discover | Explore, Forge, Matches |
+| Projects | Projects, Project detail, Join project |
+| People | Profile, Communities, Chat |
+| Experiments | Experiment Lab |
+| Account | Login, Signup |
 
-**Use your preferred IDE**
+AI features run as Supabase edge functions: `search-with-ai` and `project-ai-assistant`.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui on Radix primitives, TanStack Query, React Router, Framer Motion, Recharts, Zod, Supabase (auth, Postgres, edge functions).
 
-Follow these steps:
+## Run it locally
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Related
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- [`IDXF_Final-public_RCA`](https://github.com/varun3445/IDXF_Final-public_RCA): the full stack build submitted at the Royal College of Art.
+- Case study: [varunsrivathsan.com](https://varunsrivathsan.com)
 
-**Use GitHub Codespaces**
+## Author
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/a460441e-9fe8-41f7-a296-528dc9106e23) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+[Varun Srivathsan](https://varunsrivathsan.com).
